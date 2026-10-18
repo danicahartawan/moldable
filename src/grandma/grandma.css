@@ -1,0 +1,107 @@
+.grandma-canvas,
+.grandma-story {
+  min-height: 100svh;
+  background: #fff;
+  color: #1f1c19;
+}
+
+.grandma-canvas {
+  position: relative;
+  padding: 18px 22px;
+}
+
+.grandma-recorder {
+  display: flex;
+  width: min-content;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.grandma-record-button {
+  display: inline-flex;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: #1f1c19;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px rgba(31, 28, 25, 0.06), 0 7px 20px rgba(31, 28, 25, 0.11);
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 180ms ease;
+}
+
+.grandma-record-button:hover {
+  box-shadow: 0 0 0 1px rgba(31, 28, 25, 0.08), 0 10px 25px rgba(31, 28, 25, 0.14);
+  transform: translateY(-1px);
+}
+
+.grandma-record-button:active { transform: scale(0.97); }
+.grandma-record-button:focus-visible { outline: 2px solid #1f1c19; outline-offset: 3px; }
+.grandma-record-button:disabled { cursor: wait; opacity: 0.72; }
+
+.grandma-record-button__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #df7774;
+  animation: grandma-pulse 1.2s ease-in-out infinite;
+}
+
+.grandma-transcript,
+.grandma-listening {
+  margin: 0;
+  color: #66635f;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.grandma-transcript--preview {
+  width: 28ch;
+  max-width: calc(100vw - 44px);
+  max-height: calc(1.45em * 5);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 100%);
+}
+
+.grandma-transcript__interim { color: #aaa7a2; }
+.grandma-transcript--error { width: min(28ch, calc(100vw - 44px)); color: #8a4b48; }
+.grandma-listening { color: #aaa7a2; }
+
+.grandma-story {
+  display: grid;
+  place-items: center;
+  padding: clamp(40px, 8vw, 120px) 24px;
+}
+
+.grandma-story__body { width: min(720px, 100%); }
+.grandma-story h1 {
+  max-width: 14ch;
+  margin: 0 0 36px;
+  font-size: clamp(42px, 8vw, 86px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+.grandma-story__title-pending { margin: 0 0 36px; color: #aaa7a2; font-size: 15px; }
+.grandma-story__transcript { margin: 0; font-size: clamp(20px, 2.5vw, 30px); line-height: 1.55; letter-spacing: -0.015em; }
+
+@keyframes grandma-pulse { 50% { opacity: 0.38; transform: scale(0.82); } }
+
+@media (max-width: 560px) {
+  .grandma-canvas { padding: 14px; }
+  .grandma-transcript--preview,
+  .grandma-transcript--error { max-width: calc(100vw - 28px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grandma-record-button,
+  .grandma-record-button__dot { animation: none; transition: none; }
+}

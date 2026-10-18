@@ -1,0 +1,71 @@
+'use client'
+
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { DotSpinner, Icon } from '../Icon'
+import { useVoiceRecorder } from '../useVoiceRecorder'
+import { requestGeneratedTitle, shouldGenerateTitle } from './title'
+import './grandma.css'
+
+export function GrandmaPage() {
+  const recorder = useVoiceRecorder()
+  const [title, setTitle] = useState('')
+  const titleRequested = useRef(false)
+  const fullTranscript = useMemo(
+    () => `${recorder.transcript}${recorder.interimTranscript}`.trim(),
+    [recorder.interimTranscript, recorder.transcript],
+  )
+  const isRecording = recorder.status === 'recording'
+  const isStarting = recorder.status === 'requesting'
+
+  useEffect(() => {
+    if (titleRequested.current || !shouldGenerateTitle(recorder.transcript)) return
+    titleRequested.current = true
+    void requestGeneratedTitle(recorder.transcript)
+      .then((nextTitle) => setTitle(nextTitle))
+      .catch(() => { titleRequested.current = false })
+  }, [recorder.transcript])
+
+  if (recorder.hasCompletedRecording) {
+    return (
+      <main className="grandma-story" aria-label="Grandma transcript">
+        <div className="grandma-story__body">
+          {title ? <h1>{title}</h1> : <p className="grandma-story__title-pending">Naming this story…</p>}
+          <p className="grandma-story__transcript" data-testid="complete-transcript">{fullTranscript}</p>
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <main className="grandma-canvas" aria-label="Record grandma">
+      <div className="grandma-recorder">
+        <button
+          className="grandma-record-button"
+          type="button"
+          aria-label={isRecording ? 'Stop recording' : 'Record'}
+          aria-pressed={isRecording}
+          disabled={isStarting || recorder.status === 'stopping'}
+          onClick={recorder.toggle}
+        >
+          {isStarting ? (
+            <><DotSpinner /><span>Starting</span></>
+          ) : isRecording ? (
+            <><span className="grandma-record-button__dot" /><span>Stop</span></>
+          ) : (
+            <><Icon name="mic" size={18} /><span>Record</span></>
+          )}
+        </button>
+
+        {recorder.errorMessage ? (
+          <p className="grandma-transcript grandma-transcript--error" role="status">{recorder.errorMessage}</p>
+        ) : fullTranscript ? (
+          <p className="grandma-transcript grandma-transcript--preview" data-testid="transcript-preview" aria-live="polite">
+            {recorder.transcript}<span className="grandma-transcript__interim">{recorder.interimTranscript}</span>
+          </p>
+        ) : isRecording ? (
+          <p className="grandma-listening" aria-live="polite">Listening…</p>
+        ) : null}
+      </div>
+    </main>
+  )
+}

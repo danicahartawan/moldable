@@ -1,0 +1,89 @@
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { GrandmaPage } from './GrandmaPage'
+
+type RecognitionResult = { isFinal: boolean; 0: { transcript: string } }
+
+let recognition: FakeRecognition
+
+class FakeRecognition {
+  continuous = false
+  interimResults = false
+  onresult: ((event: Event) => void) | null = null
+  onerror: ((event: Event) => void) | null = null
+  onend: (() => void) | null = null
+  start = vi.fn()
+  stop = vi.fn()
+
+  emit(...results: RecognitionResult[]) {
+    this.onresult?.({ resultIndex: 0, results } as unknown as Event)
+  }
+}
+
+class FakeMediaRecorder {
+  state: RecordingState = 'inactive'
+  start() { this.state = 'recording' }
+  stop() { this.state = 'inactive' }
+}
+
+describe('GrandmaPage', () => {
+  afterEach(cleanup)
+
+  beforeEach(() => {
+    recognition = new FakeRecognition()
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+    vi.stubGlobal('webkitSpeechRecognition', function FakeRecognitionConstructor() { return recognition })
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] }) },
+    })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ title: 'Sunday Soto Stories' }),
+    }))
+  })
+
+  it('starts as a blank recording canvas with a compact record control', () => {
+    render(<GrandmaPage />)
+
+    expect(screen.getByRole('main', { name: 'Record grandma' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Record' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('character-placeholder')).not.toBeInTheDocument()
+  })
+
+  it('shows a constrained live preview and moves to the complete transcript after stopping', async () => {
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Stop recording' })).toBeInTheDocument())
+
+    recognition.emit({
+      isFinal: true,
+      0: { transcript: 'Grandma toasted the spices slowly. Then she added the broth and told us to wait for the fragrance. We stayed beside the stove until the whole kitchen smelled warm.' },
+    })
+
+    const preview = await screen.findByTestId('transcript-preview')
+    expect(preview).toHaveClass('grandma-transcript--preview')
+    fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
+
+    expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
+    expect(screen.getByTestId('complete-transcript')).toHaveTextContent('Grandma toasted the spices slowly')
+    expect(screen.queryByTestId('transcript-preview')).not.toBeInTheDocument()
+  })
+
+  it('requests an AI title only after a few sentences have been transcribed', async () => {
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await waitFor(() => expect(recognition.start).toHaveBeenCalled())
+
+    recognition.emit({ isFinal: true, 0: { transcript: 'One short sentence.' } })
+    expect(fetch).not.toHaveBeenCalled()
+
+    recognition.emit({
+      isFinal: true,
+      0: { transcript: ' Then the broth began to simmer with the toasted spices. Grandma smiled and added a final pinch of salt while we waited together by the warm stove.' },
+    })
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/grandma/title', expect.objectContaining({ method: 'POST' })))
+  })
+})
