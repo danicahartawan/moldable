@@ -1,5 +1,5 @@
-import { App } from '@/App'
+import { MoldableHome } from '../home/MoldableHome'
 
 export default function Home() {
-  return <App />
+  return <MoldableHome />
 }
