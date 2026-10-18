@@ -9,6 +9,7 @@ import './grandma.css'
 export function GrandmaPage() {
   const recorder = useVoiceRecorder()
   const [title, setTitle] = useState('')
+  const [isTitlePending, setIsTitlePending] = useState(false)
   const titleRequested = useRef(false)
   const fullTranscript = useMemo(
     () => `${recorder.transcript}${recorder.interimTranscript}`.trim(),
@@ -20,17 +21,26 @@ export function GrandmaPage() {
   useEffect(() => {
     if (titleRequested.current || !shouldGenerateTitle(recorder.transcript)) return
     titleRequested.current = true
+    setIsTitlePending(true)
     void requestGeneratedTitle(recorder.transcript)
-      .then((nextTitle) => setTitle(nextTitle))
-      .catch(() => { titleRequested.current = false })
+      .then((nextTitle) => {
+        setTitle(nextTitle)
+        setIsTitlePending(false)
+      })
+      .catch(() => {
+        titleRequested.current = false
+        setIsTitlePending(false)
+      })
   }, [recorder.transcript])
 
   if (recorder.hasCompletedRecording) {
     return (
       <main className="grandma-story" aria-label="Grandma transcript">
         <div className="grandma-story__body">
-          {title ? <h1>{title}</h1> : <p className="grandma-story__title-pending">Naming this story…</p>}
-          <p className="grandma-story__transcript" data-testid="complete-transcript">{fullTranscript}</p>
+          {title ? <h1>{title}</h1> : null}
+          <p className="grandma-story__transcript" data-testid="complete-transcript">
+            {fullTranscript || 'No transcript was captured in this browser.'}
+          </p>
         </div>
       </main>
     )
@@ -39,7 +49,11 @@ export function GrandmaPage() {
   return (
     <main className="grandma-canvas" aria-label="Record grandma">
       <header className="grandma-header grandma-header--right" data-testid="grandma-header">
-        {title ? <h1 className="grandma-generated-title">{title}</h1> : null}
+        {title ? (
+          <h1 className="grandma-generated-title">{title}</h1>
+        ) : isTitlePending ? (
+          <p className="grandma-generated-title grandma-generated-title--pending" aria-live="polite">Naming this story…</p>
+        ) : null}
         <button
           className="grandma-record-button grandma-record-button--plain"
           type="button"

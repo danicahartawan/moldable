@@ -34,7 +34,8 @@ export async function POST(request: Request) {
       model: process.env.OPENAI_TITLE_MODEL ?? 'gpt-5-mini',
       instructions: 'Create a warm, specific title for this spoken family food story. Return only the title, with no quotation marks. Use 2 to 7 words.',
       input: transcript.slice(0, 4000),
-      max_output_tokens: 32,
+      reasoning: { effort: 'minimal' },
+      max_output_tokens: 128,
     }),
   })
 

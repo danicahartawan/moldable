@@ -92,4 +92,35 @@ describe('GrandmaPage', () => {
       screen.getByRole('heading', { name: 'Sunday Soto Stories' }),
     )
   })
+
+  it('keeps the pending title beside Stop and never moves it onto the completed transcript', async () => {
+    vi.mocked(fetch).mockImplementation(() => new Promise(() => {}))
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await waitFor(() => expect(recognition.start).toHaveBeenCalled())
+
+    recognition.emit({
+      isFinal: true,
+      0: { transcript: 'Grandma toasted the spices slowly. Then she poured in the broth and lowered the heat. We waited together until the whole kitchen smelled warm and peppery.' },
+    })
+
+    const pendingTitle = await screen.findByText('Naming this story…')
+    const stopButton = screen.getByRole('button', { name: 'Stop recording' })
+    expect(stopButton.parentElement).toContainElement(pendingTitle)
+
+    fireEvent.click(stopButton)
+    expect(await screen.findByTestId('complete-transcript')).toBeInTheDocument()
+    expect(screen.queryByText('Naming this story…')).not.toBeInTheDocument()
+  })
+
+  it('explains when the browser finishes without producing a transcript', async () => {
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await waitFor(() => expect(recognition.start).toHaveBeenCalled())
+    fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
+
+    expect(await screen.findByTestId('complete-transcript')).toHaveTextContent(
+      'No transcript was captured in this browser.',
+    )
+  })
 })
