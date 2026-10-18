@@ -1,4 +1,7 @@
-import type { ReactNode } from 'react'
+import { useCallback, useEffect, useRef, type CSSProperties, type ReactNode, type WheelEvent } from 'react'
+import { Camera, ChatCircle } from '@phosphor-icons/react'
+import { useVoiceRecorder } from './useVoiceRecorder'
+import { RecipeBook } from './RecipeBook'
 
 type Project = {
   label: string
@@ -107,16 +110,151 @@ const projects: Project[] = [
   },
 ]
 
+const foodProjects = [
+  ['Bean pancakes', '/assets/food-01-bean-pancakes.png'],
+  ['Colorful rice cakes', '/assets/food-02-colorful-rice-cakes.png'],
+  ['Brown layered cakes', '/assets/food-03-brown-layered-cakes.png'],
+  ['Banana leaf cakes', '/assets/food-04-banana-leaf-cakes.png'],
+  ['Green coconut cakes', '/assets/food-05-green-coconut-cakes.png'],
+  ['Sesame balls', '/assets/food-06-sesame-balls.png'],
+  ['Steamed cupcakes', '/assets/food-07-steamed-cupcakes.png'],
+  ['Wrapped rice cakes', '/assets/food-08-wrapped-rice-cakes.png'],
+  ['Red rice rolls', '/assets/food-09-red-rice-rolls.png'],
+  ['Striped layer cake', '/assets/food-10-striped-layer-cake.png'],
+] as const
+
+const actions = [
+  { label: 'Open camera', Icon: Camera },
+  { label: 'Open chat', Icon: ChatCircle },
+]
+
 export function ProjectPill() {
+  const voiceRecorder = useVoiceRecorder()
+  const railRef = useRef<HTMLDivElement>(null)
+  const scrollTargetRef = useRef(0)
+  const scrollFrameRef = useRef<number | null>(null)
+  const isRecording = voiceRecorder.status === 'recording'
+  const isBusy = voiceRecorder.status === 'requesting' || voiceRecorder.status === 'stopping'
+
+  const updateOrbit = useCallback(() => {
+    const rail = railRef.current
+    if (!rail) return
+    const railBox = rail.getBoundingClientRect()
+    const center = railBox.left + railBox.width / 2
+    rail.querySelectorAll<HTMLElement>('.project-pill__item').forEach((item) => {
+      const itemBox = item.getBoundingClientRect()
+      const distance = (itemBox.left + itemBox.width / 2 - center) / (railBox.width / 2)
+      const amount = Math.min(1, Math.abs(distance))
+      item.style.setProperty('--orbit-scale', String(1 - amount * 0.18))
+      item.style.setProperty('--orbit-y', `${amount * 9}px`)
+      item.style.setProperty('--orbit-turn', `${distance * -22}deg`)
+      item.style.setProperty('--orbit-opacity', String(1 - amount * 0.56))
+    })
+  }, [])
+
+  useEffect(() => {
+    updateOrbit()
+    window.addEventListener('resize', updateOrbit)
+    return () => window.removeEventListener('resize', updateOrbit)
+  }, [updateOrbit])
+
+  useEffect(() => () => {
+    if (scrollFrameRef.current !== null) cancelAnimationFrame(scrollFrameRef.current)
+  }, [])
+
+  const animateScroll = useCallback(() => {
+    const rail = railRef.current
+    if (!rail) return
+    const distance = scrollTargetRef.current - rail.scrollLeft
+    if (Math.abs(distance) < 0.5) {
+      rail.scrollLeft = scrollTargetRef.current
+      scrollFrameRef.current = null
+      return
+    }
+    rail.scrollLeft += distance * 0.14
+    scrollFrameRef.current = requestAnimationFrame(animateScroll)
+  }, [])
+
+  const handleProjectWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+    if (delta === 0) return
+    event.preventDefault()
+    const rail = event.currentTarget
+    const maximum = rail.scrollWidth - rail.clientWidth
+    if (scrollFrameRef.current === null) scrollTargetRef.current = rail.scrollLeft
+    scrollTargetRef.current = Math.max(0, Math.min(maximum, scrollTargetRef.current + delta * 0.3))
+    if (scrollFrameRef.current === null) scrollFrameRef.current = requestAnimationFrame(animateScroll)
+  }, [animateScroll])
+
   return (
-    <div className="project-pill" role="group" aria-label="Choose a project">
-      <span className="project-pill__divider" aria-hidden="true" />
-      {projects.map((project) => (
-        <button className="project-pill__item" type="button" aria-label={project.label} key={project.label}>
-          {project.artwork}
-        </button>
-      ))}
-      <span className="project-pill__divider" aria-hidden="true" />
+    <div className="project-bar-stack">
+      <div className="project-bar">
+        <img className="project-bar__brand" src="/assets/moldable-logo.png" alt="Moldable" />
+        <div
+          className="project-pill"
+          role="group"
+          aria-label="Choose a project"
+          ref={railRef}
+          onScroll={updateOrbit}
+          onWheel={handleProjectWheel}
+        >
+          {foodProjects.map(([label, src], index) => (
+            <button
+              className="project-pill__item"
+              type="button"
+              aria-label={label}
+              key={label}
+              style={{
+                '--orbit-opacity': index === 0 || index === 3 ? 0.55 : 1,
+                '--orbit-scale': index === 0 || index === 3 ? 0.84 : 1,
+                '--orbit-y': index === 0 || index === 3 ? '8px' : '0px',
+                '--orbit-turn': `${(index - 1.5) * -14}deg`,
+              } as CSSProperties}
+            >
+              <img src={src} alt="" />
+            </button>
+          ))}
+        </div>
+        <div className="project-pill__actions" role="group" aria-label="Quick actions">
+          {actions.map(({ label, Icon }) => (
+            <button className="project-pill__action" type="button" aria-label={label} key={label}>
+              <Icon aria-hidden="true" size={25} weight="fill" />
+            </button>
+          ))}
+          <button
+            className="project-pill__record"
+            type="button"
+            aria-label="Record"
+            aria-pressed={isRecording}
+            disabled={isBusy || isRecording}
+            onClick={voiceRecorder.toggle}
+          >
+            <span className="project-pill__sidekick" aria-hidden="true">
+              <span />
+              <span />
+              <i />
+            </span>
+            <span>Record</span>
+          </button>
+          {isRecording ? (
+            <button className="project-pill__stop" type="button" aria-label="Stop recording" aria-pressed="true" onClick={voiceRecorder.toggle}>
+              <span aria-hidden="true" />
+              Stop
+            </button>
+          ) : null}
+        </div>
+      </div>
+      {voiceRecorder.errorMessage ? (
+        <p className="voice-transcript voice-transcript--error" role="status">
+          {voiceRecorder.errorMessage}
+        </p>
+      ) : voiceRecorder.transcript || voiceRecorder.interimTranscript ? (
+        <p className="voice-transcript" aria-live="polite">
+          {voiceRecorder.transcript}
+          <span className="voice-transcript__interim">{voiceRecorder.interimTranscript}</span>
+        </p>
+      ) : null}
+      {voiceRecorder.hasCompletedRecording ? <RecipeBook /> : null}
     </div>
   )
 }
