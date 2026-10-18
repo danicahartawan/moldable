@@ -15,8 +15,8 @@ const foods = [
 
 export function ProjectPill() {
   return (
-    <section className="project-pill" aria-label="Groth project chooser">
-      <h1>Groth</h1>
+    <section className="project-pill" aria-label="Moldable project chooser">
+      <img className="project-pill__brand" src="/assets/moldable-logo.png" alt="Moldable" />
       <div className="project-pill__divider" aria-hidden="true" />
       <div className="project-pill__rail" role="group" aria-label="Food illustrations">
         {foods.map(([label, src]) => (
