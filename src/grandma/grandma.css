@@ -32,6 +32,23 @@
   gap: 8px;
 }
 
+.grandma-recorder-control {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.grandma-character {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  user-select: none;
+  filter: drop-shadow(0 7px 9px rgba(27, 41, 43, 0.1));
+  animation: grandma-character-arrive 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 .grandma-generated-title {
   margin: 0;
   color: #000;
@@ -131,6 +148,10 @@
 .grandma-story__transcript { margin: 0; font-size: clamp(20px, 2.5vw, 30px); line-height: 1.55; letter-spacing: -0.015em; }
 
 @keyframes grandma-pulse { 50% { opacity: 0.38; transform: scale(0.82); } }
+@keyframes grandma-character-arrive {
+  from { opacity: 0; transform: translateX(8px) scale(0.86); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
 
 @media (max-width: 560px) {
   .grandma-canvas { padding: 14px; }
@@ -143,5 +164,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .grandma-record-button,
-  .grandma-record-button__dot { animation: none; transition: none; }
+  .grandma-record-button__dot,
+  .grandma-character { animation: none; transition: none; }
 }

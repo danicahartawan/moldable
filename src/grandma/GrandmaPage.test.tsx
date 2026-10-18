@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GrandmaPage } from './GrandmaPage'
 
@@ -36,7 +36,10 @@ class FakeMediaRecorder {
 }
 
 describe('GrandmaPage', () => {
-  afterEach(cleanup)
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+  })
 
   beforeEach(() => {
     recognition = new FakeRecognition()
@@ -151,6 +154,36 @@ describe('GrandmaPage', () => {
     expect(await screen.findByTestId('transcript-preview')).toHaveClass('grandma-transcript--under-control')
   })
 
+  it('shows the transparent character beside Stop while recording', async () => {
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+
+    const stopButton = await screen.findByRole('button', { name: 'Stop recording' })
+    const controlRow = screen.getByTestId('grandma-recorder-control')
+    expect(controlRow).toContainElement(screen.getByRole('img', { name: 'Grandma character' }))
+    expect(controlRow).toContainElement(stopButton)
+  })
+
+  it('types newly transcribed words onto the screen', async () => {
+    vi.useFakeTimers()
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await act(async () => {})
+
+    act(() => {
+      recognition.emit({ isFinal: false, 0: { transcript: 'Soup' } })
+    })
+
+    const preview = screen.getByTestId('transcript-preview')
+    expect(preview).not.toHaveTextContent('Soup')
+    act(() => { vi.advanceTimersByTime(25) })
+    expect(preview).toHaveTextContent('S')
+    act(() => { vi.advanceTimersByTime(25) })
+    act(() => { vi.advanceTimersByTime(25) })
+    act(() => { vi.advanceTimersByTime(25) })
+    expect(preview).toHaveTextContent('Soup')
+  })
+
   it('shows actual spoken words from OpenAI audio transcription', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
@@ -162,7 +195,7 @@ describe('GrandmaPage', () => {
       '/api/grandma/transcribe',
       expect.objectContaining({ method: 'POST' }),
     ))
-    expect(await screen.findByTestId('transcript-preview')).toHaveTextContent('Toast the spices gently.')
+    await waitFor(() => expect(screen.getByTestId('transcript-preview')).toHaveTextContent('Toast the spices gently.'))
   })
 
   it('keeps a successful transcript when a newer audio request fails', async () => {
@@ -193,8 +226,8 @@ describe('GrandmaPage', () => {
       json: async () => ({ transcript: 'Grandma stirred the soup slowly.' }),
     } as Response)
 
-    expect(await screen.findByTestId('transcript-preview')).toHaveTextContent(
+    await waitFor(() => expect(screen.getByTestId('transcript-preview')).toHaveTextContent(
       'Grandma stirred the soup slowly.',
-    )
+    ))
   })
 })

@@ -7,6 +7,32 @@ import { requestGeneratedTitle, shouldGenerateTitle } from './title'
 import { transcribeAudio } from './transcribe'
 import './grandma.css'
 
+function TypedTranscript({ text }: { text: string }) {
+  const [visibleText, setVisibleText] = useState('')
+
+  useEffect(() => {
+    if (!text) {
+      setVisibleText('')
+      return
+    }
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setVisibleText(text)
+      return
+    }
+    if (visibleText === text) return
+
+    const timeout = window.setTimeout(() => {
+      setVisibleText((current) => {
+        if (!text.startsWith(current)) return text.slice(0, 1)
+        return text.slice(0, current.length + 1)
+      })
+    }, 22)
+    return () => window.clearTimeout(timeout)
+  }, [text, visibleText])
+
+  return <>{visibleText}</>
+}
+
 export function GrandmaPage() {
   const recorder = useVoiceRecorder({ transcribeAudio })
   const [title, setTitle] = useState('')
@@ -56,28 +82,38 @@ export function GrandmaPage() {
           <p className="grandma-generated-title grandma-generated-title--pending" aria-live="polite">Naming this story…</p>
         ) : null}
         <div className="grandma-recorder-stack" data-testid="grandma-recorder-stack">
-          <button
-            className="grandma-record-button grandma-record-button--plain grandma-record-button--embossed"
-            type="button"
-            aria-label={isRecording ? 'Stop recording' : 'Record'}
-            aria-pressed={isRecording}
-            disabled={isStarting || recorder.status === 'stopping'}
-            onClick={recorder.toggle}
-          >
-            {isStarting ? (
-              <><DotSpinner /><span>Starting</span></>
-            ) : isRecording ? (
-              <><span className="grandma-record-button__dot" /><span>Stop</span></>
-            ) : (
-              <><Icon name="mic" size={18} /><span>Record</span></>
-            )}
-          </button>
+          <div className="grandma-recorder-control" data-testid="grandma-recorder-control">
+            {isRecording ? (
+              <img
+                className="grandma-character"
+                src="/assets/grandma-character.png"
+                alt="Grandma character"
+                draggable={false}
+              />
+            ) : null}
+            <button
+              className="grandma-record-button grandma-record-button--plain grandma-record-button--embossed"
+              type="button"
+              aria-label={isRecording ? 'Stop recording' : 'Record'}
+              aria-pressed={isRecording}
+              disabled={isStarting || recorder.status === 'stopping'}
+              onClick={recorder.toggle}
+            >
+              {isStarting ? (
+                <><DotSpinner /><span>Starting</span></>
+              ) : isRecording ? (
+                <><span className="grandma-record-button__dot" /><span>Stop</span></>
+              ) : (
+                <><Icon name="mic" size={18} /><span>Record</span></>
+              )}
+            </button>
+          </div>
 
           {recorder.errorMessage ? (
             <p className="grandma-transcript grandma-transcript--error grandma-transcript--under-control" role="status">{recorder.errorMessage}</p>
           ) : fullTranscript ? (
             <p className="grandma-transcript grandma-transcript--preview grandma-transcript--under-control" data-testid="transcript-preview" aria-live="polite">
-              {recorder.transcript}<span className="grandma-transcript__interim">{recorder.interimTranscript}</span>
+              <TypedTranscript text={fullTranscript} />
             </p>
           ) : null}
         </div>
