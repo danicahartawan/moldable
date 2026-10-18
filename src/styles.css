@@ -361,6 +361,45 @@ button {
   font-weight: 400;
   letter-spacing: -0.01em;
   font-style: italic;
+  line-height: 1.5;
+}
+
+.recipe-article__section + .recipe-article__section { margin-top: 44px; }
+.recipe-article ul { margin: 0; padding-left: 1.1em; font-size: 15px; line-height: 1.8; }
+.recipe-article p { margin: 0 0 16px; font-size: 16px; line-height: 1.68; }
+.recipe-article__note { margin-top: 22px !important; color: #5f615c; font-style: italic; }
+.recipe-article blockquote { margin: 30px 0 0; padding: 22px 0 0; border-top: 1px solid #dededb; color: #3f413d; font-size: 17px; font-style: italic; line-height: 1.5; }
+
+.recipe-article__illustration {
+  float: right;
+  width: min(48%, 300px);
+  height: auto;
+  margin: -10px -12px 18px 28px;
+  color: #242623;
+  shape-outside: ellipse(52% 46% at 52% 48%);
+  shape-margin: 14px;
+}
+
+@keyframes article-arrives {
+  from { opacity: 0; transform: translateY(20px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.voice-transcript__interim { color: #aaa; }
+.voice-transcript--error { color: #858585; }
+
+.project-pill__sidekick span:first-child {
+  top: 3px;
+  left: 4px;
+  width: 5px;
+  height: 7px;
+}
+
+.project-pill__sidekick span:nth-child(2) {
+  top: 2px;
+  right: 4px;
+  width: 5px;
+  height: 9px;
 }
 
 .voice-transcript__interim { color: var(--ink-faint); }
@@ -437,6 +476,14 @@ button {
 
   .recipe-article { width: calc(100vw - 32px); margin-top: var(--space-6); padding: var(--space-5) var(--space-4); }
   .recipe-article h1 { font-size: 48px; line-height: 52px; }
+
+  .recipe-article__illustration {
+    float: none;
+    display: block;
+    width: min(78vw, 300px);
+    margin: 0 auto 24px;
+    shape-outside: none;
+  }
 
   .ginger-stage { padding-top: 154px; }
   .ginger-stage__image { width: min(78vw, 420px); min-width: 0; }

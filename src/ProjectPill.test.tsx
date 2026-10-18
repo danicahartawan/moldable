@@ -133,7 +133,9 @@ describe('ProjectPill', () => {
     expect(within(view.container).getByRole('article', { name: 'Soto Ayam recipe' })).toHaveClass(
       'recipe-article',
     )
-    expect(within(view.container).queryByRole('img', { name: 'An illustrated bowl of Soto Ayam' })).not.toBeInTheDocument()
+    expect(within(view.container).getByRole('img', { name: 'An illustrated bowl of Soto Ayam' })).toHaveClass(
+      'recipe-article__illustration',
+    )
     expect(within(view.container).getByText(/Begin by pounding garlic/)).toBeInTheDocument()
     expect(recorderStop).toHaveBeenCalledOnce()
     expect(recognitionStop).toHaveBeenCalledOnce()
