@@ -130,4 +130,42 @@
     width: min(92vw, 92svh);
     border-radius: clamp(16px, 4vw, 26px);
   }
+
+  .moldable-mascot {
+    right: 6%;
+    width: 27%;
+  }
+
+  .tool-rail {
+    width: 46%;
+  }
+
+  .tool-chip {
+    width: 40px;
+    height: 40px;
+    padding: 0 10px;
+  }
+
+  .tool-chip--expanded {
+    width: 128px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tool-rail__trigger {
+    width: 40%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-rail__orbit,
+  .tool-chip,
+  .tool-chip__label {
+    transition: none;
+  }
+
+  .tool-chip,
+  .tool-chip[data-position] {
+    transform: none;
+  }
 }
