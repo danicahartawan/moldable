@@ -7,15 +7,30 @@
 
 .grandma-canvas {
   position: relative;
-  padding: 18px 22px;
+  padding: 18px 22px 24px;
 }
 
-.grandma-recorder {
+.grandma-header {
   display: flex;
-  width: min-content;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 14px;
+  align-items: center;
+  gap: 18px;
+}
+
+.grandma-header--right {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  justify-content: flex-end;
+}
+
+.grandma-generated-title {
+  margin: 0;
+  color: #000;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
 }
 
 .grandma-record-button {
@@ -26,20 +41,20 @@
   gap: 9px;
   padding: 0 16px;
   border: 0;
-  border-radius: 14px;
-  background: #fff;
-  color: #1f1c19;
+  border-radius: 8px;
+  color: #000;
   font-size: 15px;
-  font-weight: 600;
-  box-shadow: 0 0 0 1px rgba(31, 28, 25, 0.06), 0 7px 20px rgba(31, 28, 25, 0.11);
+  font-weight: 400;
   cursor: pointer;
-  transition: transform 140ms ease, box-shadow 180ms ease;
+  transition: background-color 160ms ease, transform 140ms ease;
 }
 
-.grandma-record-button:hover {
-  box-shadow: 0 0 0 1px rgba(31, 28, 25, 0.08), 0 10px 25px rgba(31, 28, 25, 0.14);
-  transform: translateY(-1px);
+.grandma-record-button--plain {
+  border: 0;
+  background: transparent;
 }
+
+.grandma-record-button:hover { background: rgba(0, 0, 0, 0.045); }
 
 .grandma-record-button:active { transform: scale(0.97); }
 .grandma-record-button:focus-visible { outline: 2px solid #1f1c19; outline-offset: 3px; }
@@ -56,7 +71,7 @@
 .grandma-transcript,
 .grandma-listening {
   margin: 0;
-  color: #66635f;
+  color: #000;
   font-size: 18px;
   font-weight: 400;
   line-height: 1.45;
@@ -65,10 +80,17 @@
 .grandma-transcript--preview {
   width: 28ch;
   max-width: calc(100vw - 44px);
-  max-height: calc(1.45em * 5);
+  max-height: calc(1.45em * 4);
   overflow: hidden;
   overflow-wrap: anywhere;
-  mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 100%);
+  text-align: right;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 24%, #000 100%);
+}
+
+.grandma-transcript--bottom-right {
+  position: absolute;
+  right: 22px;
+  bottom: 24px;
 }
 
 .grandma-transcript__interim { color: #aaa7a2; }
@@ -97,8 +119,11 @@
 
 @media (max-width: 560px) {
   .grandma-canvas { padding: 14px; }
+  .grandma-header--right { top: 14px; right: 14px; gap: 10px; }
+  .grandma-generated-title { max-width: 52vw; overflow: hidden; text-overflow: ellipsis; }
   .grandma-transcript--preview,
   .grandma-transcript--error { max-width: calc(100vw - 28px); }
+  .grandma-transcript--bottom-right { right: 14px; bottom: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -47,7 +47,8 @@ describe('GrandmaPage', () => {
     render(<GrandmaPage />)
 
     expect(screen.getByRole('main', { name: 'Record grandma' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Record' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Record' })).toHaveClass('grandma-record-button--plain')
+    expect(screen.getByTestId('grandma-header')).toHaveClass('grandma-header--right')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
     expect(screen.queryByTestId('character-placeholder')).not.toBeInTheDocument()
   })
@@ -63,7 +64,8 @@ describe('GrandmaPage', () => {
     })
 
     const preview = await screen.findByTestId('transcript-preview')
-    expect(preview).toHaveClass('grandma-transcript--preview')
+    expect(preview).toHaveClass('grandma-transcript--preview', 'grandma-transcript--bottom-right')
+    expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toHaveClass('grandma-generated-title')
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
 
     expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
@@ -85,5 +87,9 @@ describe('GrandmaPage', () => {
     })
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/grandma/title', expect.objectContaining({ method: 'POST' })))
+    expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Stop recording' }).parentElement).toContainElement(
+      screen.getByRole('heading', { name: 'Sunday Soto Stories' }),
+    )
   })
 })

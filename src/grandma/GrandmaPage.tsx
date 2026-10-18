@@ -38,9 +38,10 @@ export function GrandmaPage() {
 
   return (
     <main className="grandma-canvas" aria-label="Record grandma">
-      <div className="grandma-recorder">
+      <header className="grandma-header grandma-header--right" data-testid="grandma-header">
+        {title ? <h1 className="grandma-generated-title">{title}</h1> : null}
         <button
-          className="grandma-record-button"
+          className="grandma-record-button grandma-record-button--plain"
           type="button"
           aria-label={isRecording ? 'Stop recording' : 'Record'}
           aria-pressed={isRecording}
@@ -55,17 +56,17 @@ export function GrandmaPage() {
             <><Icon name="mic" size={18} /><span>Record</span></>
           )}
         </button>
+      </header>
 
-        {recorder.errorMessage ? (
-          <p className="grandma-transcript grandma-transcript--error" role="status">{recorder.errorMessage}</p>
-        ) : fullTranscript ? (
-          <p className="grandma-transcript grandma-transcript--preview" data-testid="transcript-preview" aria-live="polite">
-            {recorder.transcript}<span className="grandma-transcript__interim">{recorder.interimTranscript}</span>
-          </p>
-        ) : isRecording ? (
-          <p className="grandma-listening" aria-live="polite">Listening…</p>
-        ) : null}
-      </div>
+      {recorder.errorMessage ? (
+        <p className="grandma-transcript grandma-transcript--error grandma-transcript--bottom-right" role="status">{recorder.errorMessage}</p>
+      ) : fullTranscript ? (
+        <p className="grandma-transcript grandma-transcript--preview grandma-transcript--bottom-right" data-testid="transcript-preview" aria-live="polite">
+          {recorder.transcript}<span className="grandma-transcript__interim">{recorder.interimTranscript}</span>
+        </p>
+      ) : isRecording ? (
+        <p className="grandma-listening grandma-transcript--bottom-right" aria-live="polite">Listening…</p>
+      ) : null}
     </main>
   )
 }
