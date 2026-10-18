@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Board anatomy</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.up{}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; box-sizing: border-box; padding: 56px 64px; background: #f2efe9; font-family: ABC Arizona Sans, system-ui, sans-serif; color: #1f1c19; display: grid; grid-template-columns: 760px minmax(0, 1fr); gap: 56px">
+
+  <section aria-label="Top and side views" style="display: flex; flex-direction: column; gap: 28px">
+    <div>
+      <p class="up" style="margin: 0; font-size: 12px; line-height: 16px; font-weight: 600; color: #6b645a">Top view, about 60 × 40 cm</p>
+    </div>
+    <div style="position: relative; width: 760px; height: 470px; border-radius: 0; background: #f2efe9; box-shadow: 0 0 0 1px rgba(31,28,25,.06), 0 30px 70px rgba(31,28,25,.12)">
+      <div style="position: absolute; left: 22px; right: 22px; top: 20px; height: 64px; border-radius: 0; background: #f6f4ef; box-shadow: 0 0 0 1px rgba(31,28,25,.06), 0 1px 2px rgba(31,28,25,.05), 0 8px 24px rgba(31,28,25,.07); display: flex; align-items: center; justify-content: center; gap: 14px">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background: #1f1c19"></span>
+        <span class="up" style="font-size: 11px; font-weight: 600">1  Screen strip</span>
+      </div>
+      <div style="position: absolute; left: 40px; right: 40px; top: 110px; bottom: 34px; border: 1.5px dashed #8c8376; border-radius: 0; display: grid; place-items: center">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <span class="up" style="font-size: 11px; font-weight: 600">2  Guidance surface</span>
+          <span style="font-size: 13px; color: #6b645a">Outlines, cut lines and numbers appear here</span>
+        </div>
+      </div>
+      <span class="up" style="position: absolute; left: 6px; bottom: 6px; width: 34px; height: 34px; border-radius: 50%; background: #1f1c19; color: #f2efe9; display: grid; place-items: center; font-size: 11px; font-weight: 600">3</span>
+      <span style="position: absolute; right: 6px; bottom: 6px; width: 34px; height: 34px; border-radius: 50%; background: #1f1c19"></span>
+      <span style="position: absolute; left: 6px; top: 6px; width: 34px; height: 34px; border-radius: 50%; background: #1f1c19"></span>
+      <span style="position: absolute; right: 6px; top: 6px; width: 34px; height: 34px; border-radius: 50%; background: #1f1c19"></span>
+    </div>
+
+    <div>
+      <p class="up" style="margin: 0 0 14px; font-size: 12px; line-height: 16px; font-weight: 600; color: #6b645a">Side section showing the layers</p>
+      <div role="img" aria-label="Layers from top: removable chopping insert, food-safe glass, display, frame, load-cell feet" style="display: flex; flex-direction: column; gap: 4px; width: 760px">
+        <div style="height: 30px; margin: 0 120px 0 60px; border-radius: 0; background: #ece7de; border: 1.3px solid #1f1c19; display: flex; align-items: center; padding: 0 14px; font-size: 12px; font-weight: 600">4  Removable chopping insert</div>
+        <div style="height: 14px; margin: 0 20px; border-radius: 0; background: #ece3f6; border: 1.3px solid #4e0b91"></div>
+        <div style="height: 22px; margin: 0 24px; border-radius: 0; background: #1f1c19; color: #f2efe9; display: flex; align-items: center; padding: 0 14px; font-size: 11px">Display layer</div>
+        <div style="height: 34px; border-radius: 0; background: #ece7de; box-shadow: none; display: flex; align-items: center; padding: 0 14px; font-size: 11px; color: #6b645a">Frame, battery and speaker</div>
+        <div style="display: flex; justify-content: space-between; padding: 0 30px"><span style="width: 40px; height: 16px; border-radius: 0; background: #1f1c19"></span><span style="width: 40px; height: 16px; border-radius: 0; background: #1f1c19"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Parts and open questions" style="display: flex; flex-direction: column; gap: 20px; min-width: 0">
+    <h1 style="margin: 0; font-family: ABC Arizona Flare, Georgia, serif; font-size: 38px; line-height: 42px; font-weight: 400; letter-spacing: -.01em">What the board is made of</h1>
+    <ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px">
+      <li style="display: flex; gap: 14px"><span style="flex: none; width: 26px; height: 26px; border: 1.3px solid #1f1c19; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600">1</span><div><b style="display: block; font-size: 17px; line-height: 22px; font-weight: 600">Screen strip</b><span style="font-size: 14px; line-height: 20px; color: #6b645a">Touch screen with the recipe bar, a camera that reads recipe cards, a mic for her voice and questions, and a speaker.</span></div></li>
+      <li style="display: flex; gap: 14px"><span style="flex: none; width: 26px; height: 26px; border: 1.3px solid #1f1c19; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600">2</span><div><b style="display: block; font-size: 17px; line-height: 22px; font-weight: 600">Guidance surface</b><span style="font-size: 14px; line-height: 20px; color: #6b645a">Draws outlines, cut lines at real size, and step numbers. Ink line drawing only, like a printed instruction sheet.</span></div></li>
+      <li style="display: flex; gap: 14px"><span style="flex: none; width: 26px; height: 26px; border: 1.3px solid #1f1c19; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600">3</span><div><b style="display: block; font-size: 17px; line-height: 22px; font-weight: 600">Scale in the four feet</b><span style="font-size: 14px; line-height: 20px; color: #6b645a">Load cells weigh anything on the board and check ingredients off by weight. Target: 1 g steps up to 5 kg.</span></div></li>
+      <li style="display: flex; gap: 14px"><span style="flex: none; width: 26px; height: 26px; border: 1.3px solid #1f1c19; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600">4</span><div><b style="display: block; font-size: 17px; line-height: 22px; font-weight: 600">Removable chopping insert</b><span style="font-size: 14px; line-height: 20px; color: #6b645a">Knives never touch the glass. The insert lifts out to wash.</span></div></li>
+    </ol>
+    <div style="margin-top: 6px; border-radius: 0; background: #fdf4cf; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px">
+      <p class="up" style="margin: 0; font-size: 12px; line-height: 16px; font-weight: 600; color: #8a4300">Open questions before building</p>
+      <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 20px">
+        <li>How do the lines show through a chopping insert? Options: a clear insert over the display, projection from the screen strip, or chopping only on one side.</li>
+        <li>Display under glass or projection? A display costs more and adds weight. Projection needs a mast and gets washed out in a bright kitchen.</li>
+        <li>Water, heat and knife marks: what does food-safe and dishwasher-safe mean for each layer?</li>
+        <li>Mains power or battery, and how long does a 3-hour rendang need it to last?</li>
+      </ul>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

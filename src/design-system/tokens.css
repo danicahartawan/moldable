@@ -1,0 +1,105 @@
+/* Moldable — generated from tokens.json */
+:root, [data-theme="light"] {
+  --flour: #f6f4ef;
+  --flour-raised: #ffffff;
+  --flour-sunken: #ece7de;
+  --line: #e2dcd1;
+  --line-strong: #8c8376;
+  --ink: #1f1c19;
+  --ink-muted: #655e54;
+  --ink-faint: #b5ada1;
+  --enamel: #3546a8;
+  --enamel-soft: #e4e8fa;
+  --on-enamel: #ffffff;
+  --yolk: #b07a06;
+  --yolk-soft: #fbf0d4;
+  --yolk-ink: #7a5100;
+  --basil: #2c6a39;
+  --basil-soft: #e2f1e3;
+  --chili: #b0302a;
+  --chili-soft: #f9e1de;
+  --heirloom: #77367a;
+  --heirloom-soft: #f3e4f2;
+  --card-rule: #a9b7e6;
+  --card-margin: #e08c84;
+  --thermal-violet: #4e0b91;
+  --thermal-magenta: #b4347c;
+  --thermal-ember: #ec923b;
+  --thermal-flare: #f5d653;
+  --focus: var(--enamel);
+  --link: var(--enamel);
+  --shadow-ring: 0 0 0 1px rgba(31,28,25,0.08);
+  --shadow-1: 0 0 0 1px rgba(31,28,25,0.06), 0 1px 2px rgba(31,28,25,0.05), 0 8px 24px rgba(31,28,25,0.06);
+  --shadow-2: 0 0 0 1px rgba(31,28,25,0.06), 0 2px 4px rgba(31,28,25,0.05), 0 24px 56px rgba(31,28,25,0.12);
+  --glow: 0 0 0 1px rgba(176,122,6,0.35), 0 0 18px rgba(214,152,24,0.5);
+}
+[data-theme="dark"] {
+  --flour: #151413;
+  --flour-raised: #1e1c1a;
+  --flour-sunken: #0e0d0c;
+  --line: #2f2c28;
+  --line-strong: #777067;
+  --ink: #f2eee7;
+  --ink-muted: #aaa297;
+  --ink-faint: #4f4a44;
+  --enamel: #93a1f2;
+  --enamel-soft: #1f2547;
+  --on-enamel: #10132a;
+  --yolk: #f2c14e;
+  --yolk-soft: #3a2d0f;
+  --yolk-ink: #f2c14e;
+  --basil: #86d095;
+  --basil-soft: #15301b;
+  --chili: #f2928a;
+  --chili-soft: #3d1714;
+  --heirloom: #dca6dc;
+  --heirloom-soft: #33182f;
+  --card-rule: #34406e;
+  --card-margin: #7a3a35;
+  --thermal-violet: #4e0b91;
+  --thermal-magenta: #b4347c;
+  --thermal-ember: #ec923b;
+  --thermal-flare: #f5d653;
+  --focus: var(--enamel);
+  --link: var(--enamel);
+  --shadow-ring: 0 0 0 1px rgba(242,238,231,0.08);
+  --shadow-1: 0 0 0 1px rgba(242,238,231,0.07), 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-2: 0 0 0 1px rgba(242,238,231,0.08), 0 24px 56px rgba(0,0,0,0.6);
+  --glow: 0 0 0 1px rgba(242,193,78,0.45), 0 0 22px rgba(242,193,78,0.5);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --dur-quick: 140ms;
+  --dur-base: 240ms;
+  --dur-settle: 420ms;
+  --dur-slow: 900ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --font-display: "Archivo", system-ui, sans-serif;
+  --font-sans: "Archivo", system-ui, sans-serif;
+}
+.display-xl { font-family: var(--font-display); font-size: 72px; line-height: 72px; font-weight: 500; letter-spacing: -0.025em; }
+.display-l { font-family: var(--font-display); font-size: 48px; line-height: 52px; font-weight: 500; letter-spacing: -0.025em; }
+.display-m { font-family: var(--font-display); font-size: 32px; line-height: 38px; font-weight: 500; letter-spacing: -0.015em; }
+.quote { font-family: var(--font-display); font-size: 24px; line-height: 32px; font-weight: 400; letter-spacing: -0.01em; font-style: italic; }
+.title { font-family: var(--font-sans); font-size: 22px; line-height: 28px; font-weight: 500; }
+.body-l { font-family: var(--font-sans); font-size: 20px; line-height: 30px; font-weight: 400; }
+.body { font-family: var(--font-sans); font-size: 18px; line-height: 28px; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 16px; line-height: 22px; font-weight: 500; }
+.caption { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; }
+.eyebrow { font-family: var(--font-sans); font-size: 13px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; }
+.board-step { font-family: var(--font-sans); font-size: 44px; line-height: 52px; font-weight: 500; letter-spacing: -0.01em; }
+.board-cue { font-family: var(--font-sans); font-size: 28px; line-height: 36px; font-weight: 400; }
+.board-timer { font-family: var(--font-sans); font-size: 64px; line-height: 64px; font-weight: 500; letter-spacing: -0.02em; }

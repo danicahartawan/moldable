@@ -6,7 +6,7 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:43123',
   },
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 43123',
+    command: 'npm run dev -- --hostname 127.0.0.1 --port 43123',
     url: 'http://127.0.0.1:43123',
     reuseExistingServer: false,
   },

@@ -90,7 +90,7 @@ test('moves the project rail at thirty percent of the wheel delta', async ({ pag
   expect(await chooser.evaluate((element) => element.scrollLeft)).toBeLessThanOrEqual(initialLeft + 55)
 })
 
-test('curves project art around a faded orbital rail with black action glyphs', async ({ page }) => {
+test('curves project art around a faded orbital rail with ink action glyphs', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 })
   await page.goto('/')
 
@@ -113,7 +113,7 @@ test('curves project art around a faded orbital rail with black action glyphs', 
   expect(appearance.edgeOpacity).toBeLessThan(appearance.centerOpacity)
   expect(appearance.edgeTransform).not.toBe(appearance.centerTransform)
   expect(appearance.mask).toContain('linear-gradient')
-  expect(appearance.actionColor).toBe('rgb(0, 0, 0)')
+  expect(appearance.actionColor).toBe('rgb(31, 28, 25)')
 })
 
 test('keeps centered projects clear of the right controls on narrower screens', async ({ page }) => {

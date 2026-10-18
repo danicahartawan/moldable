@@ -1,5 +1,7 @@
+'use client'
+
 import { useCallback, useEffect, useRef, type CSSProperties, type ReactNode, type WheelEvent } from 'react'
-import { Camera, ChatCircle } from '@phosphor-icons/react'
+import { DotSpinner, Icon, type IconName } from './Icon'
 import { useVoiceRecorder } from './useVoiceRecorder'
 import { RecipeBook } from './RecipeBook'
 
@@ -123,9 +125,9 @@ const foodProjects = [
   ['Striped layer cake', '/assets/food-10-striped-layer-cake.png'],
 ] as const
 
-const actions = [
-  { label: 'Open camera', Icon: Camera },
-  { label: 'Open chat', Icon: ChatCircle },
+const actions: { label: string; icon: IconName }[] = [
+  { label: 'Open camera', icon: 'scan' },
+  { label: 'Open chat', icon: 'chat' },
 ]
 
 export function ProjectPill() {
@@ -134,6 +136,8 @@ export function ProjectPill() {
   const scrollTargetRef = useRef(0)
   const scrollFrameRef = useRef<number | null>(null)
   const isRecording = voiceRecorder.status === 'recording'
+  const isWorking = isRecording || voiceRecorder.status === 'stopping'
+  const recordLabel = isRecording ? 'Recording' : voiceRecorder.status === 'stopping' ? 'Saving' : 'Record'
   const isBusy = voiceRecorder.status === 'requesting' || voiceRecorder.status === 'stopping'
 
   const updateOrbit = useCallback(() => {
@@ -216,9 +220,9 @@ export function ProjectPill() {
           ))}
         </div>
         <div className="project-pill__actions" role="group" aria-label="Quick actions">
-          {actions.map(({ label, Icon }) => (
+          {actions.map(({ label, icon }) => (
             <button className="project-pill__action" type="button" aria-label={label} key={label}>
-              <Icon aria-hidden="true" size={25} weight="fill" />
+              <Icon name={icon} />
             </button>
           ))}
           <button
@@ -226,26 +230,17 @@ export function ProjectPill() {
             type="button"
             aria-label="Record"
             aria-pressed={isRecording}
-            disabled={isBusy || isRecording}
+            disabled={isBusy}
             onClick={voiceRecorder.toggle}
           >
-            <span className="project-pill__sidekick" aria-hidden="true">
-              <span />
-              <span />
-              <i />
-            </span>
-            <span>Record</span>
+            {isWorking ? <DotSpinner /> : <Icon name="mic" />}
+            <span className="project-pill__record-label" key={recordLabel}>{recordLabel}</span>
           </button>
-          {isRecording ? (
-            <button className="project-pill__stop" type="button" aria-label="Stop recording" aria-pressed="true" onClick={voiceRecorder.toggle}>
-              <span aria-hidden="true" />
-              Stop
-            </button>
-          ) : null}
         </div>
       </div>
       {voiceRecorder.errorMessage ? (
         <p className="voice-transcript voice-transcript--error" role="status">
+          <Icon name="x-circle" size={18} className="voice-transcript__icon" />
           {voiceRecorder.errorMessage}
         </p>
       ) : voiceRecorder.transcript || voiceRecorder.interimTranscript ? (

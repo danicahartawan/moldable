@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Guided cut</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.up{}
+@keyframes blurin{from{opacity:0;filter:blur(6px);transform:translateY(3px)}to{opacity:1;filter:none;transform:none}}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes beam{0%,100%{opacity:.18}50%{opacity:.4}}
+@keyframes flash{0%{opacity:.9;stroke-width:22}100%{opacity:.2;stroke-width:10}}
+.blurin{animation:blurin .36s cubic-bezier(.2,.8,.2,1) both}
+.pop{animation:pop .42s cubic-bezier(.3,1.4,.5,1) both}
+.beam{animation:beam 1.4s ease-in-out infinite}
+.flash{animation:flash .7s cubic-bezier(.2,.8,.2,1) both}
+.cutline{transition:stroke .3s ease,stroke-width .3s ease}
+.press{transition:transform .14s cubic-bezier(.2,.8,.2,1)}
+.press:active{transform:scale(.96)}
+@media (prefers-reduced-motion: reduce){.blurin,.pop,.beam,.flash{animation:none}}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; box-sizing: border-box; padding: 40px; background: #e8e5de; font-family: ABC Arizona Sans, system-ui, sans-serif; color: #1f1c19">
+  <div style="width: 1360px; height: 880px; box-sizing: border-box; border-radius: 0; background: #f2efe9; box-shadow: 0 0 0 1px rgba(31,28,25,.06), 0 30px 70px rgba(31,28,25,.12); padding: 26px; display: flex; flex-direction: column; gap: 26px">
+
+    <header style="height: 92px; flex: none; box-sizing: border-box; border-radius: 0; background: #ffffff; box-shadow: 0 0 0 1px rgba(31,28,25,.06), 0 1px 2px rgba(31,28,25,.05), 0 8px 24px rgba(31,28,25,.07); display: flex; align-items: center; gap: 20px; padding: 0 16px 0 30px">
+      <img src="../assets/moldable-logo.png" alt="Moldable" style="height: 26px; width: auto; flex: none">
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 22px">
+        <button type="button" class="press" aria-label="Previous step" style="width: 48px; height: 48px; border: 0; border-radius: 0; background: #ece7de; box-shadow: none; display: grid; place-items: center; cursor: pointer; color: #1f1c19">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l-5 5 5 5"></path></svg>
+        </button>
+        <div style="display: flex; flex-direction: column; gap: 6px; min-width: 420px">
+          <p class="up" style="margin: 0; font-size: 11px; line-height: 14px; color: #6b645a; font-weight: 500">Step 2 of 8, rendang padang</p>
+          <p style="margin: 0; font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: -.01em">Slice the shallots thin</p>
+          <div aria-label="Progress: step 2 of 8" role="img" style="display: flex; gap: 4px">
+            <span style="width: 40px; height: 4px; border-radius: 0; background: #2c6a39"></span>
+            <span style="position: relative; width: 40px; height: 4px; border-radius: 0; background: #ddd7cc; overflow: hidden"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{stepPct}}%; background: #4e0b91; transition: width .42s cubic-bezier(.2,.8,.2,1)"></span></span>
+            <span style="width: 40px; height: 4px; border-radius: 0; background: #ddd7cc"></span>
+            <span style="width: 40px; height: 4px; border-radius: 0; background: #ddd7cc"></span>
+            <span style="width: 40px; height: 4px; border-radius: 0; background: #ddd7cc"></span>
+            <span style="width: 40px; height: 4px; border-radius: 0; background: #ddd7cc"></span>
+            <span style="width: 40px; height: 4px; border-radius: 0; background: #ddd7cc"></span>
+            <span style="width: 40px; height: 4px; border-radius: 0; background: #ddd7cc"></span>
+          </div>
+        </div>
+        <button type="button" class="press" aria-label="Next step" style="width: 48px; height: 48px; border: 0; border-radius: 0; background: #ece7de; box-shadow: none; display: grid; place-items: center; cursor: pointer; color: #1f1c19">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5l5 5-5 5"></path></svg>
+        </button>
+      </div>
+      <button type="button" class="press" style="height: 60px; border: 0; border-radius: 0; background: #ffffff; box-shadow: 0 0 0 1px rgba(31,28,25,.06), 0 1px 2px rgba(31,28,25,.05), 0 8px 24px rgba(31,28,25,.07); display: flex; align-items: center; gap: 10px; padding: 0 28px 0 22px; cursor: pointer; font: 500 18px/1 ABC Arizona Sans, sans-serif; color: #1f1c19">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M10 3a2.5 2.5 0 0 1 2.5 2.5v4a2.5 2.5 0 0 1-5 0v-4A2.5 2.5 0 0 1 10 3z"></path><path d="M5.5 9.5a4.5 4.5 0 0 0 9 0M10 14v3"></path></svg>
+        Hold to ask
+      </button>
+    </header>
+
+    <main style="flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; padding: 0 20px 0 22px">
+      <section aria-label="Cutting guide" style="position: relative; min-width: 0">
+        <svg width="880" height="700" viewBox="0 0 880 700" fill="none" stroke="#1f1c19" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="{{aria}}" style="max-width: 100%; height: auto">
+          <path d="M260 120c120-40 260-40 380 0 70 30 110 120 110 210s-40 180-110 210c-120 40-260 40-380 0-70-30-110-120-110-210s40-180 110-210z"></path>
+          <path d="M300 170c100-30 200-30 300 0 50 22 80 90 80 160s-30 138-80 160c-100 30-200 30-300 0-50-22-80-90-80-160s30-138 80-160z" stroke-dasharray="2 6"></path>
+          <path d="M360 230c60-16 120-16 180 0 30 14 46 54 46 100s-16 86-46 100c-60 16-120 16-180 0-30-14-46-54-46-100s16-86 46-100z" stroke-dasharray="2 6"></path>
+          <sc-for list="{{lines}}" as="l" hint-placeholder-count="18">
+            <path class="cutline" d="{{l.d}}" stroke="{{l.c}}" stroke-width="{{l.w}}" stroke-dasharray="{{l.dash}}"></path>
+          </sc-for>
+          <g style="transform: translateX({{nextX}}px); transition: transform .52s cubic-bezier(.3,1.4,.5,1)">
+            <path class="beam" d="{{nextD}}" stroke="#ec923b" stroke-width="12"></path>
+            <sc-if value="{{flashOn}}" hint-placeholder-val="{{false}}"><path class="flash" d="{{nextD}}" stroke="#ec923b"></path></sc-if>
+            <path d="{{nextD}}" stroke="#c96a12" stroke-width="2.4"></path>
+            <path d="M0 72v30M-10 92l10 12 10-12"></path>
+            <text x="0" y="62" text-anchor="middle" stroke="none" fill="#1f1c19" font-family="ABC Arizona Sans, sans-serif" font-size="13" letter-spacing="0" font-weight="600">Cut here next</text>
+          </g>
+          <path d="M716 80v500" stroke="#b0302a" stroke-dasharray="10 8"></path>
+          <path d="M716 80c40 10 60 40 60 70M716 580c40-10 60-40 60-70" stroke="#b0302a"></path>
+          <path d="M120 640h640"></path>
+          <path d="M120 640v-16M148 640v-8M176 640v-8M204 640v-8M232 640v-8M260 640v-16M288 640v-8M316 640v-8M344 640v-8M372 640v-8M400 640v-16M428 640v-8M456 640v-8M484 640v-8M512 640v-8M540 640v-16M568 640v-8M596 640v-8M624 640v-8M652 640v-8M680 640v-16M708 640v-8M736 640v-8M760 640v-16"></path>
+          <g stroke="none" fill="#1f1c19" font-family="ABC Arizona Sans, sans-serif" font-size="13" letter-spacing="0">
+            <text x="{{doneX}}" y="578" text-anchor="middle" fill="#2c6a39" style="transition: all .42s ease">{{doneLabel}}</text>
+            <text x="728" y="72" fill="#b0302a">Keep fingers behind this line</text>
+            <text x="120" y="664" text-anchor="middle">0</text><text x="260" y="664" text-anchor="middle">15</text><text x="400" y="664" text-anchor="middle">30</text><text x="540" y="664" text-anchor="middle">45</text><text x="680" y="664" text-anchor="middle">60 mm</text>
+            <text x="440" y="690" text-anchor="middle" fill="#6b645a">Each line is 3 mm apart, drawn at real size on the board</text>
+          </g>
+        </svg>
+      </section>
+
+      <aside style="display: flex; flex-direction: column; gap: 18px; min-width: 0">
+        <div style="border: 1.5px dashed #8c8376; border-radius: 0; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+          <p class="up" style="margin: 0; font-size: 11px; line-height: 14px; font-weight: 600">Sliced shallots go here</p>
+          <div role="img" aria-label="{{shallotAria}}" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px">
+            <sc-for list="{{dots}}" as="d" hint-placeholder-count="12">
+              <sc-if value="{{d.full}}" hint-placeholder-val="{{false}}"><span class="{{d.cls}}" style="display: block; height: 30px; border-radius: 50%; background: #1f1c19"></span></sc-if>
+              <sc-if value="{{d.empty}}" hint-placeholder-val="{{true}}"><span style="display: block; height: 30px; box-sizing: border-box; border-radius: 50%; border: 1.3px solid #1f1c19"></span></sc-if>
+            </sc-for>
+          </div>
+          <p style="margin: 0; font-size: 14px; line-height: 20px"><b style="font-weight: 600">{{shallots}} of 12</b> shallots, <span style="font-variant-numeric: tabular-nums">{{grams}}</span> g weighed</p>
+        </div>
+        <div style="border-radius: 0; background: #e9e4da; box-shadow: none; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+          <p class="up" style="margin: 0; font-size: 11px; line-height: 14px; color: #6b645a; font-weight: 500">How you know it's right</p>
+          <p style="margin: 0; font-size: 20px; line-height: 28px">About 3 mm. You should almost see through them.</p>
+        </div>
+        <blockquote style="margin: 0; border-radius: 0; background: #f8e3ee; padding: 18px; color: #962a66">
+          <p style="margin: 0; font-style: italic; font-size: 20px; line-height: 28px">“Tipis-tipis, biar garing.”</p>
+          <p style="margin: 6px 0 0; font-size: 12px; line-height: 16px">Oma Lien, voice note from 2019. Thin, so they go crisp.</p>
+        </blockquote>
+        <div style="margin-top: auto; display: flex; gap: 12px">
+          <button type="button" class="press" onClick="{{showAgain}}" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex: 1; height: 60px; border: 0; border-radius: 0; background: #ffffff; box-shadow: 0 0 0 1px rgba(31,28,25,.06), 0 1px 2px rgba(31,28,25,.05), 0 8px 24px rgba(31,28,25,.07); font: 500 17px/1 ABC Arizona Sans, sans-serif; color: #1f1c19; cursor: pointer"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 10s2.8-5 7.5-5 7.5 5 7.5 5-2.8 5-7.5 5-7.5-5-7.5-5z"></path><path d="M10 7.8a2.2 2.2 0 1 1 0 4.4a2.2 2.2 0 1 1 0-4.4z"></path></svg>Show the line</button>
+          <button type="button" class="press" onClick="{{cut}}" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex: 1.4; height: 60px; border: 0; border-radius: 0; background: #4e0b91; color: #ffffff; font: 500 17px/1 ABC Arizona Sans, sans-serif; cursor: pointer; box-shadow: 0 1px 2px rgba(31,28,25,.18)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 16.5L14.6 5.4a2.8 2.8 0 0 1 0 4L9.5 14.5z"></path><path d="M11.5 11.5l1.3 1.3"></path></svg>I made this cut</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+var LINES = [[208,150,510],[236,132,528],[264,122,538],[292,116,544],[320,112,548],[348,110,550],[376,108,552],[404,108,552],[432,108,552],[460,108,552],[488,108,552],[516,108,552],[544,108,552],[572,110,550],[600,112,548],[628,116,544],[656,122,538],[684,132,528]];
+var FIRST = LINES[0][0];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { next: 3, shallots: 6, fresh: -1, flash: 0, idle: 0 }; }
+  componentDidMount() {
+    this.tick = setInterval(() => {
+      var idle = this.state.idle + 1;
+      if (idle >= 3) { this.advance(); idle = 0; }
+      this.setState({ idle: idle });
+    }, 600);
+  }
+  componentWillUnmount() { clearInterval(this.tick); clearTimeout(this.t1); }
+  advance() {
+    var s = this.state, n = s.next + 1;
+    if (n >= LINES.length) {
+      var sh = s.shallots >= 12 ? 6 : s.shallots + 1;
+      this.setState({ next: 0, shallots: sh, fresh: sh - 1, flash: s.flash + 1 });
+    } else this.setState({ next: n, fresh: -1, flash: s.flash + 1 });
+  }
+  renderVals() {
+    var s = this.state, L = LINES[s.next];
+    var doneN = s.next;
+    return {
+      lines: LINES.map(function (l, i) {
+        var done = i < s.next, isNext = i === s.next;
+        return { d: 'M' + l[0] + ' ' + l[1] + 'V' + l[2], c: done ? '#2c6a39' : isNext ? 'rgba(0,0,0,0)' : '#8c8376', w: done ? 1.6 : 1.3, dash: done ? 'none' : '4 7' };
+      }),
+      nextX: L[0], nextD: 'M0 ' + L[1] + 'V' + L[2], flashOn: s.flash > 0 && s.idle <= 0,
+      doneX: doneN ? (FIRST + LINES[doneN - 1][0]) / 2 : FIRST,
+      doneLabel: doneN ? doneN + ' done' : '',
+      aria: 'Cut ' + (s.next + 1) + ' of ' + LINES.length + ' on this shallot. The next line is lit.',
+      stepPct: Math.round(((s.shallots - 1) + s.next / LINES.length) / 12 * 100),
+      dots: Array.from({ length: 12 }, (_, i) => ({ full: i < s.shallots, empty: i >= s.shallots, cls: i === s.fresh ? 'pop' : '' })),
+      shallots: s.shallots, grams: Math.round(s.shallots * 15.3),
+      shallotAria: s.shallots + ' of 12 shallots sliced',
+      cut: () => { this.setState({ idle: 0 }); this.advance(); },
+      showAgain: () => this.setState({ flash: this.state.flash + 1, idle: -2 })
+    };
+  }
+}
+</script>
+</body>
+</html>

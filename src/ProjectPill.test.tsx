@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ProjectPill } from './ProjectPill'
 
@@ -115,13 +115,15 @@ describe('ProjectPill', () => {
     const view = render(<ProjectPill />)
     fireEvent.click(within(view.container).getByRole('button', { name: 'Record' }))
 
-    const stopButton = await within(view.container).findByRole('button', { name: 'Stop recording' })
+    const recordButton = within(view.container).getByRole('button', { name: 'Record' })
+    await waitFor(() => expect(recordButton).toHaveAttribute('aria-pressed', 'true'))
     expect(getUserMedia).toHaveBeenCalledWith({ audio: true })
     expect(recorderStart).toHaveBeenCalledOnce()
     expect(recognitionStart).toHaveBeenCalledOnce()
-    expect(stopButton).toHaveAttribute('aria-pressed', 'true')
+    expect(recordButton).toBeEnabled()
+    expect(within(view.container).queryByRole('button', { name: /stop/i })).not.toBeInTheDocument()
 
-    fireEvent.click(stopButton)
+    fireEvent.click(recordButton)
 
     expect(await within(view.container).findByRole('button', { name: 'Record' })).toHaveAttribute(
       'aria-pressed',
@@ -166,7 +168,7 @@ describe('ProjectPill', () => {
 
     const view = render(<ProjectPill />)
     fireEvent.click(within(view.container).getByRole('button', { name: 'Record' }))
-    await within(view.container).findByRole('button', { name: 'Stop recording' })
+    await waitFor(() => expect(within(view.container).getByRole('button', { name: 'Record' })).toHaveAttribute('aria-pressed', 'true'))
 
     recognition?.onresult?.({
       resultIndex: 0,

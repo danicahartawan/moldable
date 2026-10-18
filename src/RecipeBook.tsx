@@ -1,3 +1,5 @@
+import { ThermalWave } from './ThermalWave'
+
 export function RecipeBook() {
   return (
     <article className="recipe-article" aria-label="Soto Ayam recipe">
@@ -33,6 +35,9 @@ export function RecipeBook() {
         </p>
         <blockquote>“A bowl built in layers: warm spice, soft chicken, then a bright last word of lime.”</blockquote>
       </section>
+
+      {/* Heat wave spreads from the Record button, top right of the card */}
+      <ThermalWave originX={0.9} originY={0} />
     </article>
   )
 }
