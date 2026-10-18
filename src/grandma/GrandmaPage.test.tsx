@@ -138,14 +138,14 @@ describe('GrandmaPage', () => {
     )
   })
 
-  it('places listening and live transcription directly beneath Stop', async () => {
+  it('keeps the area beneath Stop blank until real transcription arrives', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
     const stopButton = await screen.findByRole('button', { name: 'Stop recording' })
     const controls = screen.getByTestId('grandma-recorder-stack')
 
     expect(controls).toContainElement(stopButton)
-    expect(controls).toContainElement(screen.getByText('Listening…'))
+    expect(screen.queryByText('Listening…')).not.toBeInTheDocument()
 
     recognition.emit({ isFinal: false, 0: { transcript: 'Toast the spices gently.' } })
     expect(await screen.findByTestId('transcript-preview')).toHaveClass('grandma-transcript--under-control')

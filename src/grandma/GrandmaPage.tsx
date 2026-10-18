@@ -79,8 +79,6 @@ export function GrandmaPage() {
             <p className="grandma-transcript grandma-transcript--preview grandma-transcript--under-control" data-testid="transcript-preview" aria-live="polite">
               {recorder.transcript}<span className="grandma-transcript__interim">{recorder.interimTranscript}</span>
             </p>
-          ) : isRecording ? (
-            <p className="grandma-listening grandma-transcript--under-control" aria-live="polite">Listening…</p>
           ) : null}
         </div>
       </header>
