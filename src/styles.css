@@ -1,16 +1,42 @@
-:root { font-family: "Avenir Next", Avenir, "Trebuchet MS", sans-serif; color: #151515; background: #f8f8f7; }
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at 50% 7%, #fff 0 22rem, #f7f7f5 58rem); }
-button { font: inherit; }
-main { min-height: 100vh; padding: 2px 16px 48px; }
-.project-pill { width: min(620px, calc(100vw - 32px)); min-height: 98px; margin: 0 auto; padding: 14px 20px 14px 24px; display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,.94); border: 1px solid rgba(255,255,255,.96); border-radius: 0 0 34px 34px; box-shadow: 0 18px 38px rgba(27,27,25,.08), inset 0 1px 0 #fff; overflow: hidden; }
-.project-pill__brand { flex: 0 0 auto; display: block; width: 94px; height: 34px; object-fit: contain; }
-.project-pill__divider { flex: 0 0 1px; align-self: stretch; background: linear-gradient(transparent, rgba(20,20,20,.12) 22%, rgba(20,20,20,.12) 78%, transparent); }
-.project-pill__rail { min-width: 0; flex: 1; display: flex; align-items: center; gap: 5px; overflow-x: auto; padding: 6px 3px 8px; scrollbar-width: none; scroll-snap-type: x proximity; }
-.project-pill__rail::-webkit-scrollbar { display: none; }
-.food-button { flex: 0 0 52px; width: 52px; height: 52px; display: grid; place-items: center; padding: 4px; border: 0; border-radius: 15px; background: transparent; cursor: pointer; scroll-snap-align: center; transition: transform 160ms ease, background-color 160ms ease; }
-.food-button img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 4px rgba(66,44,20,.11)); }
-.food-button:hover { transform: translateY(-3px) rotate(-1deg); background: #f5efd5; }
-.food-button:focus-visible { outline: 3px solid #da9f26; outline-offset: 2px; background: #fff7d8; }
-@media (max-width: 640px) { main { padding-inline: 8px; } .project-pill { width: calc(100vw - 16px); min-height: 88px; padding: 12px 14px 12px 18px; gap: 12px; border-radius: 0 0 28px 28px; } .project-pill__brand { width: 82px; height: 30px; } .food-button { flex-basis: 48px; width: 48px; height: 48px; border-radius: 13px; } .project-pill__rail { gap: 4px; } }
-@media (prefers-reduced-motion: reduce) { .food-button { transition: none; } }
+:root {
+  background: #fff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #fff;
+}
+
+.ginger-stage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 6vw, 72px);
+}
+
+.ginger-stage__image {
+  display: block;
+  width: min(52vw, 560px);
+  min-width: 220px;
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .ginger-stage__image {
+    width: min(78vw, 420px);
+    min-width: 0;
+  }
+}
