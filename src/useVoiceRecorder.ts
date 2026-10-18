@@ -45,6 +45,7 @@ export function useVoiceRecorder({ transcribeAudio }: VoiceRecorderOptions = {})
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const transcriptionRequestRef = useRef(0)
+  const appliedTranscriptionRef = useRef(0)
 
   const updateStatus = useCallback((nextStatus: VoiceRecorderStatus) => {
     statusRef.current = nextStatus
@@ -81,6 +82,7 @@ export function useVoiceRecorder({ transcribeAudio }: VoiceRecorderOptions = {})
       const recognition = Recognition ? new Recognition() : null
       audioChunksRef.current = []
       transcriptionRequestRef.current = 0
+      appliedTranscriptionRef.current = 0
       setAiTranscript('')
       streamRef.current = stream
       recorderRef.current = recorder
@@ -111,7 +113,10 @@ export function useVoiceRecorder({ transcribeAudio }: VoiceRecorderOptions = {})
           })
           void transcribeAudio(audio)
             .then((spokenWords) => {
-              if (requestId === transcriptionRequestRef.current && spokenWords) setAiTranscript(spokenWords)
+              if (requestId > appliedTranscriptionRef.current && spokenWords) {
+                appliedTranscriptionRef.current = requestId
+                setAiTranscript(spokenWords)
+              }
             })
             .catch(() => {})
         }

@@ -164,4 +164,37 @@ describe('GrandmaPage', () => {
     ))
     expect(await screen.findByTestId('transcript-preview')).toHaveTextContent('Toast the spices gently.')
   })
+
+  it('keeps a successful transcript when a newer audio request fails', async () => {
+    let finishFirstRequest: ((response: Response) => void) | undefined
+    let transcriptionRequest = 0
+    vi.mocked(fetch).mockImplementation(async (input: string | URL | Request) => {
+      if (!String(input).includes('/api/grandma/transcribe')) {
+        return { ok: true, json: async () => ({ title: 'Sunday Soto Stories' }) } as Response
+      }
+
+      transcriptionRequest += 1
+      if (transcriptionRequest === 1) {
+        return new Promise<Response>((resolve) => { finishFirstRequest = resolve })
+      }
+      return { ok: false, json: async () => ({ error: 'No speech was recognized.' }) } as Response
+    })
+
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await screen.findByRole('button', { name: 'Stop recording' })
+
+    mediaRecorder.emitAudio(new Blob(['first recorded phrase'], { type: 'audio/webm' }))
+    mediaRecorder.emitAudio(new Blob(['later silence'], { type: 'audio/webm' }))
+    await waitFor(() => expect(transcriptionRequest).toBe(2))
+
+    finishFirstRequest?.({
+      ok: true,
+      json: async () => ({ transcript: 'Grandma stirred the soup slowly.' }),
+    } as Response)
+
+    expect(await screen.findByTestId('transcript-preview')).toHaveTextContent(
+      'Grandma stirred the soup slowly.',
+    )
+  })
 })
