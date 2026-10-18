@@ -1,46 +1,70 @@
-import { afterEach, describe, it, expect } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { GrandkidsPage } from './GrandkidsPage'
 
 afterEach(cleanup)
 
 describe('GrandkidsPage', () => {
-  it('renders Soto Ayam title in a main region', () => {
+  it('opens Lawar Bali from the recipe fridge', () => {
     render(<GrandkidsPage />)
-    const main = screen.getByRole('main')
-    expect(main).toBeInTheDocument()
-    expect(screen.getByText(/Soto Ayam/i)).toBeInTheDocument()
+
+    expect(screen.getByTestId('grandkids-screen')).toHaveClass('grandkids-screen')
+    fireEvent.click(screen.getByRole('button', { name: /open lawar bali/i }))
+
+    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeInTheDocument()
+    expect(screen.getByLabelText('15 minutes')).toBeInTheDocument()
   })
 
-  it('displays all 14 Soto Ayam ingredients with accessible names', () => {
+  it('keeps the toolbar collapsed until it is called', () => {
     render(<GrandkidsPage />)
 
-    // All 14 ingredients from the spec
-    expect(screen.getByText(/chicken thighs/i)).toBeInTheDocument()
-    expect(screen.getByText(/lemongrass/i)).toBeInTheDocument()
-    expect(screen.getByText(/daun salam/i)).toBeInTheDocument()
-    expect(screen.getByText(/makrut lime leaves/i)).toBeInTheDocument()
-    expect(screen.getByText(/fresh turmeric/i)).toBeInTheDocument()
-    expect(screen.getByText(/ginger/i)).toBeInTheDocument()
-    expect(screen.getByText(/garlic/i)).toBeInTheDocument()
-    expect(screen.getByText(/candlenuts/i)).toBeInTheDocument()
-    expect(screen.getByText(/ground coriander/i)).toBeInTheDocument()
-    expect(screen.getByText(/rice noodles/i)).toBeInTheDocument()
-    expect(screen.getByText(/bean sprouts/i)).toBeInTheDocument()
-    expect(screen.getByText(/eggs/i)).toBeInTheDocument()
-    expect(screen.getByText(/limes/i)).toBeInTheDocument()
-    expect(screen.getByText(/fried shallots/i)).toBeInTheDocument()
+    const toolbar = screen.getByRole('toolbar', { name: /recipe tools/i })
+    expect(toolbar).toHaveAttribute('data-open', 'false')
+
+    fireEvent.click(screen.getByRole('button', { name: /show recipe tools/i }))
+    expect(toolbar).toHaveAttribute('data-open', 'true')
   })
 
-  it('defaults to four servings', () => {
+  it('starts the recipe and shows the first spoken step', () => {
     render(<GrandkidsPage />)
-    // Base quantities should match 4 servings
-    expect(screen.getByText(/700\s*g/)).toBeInTheDocument() // chicken thighs
+    fireEvent.click(screen.getByRole('button', { name: /open lawar bali/i }))
+    fireEvent.click(screen.getByRole('button', { name: /wave or tap to start/i }))
+
+    expect(screen.getByText(/first, put the beef in your biggest bowl/i)).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /cooking walkthrough/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /blend/i })).toBeInTheDocument()
   })
 
-  it('does not render project bar or ginger UI', () => {
+  it('moves through the four cooking cards', () => {
     render(<GrandkidsPage />)
-    expect(screen.queryByAltText(/Moldable/)).not.toBeInTheDocument()
-    expect(screen.queryByAltText(/Ginger root/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /open lawar bali/i }))
+    fireEvent.click(screen.getByRole('button', { name: /wave or tap to start/i }))
+
+    fireEvent.click(screen.getByRole('button', { name: /next step/i }))
+    expect(screen.getByRole('heading', { name: /toast/i })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /next step/i }))
+    expect(screen.getByRole('heading', { name: /sauté/i })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /next step/i }))
+    expect(screen.getByRole('heading', { name: /serve/i })).toBeInTheDocument()
+  })
+
+  it('keeps recipe descriptions out of the visual interface', () => {
+    render(<GrandkidsPage />)
+
+    expect(screen.queryByText(/warm, bright, crunchy/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/pick a note/i)).not.toBeInTheDocument()
+  })
+
+  it('moves between cooking widgets with the section controls', () => {
+    render(<GrandkidsPage />)
+    fireEvent.click(screen.getByRole('button', { name: /open lawar bali/i }))
+    fireEvent.click(screen.getByRole('button', { name: /show tools/i }))
+
+    expect(screen.getByRole('region', { name: /tools/i })).toHaveAttribute('data-active', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: /show ingredients/i }))
+    expect(screen.getByRole('region', { name: /ingredients/i })).toHaveAttribute('data-active', 'true')
   })
 })
