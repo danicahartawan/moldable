@@ -106,7 +106,7 @@
   top: 18%;
   bottom: 18%;
   left: 3%;
-  width: 42%;
+  width: 32%;
   overflow: hidden;
   mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
 }
@@ -337,6 +337,8 @@
   .grandma-record-button__dot,
   .grandma-character,
   .grandma-guiding-question,
+  .grandma-question-rail__question,
+  .grandma-transcript__new,
   .story-book,
   .story-book__traveler { animation: none; transition: none; }
   .story-book__traveler { top: 63%; left: 4%; transform: scale(.72); }
