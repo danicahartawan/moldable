@@ -28,16 +28,23 @@ function getSpeechRecognitionConstructor() {
   return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition
 }
 
-export function useVoiceRecorder() {
+type VoiceRecorderOptions = {
+  transcribeAudio?: (audio: Blob) => Promise<string>
+}
+
+export function useVoiceRecorder({ transcribeAudio }: VoiceRecorderOptions = {}) {
   const [status, setStatus] = useState<VoiceRecorderStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [transcript, setTranscript] = useState('')
+  const [aiTranscript, setAiTranscript] = useState('')
   const [interimTranscript, setInterimTranscript] = useState('')
   const [hasCompletedRecording, setHasCompletedRecording] = useState(false)
   const statusRef = useRef<VoiceRecorderStatus>('idle')
   const streamRef = useRef<MediaStream | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const transcriptionRequestRef = useRef(0)
 
   const updateStatus = useCallback((nextStatus: VoiceRecorderStatus) => {
     statusRef.current = nextStatus
@@ -60,7 +67,7 @@ export function useVoiceRecorder() {
   const start = useCallback(async () => {
     const Recognition = getSpeechRecognitionConstructor()
 
-    if (!Recognition || !('MediaRecorder' in window) || !navigator.mediaDevices?.getUserMedia) {
+    if ((!Recognition && !transcribeAudio) || !('MediaRecorder' in window) || !navigator.mediaDevices?.getUserMedia) {
       updateStatus('unsupported')
       setErrorMessage(unsupportedMessage)
       return
@@ -71,26 +78,46 @@ export function useVoiceRecorder() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const recorder = new MediaRecorder(stream)
-      const recognition = new Recognition()
+      const recognition = Recognition ? new Recognition() : null
+      audioChunksRef.current = []
+      transcriptionRequestRef.current = 0
+      setAiTranscript('')
       streamRef.current = stream
       recorderRef.current = recorder
       recognitionRef.current = recognition
-      recognition.continuous = true
-      recognition.interimResults = true
-      recognition.onresult = (rawEvent) => {
-        const event = rawEvent as SpeechResultEvent
-        let finalText = ''
-        let interimText = ''
-        for (let index = event.resultIndex; index < event.results.length; index += 1) {
-          const result = event.results[index]
-          if (result.isFinal) finalText += result[0].transcript
-          else interimText += result[0].transcript
+      if (recognition) {
+        recognition.continuous = true
+        recognition.interimResults = true
+        recognition.onresult = (rawEvent) => {
+          const event = rawEvent as SpeechResultEvent
+          let finalText = ''
+          let interimText = ''
+          for (let index = event.resultIndex; index < event.results.length; index += 1) {
+            const result = event.results[index]
+            if (result.isFinal) finalText += result[0].transcript
+            else interimText += result[0].transcript
+          }
+          if (finalText) setTranscript((current) => `${current}${finalText}`)
+          setInterimTranscript(interimText)
         }
-        if (finalText) setTranscript((current) => `${current}${finalText}`)
-        setInterimTranscript(interimText)
       }
-      recorder.start()
-      recognition.start()
+      if (transcribeAudio) {
+        recorder.ondataavailable = (event) => {
+          if (!event.data.size) return
+          audioChunksRef.current.push(event.data)
+          const requestId = ++transcriptionRequestRef.current
+          const audio = new Blob(audioChunksRef.current, {
+            type: recorder.mimeType || event.data.type || 'audio/webm',
+          })
+          void transcribeAudio(audio)
+            .then((spokenWords) => {
+              if (requestId === transcriptionRequestRef.current && spokenWords) setAiTranscript(spokenWords)
+            })
+            .catch(() => {})
+        }
+      }
+      recorder.start(transcribeAudio ? 3000 : undefined)
+      recognition?.start()
       updateStatus('recording')
     } catch {
       streamRef.current?.getTracks().forEach((track) => track.stop())
@@ -98,7 +125,7 @@ export function useVoiceRecorder() {
       updateStatus('error')
       setErrorMessage('Microphone access was denied.')
     }
-  }, [updateStatus])
+  }, [transcribeAudio, updateStatus])
 
   const toggle = useCallback(() => {
     if (statusRef.current === 'recording') stop()
@@ -109,8 +136,8 @@ export function useVoiceRecorder() {
 
   return {
     status,
-    transcript,
-    interimTranscript,
+    transcript: aiTranscript || transcript,
+    interimTranscript: aiTranscript ? '' : interimTranscript,
     errorMessage,
     hasCompletedRecording,
     toggle,

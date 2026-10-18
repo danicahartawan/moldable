@@ -4,10 +4,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { DotSpinner, Icon } from '../Icon'
 import { useVoiceRecorder } from '../useVoiceRecorder'
 import { requestGeneratedTitle, shouldGenerateTitle } from './title'
+import { transcribeAudio } from './transcribe'
 import './grandma.css'
 
 export function GrandmaPage() {
-  const recorder = useVoiceRecorder()
+  const recorder = useVoiceRecorder({ transcribeAudio })
   const [title, setTitle] = useState('')
   const [isTitlePending, setIsTitlePending] = useState(false)
   const titleRequested = useRef(false)

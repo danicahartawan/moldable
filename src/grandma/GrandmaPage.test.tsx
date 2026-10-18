@@ -5,6 +5,7 @@ import { GrandmaPage } from './GrandmaPage'
 type RecognitionResult = { isFinal: boolean; 0: { transcript: string } }
 
 let recognition: FakeRecognition
+let mediaRecorder: FakeMediaRecorder
 
 class FakeRecognition {
   continuous = false
@@ -22,8 +23,16 @@ class FakeRecognition {
 
 class FakeMediaRecorder {
   state: RecordingState = 'inactive'
+  mimeType = 'audio/webm'
+  ondataavailable: ((event: BlobEvent) => void) | null = null
+
+  constructor() { mediaRecorder = this }
   start() { this.state = 'recording' }
   stop() { this.state = 'inactive' }
+
+  emitAudio(data: Blob) {
+    this.ondataavailable?.({ data } as BlobEvent)
+  }
 }
 
 describe('GrandmaPage', () => {
@@ -37,10 +46,12 @@ describe('GrandmaPage', () => {
       configurable: true,
       value: { getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] }) },
     })
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (input: string | URL | Request) => ({
       ok: true,
-      json: async () => ({ title: 'Sunday Soto Stories' }),
-    }))
+      json: async () => String(input).includes('/api/grandma/transcribe')
+        ? { transcript: 'Toast the spices gently.' }
+        : { title: 'Sunday Soto Stories' },
+    })))
   })
 
   it('starts as a blank recording canvas with a compact record control', () => {
@@ -138,5 +149,19 @@ describe('GrandmaPage', () => {
 
     recognition.emit({ isFinal: false, 0: { transcript: 'Toast the spices gently.' } })
     expect(await screen.findByTestId('transcript-preview')).toHaveClass('grandma-transcript--under-control')
+  })
+
+  it('shows actual spoken words from OpenAI audio transcription', async () => {
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await screen.findByRole('button', { name: 'Stop recording' })
+
+    mediaRecorder.emitAudio(new Blob(['recorded voice'], { type: 'audio/webm' }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
+      '/api/grandma/transcribe',
+      expect.objectContaining({ method: 'POST' }),
+    ))
+    expect(await screen.findByTestId('transcript-preview')).toHaveTextContent('Toast the spices gently.')
   })
 })
