@@ -50,8 +50,9 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 760, height: 900 
     await expect(page.getByRole('img', { name: 'Grandma companion' })).toBeVisible()
     await page.getByRole('button', { name: 'Record' }).click()
     await expect(page.getByRole('region', { name: 'Live transcript' })).toContainText(
-      'I remember making this for Nev when he was little.',
+      'Take half an onion, garlic, chili, kencur, pepper, and lime leaves.',
     )
+    await expect(page.locator('.grandma-transcript-tool-chip[data-tool="blend"]')).toContainText('Blend')
     await page.clock.fastForward(10_000)
     await expect(page.getByText('How old was Nev when that happened?')).toBeVisible()
   })

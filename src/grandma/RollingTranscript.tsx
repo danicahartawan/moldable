@@ -1,5 +1,6 @@
 'use client'
 
+import { Fan, Oven, Scales, Thermometer, Timer, type Icon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 
 type RollingTranscriptProps = {
@@ -8,12 +9,38 @@ type RollingTranscriptProps = {
   errorMessage: string | null
 }
 
+const transcriptTools: Record<string, { id: string; Icon: Icon }> = {
+  Blend: { id: 'blend', Icon: Fan },
+  Microwave: { id: 'microwave', Icon: Oven },
+  Temperature: { id: 'temperature', Icon: Thermometer },
+  Timer: { id: 'timer', Icon: Timer },
+  Weigh: { id: 'weigh', Icon: Scales },
+}
+
+const toolMarkerPattern = /(\[(?:Blend|Microwave|Temperature|Timer|Weigh)\])/g
+
+function renderTranscriptText(text: string) {
+  return text.split(toolMarkerPattern).map((segment, index) => {
+    const label = segment.startsWith('[') && segment.endsWith(']') ? segment.slice(1, -1) : ''
+    const tool = transcriptTools[label]
+    if (!tool) return segment
+
+    const ToolIcon = tool.Icon
+    return (
+      <span className="grandma-transcript-tool-chip" data-tool={tool.id} key={`${label}-${index}`}>
+        <ToolIcon size={14} weight="regular" />
+        <span className="grandma-transcript-tool-chip__label">{label}</span>
+      </span>
+    )
+  })
+}
+
 export function RollingTranscript({ finalText, interimText, errorMessage }: RollingTranscriptProps) {
   const previousFinalText = useRef('')
   const [visibleLength, setVisibleLength] = useState(0)
   const settledText = finalText.startsWith(previousFinalText.current) ? previousFinalText.current : ''
   const appendedText = finalText.slice(settledText.length, visibleLength)
-  const accessibleText = `${finalText}${interimText}`.trim()
+  const accessibleText = `${finalText}${interimText}`.replace(/\[([^\]]+)\]/g, '$1').trim()
 
   useEffect(() => {
     const settledLength = finalText.startsWith(previousFinalText.current)
@@ -58,12 +85,16 @@ export function RollingTranscript({ finalText, interimText, errorMessage }: Roll
       <span className="grandma-transcript__accessible">{accessibleText}</span>
       <span className="grandma-transcript__visual" aria-hidden="true">
         <span className="grandma-transcript__final">
-          {settledText ? <span className="grandma-transcript__settled">{settledText}</span> : null}
+          {settledText ? (
+            <span className="grandma-transcript__settled">{renderTranscriptText(settledText)}</span>
+          ) : null}
           {finalText.length > settledText.length ? (
-            <span className="grandma-transcript__new">{appendedText}</span>
+            <span className="grandma-transcript__new">{renderTranscriptText(appendedText)}</span>
           ) : null}
         </span>
-        {interimText ? <span className="grandma-transcript__interim">{interimText}</span> : null}
+        {interimText ? (
+          <span className="grandma-transcript__interim">{renderTranscriptText(interimText)}</span>
+        ) : null}
       </span>
     </section>
   )

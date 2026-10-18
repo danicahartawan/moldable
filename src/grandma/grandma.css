@@ -270,6 +270,26 @@
   animation: grandma-transcript-roll 360ms cubic-bezier(.2, .8, .2, 1) both;
 }
 
+.grandma-transcript-tool-chip {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 5px;
+  margin: 0 4px;
+  padding: 1px 9px;
+  border-radius: 9px;
+  background: rgba(226, 226, 223, .94);
+  color: #343330;
+  font-size: 15px;
+  line-height: 1.35;
+  vertical-align: baseline;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+}
+
+.grandma-transcript-tool-chip svg {
+  flex: 0 0 auto;
+}
+
 .grandma-rolling-transcript--error {
   color: #8a4b48;
   mask-image: none;

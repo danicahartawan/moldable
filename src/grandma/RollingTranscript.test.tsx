@@ -61,4 +61,17 @@ describe('RollingTranscript', () => {
     expect(view.container.querySelector('.grandma-transcript__final')).toHaveTextContent('Soup')
     expect(view.container.querySelector('.grandma-transcript__accessible')).toHaveTextContent('Soup')
   })
+
+  it('turns transcript tool markers into inline chips', () => {
+    vi.useFakeTimers()
+    const transcript = 'Take half an onion, garlic, chili, kencur, pepper, and lime leaves. [Blend] until it becomes a fine paste.'
+    const view = render(<RollingTranscript finalText={transcript} interimText="" errorMessage={null} />)
+    act(() => { vi.advanceTimersByTime(transcript.length * 28) })
+
+    expect(screen.getByText('Blend', { selector: '.grandma-transcript-tool-chip__label' })).toBeInTheDocument()
+    expect(view.container.querySelector('.grandma-transcript-tool-chip')).toHaveAttribute('data-tool', 'blend')
+    expect(view.container.querySelector('.grandma-transcript__visual')).not.toHaveTextContent('[Blend]')
+    expect(view.container.querySelector('.grandma-transcript__accessible')).toHaveTextContent('Blend')
+    expect(view.container.querySelector('.grandma-transcript__accessible')).not.toHaveTextContent('[Blend]')
+  })
 })

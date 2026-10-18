@@ -11,7 +11,7 @@ import { RollingTranscript } from './RollingTranscript'
 import './grandma.css'
 
 const demoStorySegments = [
-  'I remember making this for Nev when he was little.',
+  'Take half an onion, garlic, chili, kencur, pepper, and lime leaves. [Blend] until it becomes a fine paste.',
   'He was helping me in the kitchen and nearly shaved the tip of his finger off trying to cut an onion—gave me such a fright.',
   'Start with one handful of ground beef and a pinch of salt.',
   'Brown it slowly until it’s deep golden, not gray. It should smell warm, savory, and a little peppery.',

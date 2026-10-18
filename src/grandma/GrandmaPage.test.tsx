@@ -105,7 +105,7 @@ describe('GrandmaPage', () => {
     await act(async () => {})
 
     expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
-      'I remember making this for Nev when he was little.',
+      'Take half an onion, garlic, chili, kencur, pepper, and lime leaves.',
     )
     act(() => { vi.advanceTimersByTime(12_000) })
     expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
