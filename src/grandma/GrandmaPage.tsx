@@ -1,28 +1,32 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DotSpinner, Icon } from '../Icon'
 import { HomeViewFrame } from '../home/HomeViewFrame'
 import { useVoiceRecorder } from '../useVoiceRecorder'
 import { requestGeneratedTitle, shouldGenerateTitle } from './title'
 import { transcribeAudio } from './transcribe'
-import { GrandmaWritingScreen } from './GrandmaWritingScreen'
 import { GuidingQuestionRail, guidingQuestions } from './GuidingQuestionRail'
 import { RollingTranscript } from './RollingTranscript'
 import './grandma.css'
+
+const demoStorySegments = [
+  'I remember making this for Nev when he was little.',
+  'He was helping me in the kitchen and nearly shaved the tip of his finger off trying to cut an onion—gave me such a fright.',
+  'Start with one handful of ground beef and a pinch of salt.',
+  'Brown it slowly until it’s deep golden, not gray. It should smell warm, savory, and a little peppery.',
+] as const
 
 export function GrandmaPage() {
   const recorder = useVoiceRecorder({ transcribeAudio })
   const [title, setTitle] = useState('')
   const [isTitlePending, setIsTitlePending] = useState(false)
   const [guidingQuestionIndex, setGuidingQuestionIndex] = useState<number | null>(null)
+  const [demoTranscript, setDemoTranscript] = useState('')
   const titleRequested = useRef(false)
-  const fullTranscript = useMemo(
-    () => `${recorder.transcript}${recorder.interimTranscript}`.trim(),
-    [recorder.interimTranscript, recorder.transcript],
-  )
   const isRecording = recorder.status === 'recording'
   const isStarting = recorder.status === 'requesting'
+  const hasSpokenTranscript = Boolean(recorder.transcript || recorder.interimTranscript)
 
   useEffect(() => {
     if (!isRecording) {
@@ -35,13 +39,27 @@ export function GrandmaPage() {
       setGuidingQuestionIndex(0)
       rotation = window.setInterval(() => {
         setGuidingQuestionIndex((current) => current === null ? current : (current + 1) % guidingQuestions.length)
-      }, 12_000)
-    }, 30_000)
+      }, 10_000)
+    }, 10_000)
 
     return () => {
       window.clearTimeout(firstQuestion)
       if (rotation !== undefined) window.clearInterval(rotation)
     }
+  }, [isRecording])
+
+  useEffect(() => {
+    if (!isRecording) {
+      setDemoTranscript('')
+      return
+    }
+
+    setDemoTranscript(demoStorySegments[0])
+    const transcriptTimers = demoStorySegments.slice(1).map((_, index) => window.setTimeout(() => {
+      setDemoTranscript(demoStorySegments.slice(0, index + 2).join(' '))
+    }, (index + 1) * 4_000))
+
+    return () => transcriptTimers.forEach((timer) => window.clearTimeout(timer))
   }, [isRecording])
 
   useEffect(() => {
@@ -60,7 +78,11 @@ export function GrandmaPage() {
   }, [recorder.transcript])
 
   if (recorder.hasCompletedRecording) {
-    return <GrandmaWritingScreen title={title} transcript={fullTranscript} />
+    return (
+      <HomeViewFrame label="Grandma story HomeView" className="grandma-homeview grandma-handoff">
+        {null}
+      </HomeViewFrame>
+    )
   }
 
   return (
@@ -102,8 +124,8 @@ export function GrandmaPage() {
         <GuidingQuestionRail activeIndex={guidingQuestionIndex} />
       ) : null}
       <RollingTranscript
-        finalText={recorder.transcript}
-        interimText={recorder.interimTranscript}
+        finalText={hasSpokenTranscript ? recorder.transcript : demoTranscript}
+        interimText={hasSpokenTranscript ? recorder.interimTranscript : ''}
         errorMessage={recorder.errorMessage}
       />
     </HomeViewFrame>

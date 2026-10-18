@@ -33,11 +33,13 @@ export function RollingTranscript({ finalText, interimText, errorMessage }: Roll
       role="region"
     >
       <span className="grandma-transcript__accessible">{accessibleText}</span>
-      <span className="grandma-transcript__final" aria-hidden="true">
-        {settledText ? <span className="grandma-transcript__settled">{settledText}</span> : null}
-        {appendedText ? <span className="grandma-transcript__new">{appendedText}</span> : null}
+      <span className="grandma-transcript__visual" aria-hidden="true">
+        <span className="grandma-transcript__final">
+          {settledText ? <span className="grandma-transcript__settled">{settledText}</span> : null}
+          {appendedText ? <span className="grandma-transcript__new">{appendedText}</span> : null}
+        </span>
+        {interimText ? <span className="grandma-transcript__interim">{interimText}</span> : null}
       </span>
-      {interimText ? <span className="grandma-transcript__interim" aria-hidden="true">{interimText}</span> : null}
     </section>
   )
 }

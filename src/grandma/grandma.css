@@ -218,15 +218,26 @@
 
 .grandma-rolling-transcript {
   position: absolute;
-  right: 7%;
-  bottom: 8%;
-  width: min(48%, 32ch);
-  max-height: calc(1.45em * 5);
+  right: 8%;
+  bottom: 6%;
+  left: 8%;
+  height: calc(1.45em * 2);
   overflow: hidden;
-  font-size: clamp(15px, 2.35cqw, 21px);
+  color: #85827e;
+  font-size: 15px;
+  font-weight: 400;
   line-height: 1.45;
   text-align: right;
-  mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, .72) 32%, #000 72%);
+}
+
+.grandma-transcript__visual {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  text-shadow: 0 0 3px rgba(83, 80, 76, .18);
 }
 
 .grandma-transcript__final,
@@ -253,6 +264,10 @@
 .grandma-rolling-transcript--error {
   color: #8a4b48;
   mask-image: none;
+}
+
+.grandma-handoff {
+  overflow: hidden;
 }
 
 @keyframes grandma-transcript-roll {

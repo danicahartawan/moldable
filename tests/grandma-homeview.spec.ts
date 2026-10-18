@@ -82,22 +82,29 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 760, height: 900 
 
     await page.getByRole('button', { name: 'Record' }).click()
     await expect(page.getByRole('button', { name: 'Stop recording' })).toBeVisible()
-    await page.clock.fastForward(30_000)
+    await page.clock.fastForward(10_000)
     const railBox = await page.getByRole('region', { name: 'Guiding questions' }).boundingBox() as Box
     expect(isInside(railBox, displayBox)).toBe(true)
     expect(railBox.width).toBeLessThanOrEqual(displayBox.width / 3)
+    await expect(page.getByText('How old was Nev when that happened?')).toBeVisible()
+    await page.clock.fastForward(10_000)
+    await expect(page.getByText('What should the beef smell like when it’s ready?')).toBeVisible()
 
     await emitFinalTranscript(page)
     await expect(page.getByRole('region', { name: 'Live transcript' })).toContainText('Grandma toasted the spices slowly.')
     await expect(page.getByRole('heading', { name: 'Sunday Soto Stories' })).toBeVisible()
 
     const transcriptBox = await page.locator('.grandma-rolling-transcript').boundingBox() as Box
+    const transcriptLineHeight = Number.parseFloat(await page.locator('.grandma-rolling-transcript').evaluate(
+      (element) => getComputedStyle(element).lineHeight,
+    ))
     const titleBox = await page.getByRole('heading', { name: 'Sunday Soto Stories' }).boundingBox() as Box
     expect(intersects(transcriptBox, mascotBox)).toBe(false)
     expect(intersects(transcriptBox, railBox)).toBe(false)
     expect(intersects(titleBox, mascotBox)).toBe(false)
     expect(intersects(titleBox, railBox)).toBe(false)
     expect(intersects(titleBox, transcriptBox)).toBe(false)
+    expect(transcriptBox.height).toBeLessThanOrEqual((transcriptLineHeight * 2) + 1)
   })
 }
 
@@ -107,7 +114,7 @@ test('removes Grandma orbital and rolling motion when reduced motion is requeste
   await page.goto('/grandma')
   await page.getByRole('button', { name: 'Record' }).click()
   await expect(page.getByRole('button', { name: 'Stop recording' })).toBeVisible()
-  await page.clock.fastForward(30_000)
+  await page.clock.fastForward(10_000)
   await emitFinalTranscript(page)
   await expect(page.getByRole('region', { name: 'Live transcript' })).toBeVisible()
 

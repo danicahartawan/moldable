@@ -16,16 +16,16 @@ describe('GuidingQuestionRail', () => {
   it('exposes only the active question as a polite live update', () => {
     render(<GuidingQuestionRail activeIndex={0} />)
 
-    expect(screen.getByText('What color should it be?')).toHaveAttribute('aria-live', 'polite')
-    expect(screen.getByText('What should it smell like?')).toHaveAttribute('aria-hidden', 'true')
-    expect(screen.getByText('What would you tell the people making it?')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByText('How old was Nev when that happened?')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.getByText('What should the beef smell like when it’s ready?')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByText('What else did you add by instinct?')).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('changes the active question and wraps indices', () => {
     const view = render(<GuidingQuestionRail activeIndex={1} />)
-    expect(screen.getByText('What should it smell like?')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.getByText('What should the beef smell like when it’s ready?')).toHaveAttribute('aria-live', 'polite')
 
     view.rerender(<GuidingQuestionRail activeIndex={4} />)
-    expect(screen.getByText('What color should it be?')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.getByText('How old was Nev when that happened?')).toHaveAttribute('aria-live', 'polite')
   })
 })

@@ -74,7 +74,7 @@ describe('GrandmaPage', () => {
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 
-  it('shows a constrained live preview and opens the writing screen after stopping', async () => {
+  it('shows a constrained live preview and stays inside HomeView after stopping', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Stop recording' })).toHaveAttribute('aria-pressed', 'true'))
@@ -89,11 +89,27 @@ describe('GrandmaPage', () => {
     expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toHaveClass('grandma-generated-title')
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
 
-    expect(await screen.findByRole('article', { name: 'Grandma writing screen' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
-    expect(screen.getByLabelText(/Grandma toasted the spices slowly/)).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Moldable character writing with a silver pencil' })).toBeInTheDocument()
+    expect(await screen.findByRole('main', { name: 'Grandma story HomeView' })).toBeInTheDocument()
+    expect(document.querySelector('.grandma-handoff')).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
+  })
+
+  it('runs the approved Grandma story as a timed transcript demo', async () => {
+    vi.useFakeTimers()
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await act(async () => {})
+
+    expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
+      'I remember making this for Nev when he was little.',
+    )
+    act(() => { vi.advanceTimersByTime(12_000) })
+    expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
+      'one handful of ground beef and a pinch of salt',
+    )
+    expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
+      'warm, savory, and a little peppery',
+    )
   })
 
   it('requests an AI title only after a few sentences have been transcribed', async () => {
@@ -132,7 +148,7 @@ describe('GrandmaPage', () => {
     expect(screen.getByTestId('grandma-header')).toContainElement(pendingTitle)
 
     fireEvent.click(stopButton)
-    expect(await screen.findByRole('article', { name: 'Grandma writing screen' })).toBeInTheDocument()
+    expect(await screen.findByRole('main', { name: 'Grandma story HomeView' })).toBeInTheDocument()
     expect(screen.queryByText('Naming this story…')).not.toBeInTheDocument()
   })
 
@@ -142,9 +158,7 @@ describe('GrandmaPage', () => {
     await waitFor(() => expect(recognition.start).toHaveBeenCalled())
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
 
-    expect(await screen.findByRole('article', { name: 'Grandma writing screen' })).toHaveTextContent(
-      'No transcript was captured in this browser.',
-    )
+    expect(await screen.findByRole('main', { name: 'Grandma story HomeView' })).toBeInTheDocument()
   })
 
   it('keeps the area beneath Stop blank until real transcription arrives', async () => {
@@ -183,24 +197,24 @@ describe('GrandmaPage', () => {
     expect(document.querySelector('.grandma-transcript__interim')).toHaveTextContent('Soup')
   })
 
-  it('shows rotating guidance at the bottom-right after thirty seconds', async () => {
+  it('shows contextual guidance on the left after ten seconds', async () => {
     vi.useFakeTimers()
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
     await act(async () => {})
 
-    act(() => { vi.advanceTimersByTime(29_999) })
-    expect(screen.queryByText('What color should it be?')).not.toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(9_999) })
+    expect(screen.queryByText('How old was Nev when that happened?')).not.toBeInTheDocument()
 
     act(() => { vi.advanceTimersByTime(1) })
     expect(screen.getByRole('region', { name: 'Guiding questions' })).toBeInTheDocument()
-    expect(screen.getByText('What color should it be?')).toHaveAttribute('aria-live', 'polite')
+    expect(screen.getByText('How old was Nev when that happened?')).toHaveAttribute('aria-live', 'polite')
 
-    act(() => { vi.advanceTimersByTime(12_000) })
-    expect(screen.getByText('What should it smell like?')).toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(10_000) })
+    expect(screen.getByText('What should the beef smell like when it’s ready?')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
-    expect(screen.queryByText('What should it smell like?')).not.toBeInTheDocument()
+    expect(screen.queryByText('What should the beef smell like when it’s ready?')).not.toBeInTheDocument()
   })
 
   it('shows actual spoken words from OpenAI audio transcription', async () => {

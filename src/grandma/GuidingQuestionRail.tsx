@@ -1,8 +1,8 @@
 export const guidingQuestions = [
-  'What color should it be?',
-  'What should it smell like?',
-  'What should it taste like?',
-  'What would you tell the people making it?',
+  'How old was Nev when that happened?',
+  'What should the beef smell like when it’s ready?',
+  'How brown should the edges look?',
+  'What else did you add by instinct?',
 ] as const
 
 function circularOffset(index: number, activeIndex: number) {
