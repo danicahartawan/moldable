@@ -5,6 +5,7 @@ import { DotSpinner, Icon } from '../Icon'
 import { useVoiceRecorder } from '../useVoiceRecorder'
 import { requestGeneratedTitle, shouldGenerateTitle } from './title'
 import { transcribeAudio } from './transcribe'
+import { GrandmaWritingScreen } from './GrandmaWritingScreen'
 import './grandma.css'
 
 const guidingQuestions = [
@@ -89,16 +90,7 @@ export function GrandmaPage() {
   }, [recorder.transcript])
 
   if (recorder.hasCompletedRecording) {
-    return (
-      <main className="grandma-story" aria-label="Grandma transcript">
-        <div className="grandma-story__body">
-          {title ? <h1>{title}</h1> : null}
-          <p className="grandma-story__transcript" data-testid="complete-transcript">
-            {fullTranscript || 'No transcript was captured in this browser.'}
-          </p>
-        </div>
-      </main>
-    )
+    return <GrandmaWritingScreen title={title} transcript={fullTranscript} />
   }
 
   return (

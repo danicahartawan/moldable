@@ -70,7 +70,7 @@ describe('GrandmaPage', () => {
     expect(screen.queryByTestId('character-placeholder')).not.toBeInTheDocument()
   })
 
-  it('shows a constrained live preview and moves to the complete transcript after stopping', async () => {
+  it('shows a constrained live preview and opens the writing screen after stopping', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Stop recording' })).toBeInTheDocument())
@@ -85,8 +85,10 @@ describe('GrandmaPage', () => {
     expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toHaveClass('grandma-generated-title')
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
 
-    expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
-    expect(screen.getByTestId('complete-transcript')).toHaveTextContent('Grandma toasted the spices slowly')
+    expect(await screen.findByRole('article', { name: 'Grandma writing screen' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
+    expect(screen.getByLabelText(/Grandma toasted the spices slowly/)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Moldable character writing with a silver pencil' })).toBeInTheDocument()
     expect(screen.queryByTestId('transcript-preview')).not.toBeInTheDocument()
   })
 
@@ -126,7 +128,7 @@ describe('GrandmaPage', () => {
     expect(screen.getByTestId('grandma-header')).toContainElement(pendingTitle)
 
     fireEvent.click(stopButton)
-    expect(await screen.findByTestId('complete-transcript')).toBeInTheDocument()
+    expect(await screen.findByRole('article', { name: 'Grandma writing screen' })).toBeInTheDocument()
     expect(screen.queryByText('Naming this story…')).not.toBeInTheDocument()
   })
 
@@ -136,7 +138,7 @@ describe('GrandmaPage', () => {
     await waitFor(() => expect(recognition.start).toHaveBeenCalled())
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
 
-    expect(await screen.findByTestId('complete-transcript')).toHaveTextContent(
+    expect(await screen.findByRole('article', { name: 'Grandma writing screen' })).toHaveTextContent(
       'No transcript was captured in this browser.',
     )
   })

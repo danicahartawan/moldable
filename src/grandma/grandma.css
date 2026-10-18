@@ -172,6 +172,34 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+.story-book { position: fixed; inset: 0; z-index: 20; min-height: 100dvh; overflow: hidden; background: #fff; color: #20211f; animation: grandma-page-in 240ms ease-out both; }
+.story-book__actions { position: fixed; top: 24px; right: 26px; z-index: 24; display: flex; gap: 18px; }
+.story-book__action { display: flex; min-height: 34px; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; color: #20211f; font-size: 14px; font-weight: 400; cursor: pointer; }
+.story-book__action:hover { color: #696a66; }
+.story-book__action:focus-visible { outline: 2px solid #008c98; outline-offset: 3px; }
+.story-book__writing-stage { position: relative; display: grid; width: 100%; height: 100dvh; min-height: 680px; grid-template-columns: 1fr 1fr; overflow: hidden; background: #fff; }
+.story-book__panel { position: relative; min-width: 0; height: 100%; background: #fff; }
+.story-book__panel--story { border-left: 1px solid rgba(32, 33, 31, .16); }
+.story-book__traveler { position: absolute; top: 9%; left: -18%; z-index: 3; display: block; width: clamp(250px, 31vw, 440px); height: auto; filter: contrast(1.09) drop-shadow(0 12px 12px rgba(28, 43, 42, .09)); will-change: top, left, transform; animation: grandma-writes 8.2s cubic-bezier(.45, 0, .18, 1) .18s both; }
+.story-book__written-page { position: relative; z-index: 2; display: grid; width: auto; height: 76%; margin: 12% 9% 0; grid-template-rows: repeat(3, minmax(0, auto)); align-content: space-evenly; font-family: inherit; }
+.story-book__written-line { max-width: 68ch; margin: 0; color: #282926; font-size: clamp(14px, 1.25vw, 18px); font-weight: 400; line-height: 1.55; letter-spacing: -.012em; text-wrap: pretty; }
+.story-book__written-page h1 { font-size: clamp(24px, 3vw, 44px); line-height: 1.05; letter-spacing: -.04em; }
+.story-book__word { opacity: 0; transition: opacity 50ms linear; }
+.story-book__word--visible { opacity: 1; }
+.story-book__status { position: fixed; right: 26px; bottom: 24px; z-index: 25; margin: 0; color: #20211f; font-size: 14px; }
+@keyframes grandma-page-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes grandma-writes {
+  0% { top: -5%; left: -28%; transform: rotate(-2deg) scale(.96); }
+  21% { top: -5%; left: 14%; transform: rotate(.4deg); }
+  23% { top: 30%; left: -23%; transform: rotate(-1deg); }
+  45% { top: 30%; left: 14%; transform: rotate(.4deg); }
+  47% { top: -5%; left: 25%; transform: rotate(-1deg); }
+  69% { top: -5%; left: 64%; transform: rotate(.4deg); }
+  71% { top: 30%; left: 25%; transform: rotate(-1deg); }
+  93% { top: 30%; left: 64%; transform: rotate(.4deg); }
+  100% { top: 63%; left: 4%; transform: rotate(0) scale(.72); }
+}
+
 @media (max-width: 560px) {
   .grandma-canvas { padding: 14px; }
   .grandma-header--right { top: 14px; right: 14px; gap: 10px; }
@@ -180,11 +208,21 @@
   .grandma-guiding-question { right: 14px; bottom: 14px; max-width: calc(100vw - 28px); }
   .grandma-transcript--preview,
   .grandma-transcript--error { max-width: calc(100vw - 28px); }
+  .story-book__actions { top: 14px; right: 12px; }
+  .story-book__writing-stage { min-height: 620px; }
+  .story-book__traveler { width: 52vw; min-width: 196px; }
+  .story-book__written-page { height: 78%; margin: 18% 6% 0 9%; }
+  .story-book__written-line { font-size: clamp(11px, 3.2vw, 14px); line-height: 1.45; }
+  .story-book__written-page h1 { font-size: 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .grandma-record-button,
   .grandma-record-button__dot,
   .grandma-character,
-  .grandma-guiding-question { animation: none; transition: none; }
+  .grandma-guiding-question,
+  .story-book,
+  .story-book__traveler { animation: none; transition: none; }
+  .story-book__traveler { top: 63%; left: 4%; transform: scale(.72); }
+  .story-book__word { opacity: 1; }
 }
