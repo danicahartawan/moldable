@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build an otherwise blank white web page containing only a centered floating project-thumbnail pill.
+**Goal:** Build an otherwise blank white web page containing only a centered floating pill with ten supplied food illustrations.
 
 **Architecture:** A minimal Vite/React application renders one semantic `ProjectPill` component. Local CSS and inline SVG/CSS marks provide the complete visual treatment without remote assets or application state.
 
@@ -16,7 +16,7 @@
 - Do not include side links, sound controls, menus, dialogs, routing, or body content.
 - Use local SVG/CSS artwork with no remote runtime assets.
 - Prevent horizontal overflow at narrow viewport widths.
-- Every project mark must be keyboard-focusable and have an accessible label.
+- Every one of the ten food illustrations must be keyboard-focusable and have an accessible label.
 
 ## Review Focus
 
@@ -59,9 +59,9 @@ Run: `npm test -- --run src/ProjectPill.test.tsx`
 
 Expected: FAIL because `ProjectPill` does not exist.
 
-- [ ] **Step 4: Implement the semantic component and local artwork**
+- [x] **Step 4: Implement the semantic component and local artwork**
 
-Implement `ProjectPill(): JSX.Element` as a labeled group containing eight `button` elements. Draw distinct miniature marks using inline SVG and CSS primitives; do not add click behavior, external URLs, or unrelated copy.
+Implement `ProjectPill(): JSX.Element` as a labeled group containing ten `button` elements. Use the locally extracted transparent PNG food illustrations; do not add click behavior, external URLs, or unrelated copy.
 
 - [ ] **Step 5: Implement the locked visual treatment**
 

@@ -7,7 +7,7 @@ Create a minimal web page that reproduces only the centered floating project-sel
 ## Scope
 
 - A single white, rounded pill centered horizontally near the top of the viewport.
-- A short row of small, varied project thumbnail marks inside the pill.
+- A horizontally scrollable row of the ten supplied food illustrations inside the pill.
 - Thin vertical separators at the beginning and end of the thumbnail row, matching the reference's restrained treatment.
 - Subtle elevation and a soft border so the white pill remains visible against the white page.
 - Responsive sizing that preserves the pill's proportions on narrower screens without adding navigation or page content.
@@ -26,11 +26,11 @@ The supplied screenshot and live DMCG page are the locked visual reference. Pres
 
 ## Implementation
 
-Use a minimal Vite and React application with one focused component and a small stylesheet. Recreate the tiny project marks as lightweight local SVG/CSS artwork so the page has no runtime dependency on the reference website and no remote asset loading.
+Use a minimal Vite and React application with one focused component and a small stylesheet. Extract the ten supplied food drawings into local transparent PNG assets so the page has no remote asset loading.
 
 ## Responsive Behavior
 
-Keep the pill centered with a safe maximum width. On small viewports, reduce gaps and thumbnail sizes slightly while retaining all marks. The pill must never introduce horizontal page scrolling.
+Keep the pill centered with a safe maximum width. On small viewports, reduce gaps and thumbnail sizes slightly and allow the internal illustration rail to scroll. The page itself must never scroll horizontally.
 
 ## Accessibility
 
