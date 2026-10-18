@@ -59,6 +59,21 @@
   white-space: nowrap;
 }
 
+.grandma-guiding-question {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  max-width: min(28ch, calc(100vw - 44px));
+  margin: 0;
+  color: #000;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: right;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -1px 0 rgba(0, 0, 0, 0.08);
+  animation: grandma-question-in 360ms ease both;
+}
+
 .grandma-record-button {
   display: inline-flex;
   height: 42px;
@@ -152,12 +167,17 @@
   from { opacity: 0; transform: translateX(8px) scale(0.86); }
   to { opacity: 1; transform: translateX(0) scale(1); }
 }
+@keyframes grandma-question-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 @media (max-width: 560px) {
   .grandma-canvas { padding: 14px; }
   .grandma-header--right { top: 14px; right: 14px; gap: 10px; }
   .grandma-generated-title { max-width: 52vw; overflow: hidden; text-overflow: ellipsis; }
   .grandma-recorder-stack { max-width: calc(100vw - 28px); }
+  .grandma-guiding-question { right: 14px; bottom: 14px; max-width: calc(100vw - 28px); }
   .grandma-transcript--preview,
   .grandma-transcript--error { max-width: calc(100vw - 28px); }
 }
@@ -165,5 +185,6 @@
 @media (prefers-reduced-motion: reduce) {
   .grandma-record-button,
   .grandma-record-button__dot,
-  .grandma-character { animation: none; transition: none; }
+  .grandma-character,
+  .grandma-guiding-question { animation: none; transition: none; }
 }

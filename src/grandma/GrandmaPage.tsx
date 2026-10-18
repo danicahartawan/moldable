@@ -7,6 +7,13 @@ import { requestGeneratedTitle, shouldGenerateTitle } from './title'
 import { transcribeAudio } from './transcribe'
 import './grandma.css'
 
+const guidingQuestions = [
+  'What color should it be?',
+  'What should it smell like?',
+  'What should it taste like?',
+  'What would you tell the people making it?',
+]
+
 function TypedTranscript({ text }: { text: string }) {
   const [visibleText, setVisibleText] = useState('')
 
@@ -37,6 +44,7 @@ export function GrandmaPage() {
   const recorder = useVoiceRecorder({ transcribeAudio })
   const [title, setTitle] = useState('')
   const [isTitlePending, setIsTitlePending] = useState(false)
+  const [guidingQuestionIndex, setGuidingQuestionIndex] = useState<number | null>(null)
   const titleRequested = useRef(false)
   const fullTranscript = useMemo(
     () => `${recorder.transcript}${recorder.interimTranscript}`.trim(),
@@ -44,6 +52,26 @@ export function GrandmaPage() {
   )
   const isRecording = recorder.status === 'recording'
   const isStarting = recorder.status === 'requesting'
+
+  useEffect(() => {
+    if (!isRecording) {
+      setGuidingQuestionIndex(null)
+      return
+    }
+
+    let rotation: number | undefined
+    const firstQuestion = window.setTimeout(() => {
+      setGuidingQuestionIndex(0)
+      rotation = window.setInterval(() => {
+        setGuidingQuestionIndex((current) => current === null ? current : (current + 1) % guidingQuestions.length)
+      }, 12_000)
+    }, 30_000)
+
+    return () => {
+      window.clearTimeout(firstQuestion)
+      if (rotation !== undefined) window.clearInterval(rotation)
+    }
+  }, [isRecording])
 
   useEffect(() => {
     if (titleRequested.current || !shouldGenerateTitle(recorder.transcript)) return
@@ -118,6 +146,11 @@ export function GrandmaPage() {
           ) : null}
         </div>
       </header>
+      {guidingQuestionIndex !== null ? (
+        <p className="grandma-guiding-question" aria-live="polite" key={guidingQuestionIndex}>
+          {guidingQuestions[guidingQuestionIndex]}
+        </p>
+      ) : null}
     </main>
   )
 }

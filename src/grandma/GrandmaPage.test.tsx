@@ -184,6 +184,25 @@ describe('GrandmaPage', () => {
     expect(preview).toHaveTextContent('Soup')
   })
 
+  it('shows rotating guidance at the bottom-right after thirty seconds', async () => {
+    vi.useFakeTimers()
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await act(async () => {})
+
+    act(() => { vi.advanceTimersByTime(29_999) })
+    expect(screen.queryByText('What color should it be?')).not.toBeInTheDocument()
+
+    act(() => { vi.advanceTimersByTime(1) })
+    expect(screen.getByText('What color should it be?')).toHaveClass('grandma-guiding-question')
+
+    act(() => { vi.advanceTimersByTime(12_000) })
+    expect(screen.getByText('What should it smell like?')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
+    expect(screen.queryByText('What should it smell like?')).not.toBeInTheDocument()
+  })
+
   it('shows actual spoken words from OpenAI audio transcription', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
