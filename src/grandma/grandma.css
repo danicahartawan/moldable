@@ -189,6 +189,50 @@
 .grandma-transcript--error { width: min(28ch, calc(100vw - 44px)); color: #8a4b48; }
 .grandma-listening { color: #aaa7a2; }
 
+.grandma-rolling-transcript {
+  position: absolute;
+  right: 7%;
+  bottom: 8%;
+  width: min(48%, 32ch);
+  max-height: calc(1.45em * 5);
+  overflow: hidden;
+  font-size: clamp(15px, 2.35cqw, 21px);
+  line-height: 1.45;
+  text-align: right;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 100%);
+}
+
+.grandma-transcript__final,
+.grandma-transcript__interim {
+  display: inline;
+}
+
+.grandma-transcript__accessible {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.grandma-transcript__new {
+  display: inline-block;
+  animation: grandma-transcript-roll 360ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.grandma-rolling-transcript--error {
+  color: #8a4b48;
+  mask-image: none;
+}
+
+@keyframes grandma-transcript-roll {
+  from { opacity: 0; filter: blur(5px); transform: translateY(8px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+
 .grandma-story {
   display: grid;
   place-items: center;
