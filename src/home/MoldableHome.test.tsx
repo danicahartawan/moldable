@@ -12,5 +12,6 @@ describe('MoldableHome', () => {
       'src',
       '/assets/grandma-character.png',
     )
+    expect(screen.getByRole('toolbar', { name: 'Cooking tools' })).toBeInTheDocument()
   })
 })

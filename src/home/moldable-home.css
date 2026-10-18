@@ -18,12 +18,6 @@
   box-shadow: 0 22px 70px rgba(30, 31, 29, 0.12), 0 2px 8px rgba(30, 31, 29, 0.06);
 }
 
-.moldable-toolbar-slot {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 18%;
-}
-
 .moldable-mascot {
   position: absolute;
   top: 50%;
@@ -33,6 +27,102 @@
   transform: translateY(-50%);
   user-select: none;
   filter: drop-shadow(0 14px 18px rgba(27, 41, 43, 0.1));
+}
+
+.tool-rail {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: 42%;
+}
+
+.tool-rail__trigger {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 32%;
+  padding: 0;
+  border: 0;
+  background: linear-gradient(90deg, rgba(176, 205, 255, 0.48), rgba(232, 239, 255, 0.14) 62%, transparent);
+  cursor: pointer;
+}
+
+.tool-rail__trigger:focus-visible {
+  outline: 2px solid #347ee9;
+  outline-offset: -5px;
+}
+
+.tool-rail__orbit {
+  position: absolute;
+  inset: 9% auto 9% 4%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  pointer-events: none;
+  opacity: 0;
+  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  transition: opacity 180ms ease;
+}
+
+.tool-rail--open .tool-rail__orbit {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.tool-chip {
+  display: flex;
+  width: 46px;
+  height: 46px;
+  align-items: center;
+  gap: 9px;
+  overflow: hidden;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(244, 246, 255, 0.92);
+  color: #1f1c19;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0.94;
+  transform: translateX(0) scale(1);
+  transition: width 240ms cubic-bezier(.2, .8, .2, 1), transform 240ms cubic-bezier(.2, .8, .2, 1), opacity 180ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+.tool-chip__label {
+  opacity: 0;
+  transition: opacity 140ms ease 35ms;
+}
+
+.tool-chip[data-position="-2"],
+.tool-chip[data-position="2"] {
+  opacity: 0.38;
+  transform: translateX(-18px) scale(0.78);
+}
+
+.tool-chip[data-position="-1"],
+.tool-chip[data-position="1"] {
+  opacity: 0.7;
+  transform: translateX(10px) scale(0.9);
+}
+
+.tool-chip--expanded {
+  width: 142px;
+  background: #e9eefc;
+  opacity: 1;
+  transform: translateX(18px) scale(1);
+}
+
+.tool-chip--expanded[aria-pressed="true"] {
+  background: #347ee9;
+  color: #fff;
+}
+
+.tool-chip--expanded .tool-chip__label {
+  opacity: 1;
+}
+
+.tool-chip:focus-visible {
+  outline: 2px solid #347ee9;
+  outline-offset: 3px;
 }
 
 @media (max-width: 640px), (max-height: 640px) {
