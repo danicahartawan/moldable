@@ -1,6 +1,16 @@
+'use client'
+
 import { ProjectPill } from './ProjectPill'
+import { RecipeBook } from './RecipeBook'
+import { useEffect, useState } from 'react'
 
 export function App() {
+  const [pathname, setPathname] = useState<string | null>(null)
+
+  useEffect(() => setPathname(window.location.pathname), [])
+
+  if (pathname === '/grandma/story') return <RecipeBook />
+
   return (
     <main className="page-shell">
       <ProjectPill />

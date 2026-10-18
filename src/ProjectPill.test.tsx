@@ -125,18 +125,16 @@ describe('ProjectPill', () => {
 
     fireEvent.click(recordButton)
 
-    expect(await within(view.container).findByRole('button', { name: 'Record' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
+    expect(await within(view.container).findByRole('article', { name: 'Balinese minced pork story' })).toBeInTheDocument()
+    expect(within(view.container).queryByRole('button', { name: 'Record' })).not.toBeInTheDocument()
+    expect(within(view.container).queryByRole('heading', { name: 'Soto Ayam' })).not.toBeInTheDocument()
+    expect(within(view.container).getByRole('article', { name: 'Balinese minced pork story' })).toHaveClass(
+      'story-book',
     )
-    expect(within(view.container).getByRole('heading', { name: 'Soto Ayam' })).toBeInTheDocument()
-    expect(within(view.container).getByRole('article', { name: 'Soto Ayam recipe' })).toHaveClass(
-      'recipe-article',
+    expect(within(view.container).getByRole('img', { name: 'Moldable character writing with a silver pencil' })).toHaveClass(
+      'story-book__traveler',
     )
-    expect(within(view.container).getByRole('img', { name: 'An illustrated bowl of Soto Ayam' })).toHaveClass(
-      'recipe-article__illustration',
-    )
-    expect(within(view.container).getByText(/Begin by pounding garlic/)).toBeInTheDocument()
+    expect(within(view.container).getByLabelText(/First, toast the coconut/)).toBeInTheDocument()
     expect(recorderStop).toHaveBeenCalledOnce()
     expect(recognitionStop).toHaveBeenCalledOnce()
     expect(stopTrack).toHaveBeenCalledOnce()

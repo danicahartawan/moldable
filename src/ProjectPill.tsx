@@ -190,6 +190,8 @@ export function ProjectPill() {
     if (scrollFrameRef.current === null) scrollFrameRef.current = requestAnimationFrame(animateScroll)
   }, [animateScroll])
 
+  if (voiceRecorder.hasCompletedRecording) return <RecipeBook />
+
   return (
     <div className="project-bar-stack">
       <div className="project-bar">
@@ -249,7 +251,6 @@ export function ProjectPill() {
           <span className="voice-transcript__interim">{voiceRecorder.interimTranscript}</span>
         </p>
       ) : null}
-      {voiceRecorder.hasCompletedRecording ? <RecipeBook /> : null}
     </div>
   )
 }

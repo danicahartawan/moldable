@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { StoredGrandmaWritingScreen } from '@/grandma/GrandmaWritingScreen'
+import { RecipeBook } from '@/RecipeBook'
 
 export const metadata: Metadata = {
   title: 'Grandma’s Story — Moldable',
 }
 
 export default function GrandmaStoryRoute() {
-  return <StoredGrandmaWritingScreen />
+  return <RecipeBook />
 }
