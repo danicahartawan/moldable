@@ -281,3 +281,92 @@
   .b-title-block, .b-stepzone { position: static; width: auto; }
   .b-stepzone { height: auto; }
 }
+
+/* 06 Grandkid home view, 640 × 640 */
+.hv-stage { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 0 40px; }
+.hv-screen {
+  position: relative;
+  width: 640px;
+  height: 640px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 36px;
+  background: var(--flour-raised);
+  box-shadow: 0 0 0 10px var(--ink), 0 30px 70px rgba(31, 28, 25, 0.25);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+.hv-caption { margin: 18px 0 0; max-width: 640px; color: var(--ink-muted); font-size: 14px; line-height: 20px; text-align: center; }
+
+@keyframes hv-blurin { from { opacity: 0; filter: blur(10px); transform: translateY(8px); } to { opacity: 1; filter: none; transform: none; } }
+@keyframes hv-orbtalk { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.14); } 60% { transform: scale(0.96); } }
+@keyframes hv-veil { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; backdrop-filter: blur(16px); } }
+.hv-blurin { animation: hv-blurin 420ms var(--ease-out) both; }
+.hv-tap { cursor: pointer; transition: transform 140ms var(--ease-out), background-color 200ms ease, color 200ms ease; }
+.hv-tap:active { transform: scale(0.96); }
+.hv-tap:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.hv-mark { box-shadow: inset 0 -2px 0 var(--thermal-ember); }
+
+.hv-replay { position: absolute; z-index: 1; left: 0; top: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.hv-card { position: absolute; box-sizing: border-box; border: 1.5px solid var(--line); border-radius: 24px; }
+
+.hv-recipe { left: 20px; top: 20px; width: 290px; height: 548px; overflow: hidden; display: flex; flex-direction: column; padding: 10px; }
+.hv-recipe__inner { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; padding: 14px 10px 6px; }
+.hv-recipe__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.hv-title { margin: 0; font-family: var(--font-display); font-size: 30px; line-height: 34px; font-weight: 500; letter-spacing: -0.02em; }
+.hv-sub { margin: 2px 0 0; color: var(--ink-muted); font-size: 14px; line-height: 18px; }
+.hv-round { display: grid; width: 44px; height: 44px; flex: none; place-items: center; border: 0; border-radius: 22px; background: var(--flour-sunken); color: var(--ink); }
+.hv-photo { display: block; flex: none; width: 100%; height: 232px; border-radius: 16px; object-fit: cover; object-position: 60% 60%; }
+.hv-overview { margin: 0; color: var(--ink); font-size: 16px; line-height: 22px; }
+.hv-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin: auto 0 0; padding-top: 12px; border-top: 1.5px solid var(--line); }
+.hv-stats dt { color: var(--ink-muted); font-size: 12px; line-height: 16px; }
+.hv-stats dd { margin: 2px 0 0; font-size: 22px; line-height: 26px; font-weight: 500; }
+
+.hv-steps { position: relative; height: 438px; margin-top: 4px; }
+.hv-steps ol { display: flex; height: 100%; flex-direction: column; gap: 16px; margin: 0; padding: 4px 0 90px; box-sizing: border-box; overflow-y: auto; list-style: none; scrollbar-width: none; }
+.hv-steps ol::-webkit-scrollbar { display: none; }
+.hv-steps li { display: flex; align-items: baseline; gap: 12px; font-size: 18px; line-height: 24px; }
+.hv-steps__n { width: 24px; flex: none; color: var(--ink-muted); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hv-steps__veil { position: absolute; left: 0; right: 0; bottom: 0; height: 96px; pointer-events: none; -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 70%); mask-image: linear-gradient(180deg, transparent, #000 70%); background: linear-gradient(180deg, transparent, var(--flour-raised) 85%); }
+
+.hv-swap { left: 326px; top: 20px; width: 294px; height: 266px; overflow: hidden; }
+.hv-swap__btn { position: absolute; inset: 0; border: 0; background: transparent; color: var(--ink); text-align: left; }
+.hv-swap__btn:active { transform: scale(0.98); }
+.hv-roll { position: absolute; left: 20px; right: 20px; top: 18px; bottom: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 550ms cubic-bezier(0.3, 1.15, 0.4, 1), filter 550ms ease, opacity 550ms ease; }
+.hv-h { font-size: 22px; line-height: 26px; font-weight: 500; }
+.hv-count { color: var(--ink-muted); font-size: 13px; }
+.hv-mins { font-size: 84px; line-height: 80px; font-weight: 500; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.hv-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hv-tool { display: flex; align-items: center; gap: 10px; font-size: 18px; line-height: 22px; font-weight: 500; }
+.hv-tool__icon { display: grid; width: 36px; height: 36px; flex: none; place-items: center; border-radius: 12px; background: var(--flour-sunken); }
+.hv-dots { position: absolute; right: 18px; top: 22px; display: flex; gap: 5px; }
+.hv-dots span { width: 6px; height: 6px; border-radius: 50%; transition: background-color 300ms; }
+
+.hv-ingr { left: 326px; top: 302px; width: 294px; height: 266px; display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; }
+.hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 5px; margin: 0; padding: 0; list-style: none; }
+.hv-ingr li { display: flex; justify-content: space-between; gap: 6px; font-size: 15px; line-height: 21px; white-space: nowrap; }
+.hv-amt { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+
+.hv-wave { position: absolute; right: 22px; bottom: 22px; margin: 0; font-size: 22px; line-height: 26px; font-weight: 500; }
+
+.hv-adjust { position: absolute; z-index: 5; left: 20px; bottom: 14px; display: inline-flex; height: 44px; align-items: center; gap: 8px; padding: 0 16px 0 14px; border: 0; border-radius: 22px; background: var(--flour-sunken); color: var(--ink); font-size: 15px; font-weight: 500; }
+.hv-adjust.is-on, .hv-chip.is-on { background: var(--ink); color: var(--flour); }
+.hv-chips { position: absolute; z-index: 6; left: 20px; bottom: 70px; display: flex; width: 300px; box-sizing: border-box; flex-direction: column; gap: 6px; padding: 8px; border-radius: 24px; background: color-mix(in srgb, var(--flour-raised) 96%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 12px 32px rgba(31, 28, 25, 0.18); }
+.hv-chips__title { margin: 4px 10px 2px; color: var(--ink-muted); font-size: 13px; line-height: 16px; }
+.hv-chips__rule { height: 1px; margin: 4px 10px; background: var(--line); }
+.hv-chip { display: flex; height: 46px; align-items: center; justify-content: space-between; padding: 0 16px; border: 0; border-radius: 16px; background: var(--flour-sunken); color: var(--ink); font-size: 16px; font-weight: 500; line-height: 1; }
+.hv-chip__hint { font-size: 13px; opacity: 0.7; }
+
+.hv-veil { position: absolute; inset: 0; z-index: 10; display: flex; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 40px; background: color-mix(in srgb, var(--flour-raised) 62%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); animation: hv-veil 350ms ease both; }
+.hv-orb { width: 104px; height: 104px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--thermal-flare), var(--thermal-ember) 38%, var(--thermal-magenta) 68%, var(--thermal-violet)); box-shadow: 0 0 48px rgba(236, 146, 59, 0.55); }
+.hv-orb--talk { animation: hv-orbtalk 0.9s ease-in-out infinite; }
+.hv-voice__big { max-width: 480px; margin: 0; font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -0.01em; }
+.hv-voice__small { margin: 0; color: var(--ink-muted); font-size: 15px; line-height: 20px; }
+
+@media (max-width: 700px) { .hv-screen { zoom: 0.8; } }
+@media (max-width: 560px) { .hv-screen { zoom: 0.6; } }
+@media (max-width: 430px) { .hv-screen { zoom: 0.5; } }
+@media (prefers-reduced-motion: reduce) {
+  .hv-blurin, .hv-orb--talk, .hv-veil { animation: none !important; }
+  .hv-roll { transition: none; }
+}

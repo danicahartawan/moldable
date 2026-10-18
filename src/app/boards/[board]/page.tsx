@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { BoardShell } from '@/boards/BoardShell'
 import { BOARDS, type BoardSlug } from '@/boards/boards'
 import { AnatomyBoard } from '@/boards/Anatomy'
+import { HomeViewBoard } from '@/boards/HomeView'
 import { RecordBoard } from '@/boards/Record'
 import { RecipeBoard } from '@/boards/Recipe'
 import { StepBoard } from '@/boards/Step'
@@ -13,6 +14,7 @@ const VIEWS: Record<BoardSlug, () => React.JSX.Element> = {
   weigh: WeighBoard,
   record: RecordBoard,
   anatomy: AnatomyBoard,
+  home: HomeViewBoard,
 }
 
 export const dynamicParams = false
