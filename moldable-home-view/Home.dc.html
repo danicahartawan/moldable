@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Grandkid home view</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@keyframes blurin{from{opacity:0;filter:blur(10px);transform:translateY(8px)}to{opacity:1;filter:none;transform:none}}
+@keyframes bar{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.blurin{animation:blurin .42s cubic-bezier(.2,.8,.2,1) both}
+.bar{transform-origin:center;animation:bar .7s ease-in-out infinite}
+.roll{transition:transform .55s cubic-bezier(.3,1.15,.4,1),filter .55s ease,opacity .55s ease}
+.tap{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .2s ease}
+.tap:active{transform:scale(.96)}
+.tap:focus-visible{outline:2px solid #1f1c19;outline-offset:2px}
+.mark{box-shadow:inset 0 -2px 0 #ec923b}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes orbtalk{0%,100%{transform:scale(1)}30%{transform:scale(1.14)}60%{transform:scale(.96)}}
+@keyframes veil{from{opacity:0;backdrop-filter:blur(0)}to{opacity:1;backdrop-filter:blur(16px)}}
+.breathe{animation:breathe 3.2s ease-in-out infinite}
+.orbtalk{animation:orbtalk .9s ease-in-out infinite}
+.veil{animation:veil .35s ease both}
+.orb{background:radial-gradient(circle at 35% 30%, #f5d653, #ec923b 38%, #b4347c 68%, #4e0b91)}
+@media (prefers-reduced-motion: reduce){.blurin,.bar,.breathe,.orbtalk,.veil{animation:none}.roll{transition:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 640px; height: 640px; box-sizing: border-box; background: #ffffff; font-family: ABC Arizona Sans, system-ui, sans-serif; color: #1f1c19; overflow: hidden">
+
+  <button type="button" onClick="{{tapVoice}}" aria-label="Wireframe only: play the speaking view. On the device it starts when you talk." style="position: absolute; z-index: 1; left: 0; top: 0; width: 20px; height: 20px; border: 0; padding: 0; background: transparent; cursor: pointer"></button>
+  <sc-if value="{{chipsOpen}}" hint-placeholder-val="{{false}}">
+    <div class="blurin" role="group" aria-label="Adjust the recipe" style="position: absolute; z-index: 6; left: 20px; bottom: 70px; width: 300px; padding: 8px; box-sizing: border-box; border-radius: 24px; background: rgba(255,255,255,.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 12px 32px rgba(31,28,25,.18); display: flex; flex-direction: column; gap: 6px">
+      <p style="margin: 4px 10px 2px; font-size: 13px; line-height: 16px; color: #8a8580">Modify</p>
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+        <button type="button" class="tap" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="height: 46px; border: 0; border-radius: 16px; background: {{c.bg}}; color: {{c.ink}}; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font: 500 16px/1 ABC Arizona Sans, sans-serif; cursor: pointer">{{c.label}}<span style="font-size: 13px; opacity: .7">{{c.hint}}</span></button>
+      </sc-for>
+      <span aria-hidden="true" style="height: 1px; margin: 4px 10px; background: #efede9"></span>
+      <button type="button" class="tap" onClick="{{tapTidy}}" aria-pressed="{{tidy}}" style="height: 46px; border: 0; border-radius: 16px; background: {{tidyBg}}; color: {{tidyInk}}; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font: 500 16px/1 ABC Arizona Sans, sans-serif; cursor: pointer"><span style="display: inline-flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z M15.5 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"></path></svg>Tidy amounts</span><span style="font-size: 13px; opacity: .7">{{tidyHint}}</span></button>
+    </div>
+  </sc-if>
+  <button type="button" class="tap" onClick="{{tapModify}}" aria-expanded="{{chipsOpen}}" style="position: absolute; z-index: 5; left: 20px; bottom: 14px; height: 44px; border: 0; border-radius: 22px; background: {{modBg}}; color: {{modInk}}; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px 0 14px; font: 500 15px/1 ABC Arizona Sans, sans-serif; cursor: pointer"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 6h9M15 6h2M3 14h3M9 14h8"></path><circle cx="13.5" cy="6" r="1.8"></circle><circle cx="7.5" cy="14" r="1.8"></circle></svg>Adjust</button>
+
+  <section aria-label="Recipe overview" style="position: absolute; left: 20px; top: 20px; width: 290px; height: 548px; box-sizing: border-box; border: 1.5px solid #e6e3de; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; padding: 10px">
+    <div style="flex: 1; display: flex; flex-direction: column; padding: 14px 10px 6px; gap: 8px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <h1 style="margin: 0; font-family: ABC Arizona Flare, Georgia, serif; font-size: 30px; line-height: 34px; font-weight: 400">Lelawar Bali</h1>
+            <p style="margin: 0; font-size: 14px; line-height: 18px; color: #6b645a">Oma Lien’s recipe</p>
+          </div>
+          <button type="button" class="tap" onClick="{{toggleSteps}}" aria-pressed="{{isSteps}}" aria-label="{{stAria}}" style="flex: none; width: 44px; height: 44px; border: 0; border-radius: 22px; background: {{stBg}}; color: {{stInk}}; display: grid; place-items: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{stIcon}}"></path></svg></button>
+        </div>
+      </div>
+      <sc-if value="{{isOver}}" hint-placeholder-val="{{true}}">
+        <img class="blurin" src="assets/lelawar-photo.png" alt="Lelawar in a dark bowl on a banana leaf, topped with fried shallots" style="display: block; flex: none; width: 100%; height: 232px; border-radius: 16px; object-fit: cover; object-position: 60% 60%">
+      </sc-if>
+      <sc-if value="{{isOver}}" hint-placeholder-val="{{true}}">
+        <p class="blurin" style="margin: 0; font-size: 16px; line-height: 22px; color: #3d3833">Balinese minced <span class="{{meatCls}}">{{meat}}</span> with toasted coconut, fried in a <span class="{{spiceCls}}">{{paste}}</span> and served on pandan rice.</p>
+      </sc-if>
+      <sc-if value="{{isSteps}}" hint-placeholder-val="{{false}}">
+        <div style="position: relative; height: 438px; margin-top: 4px">
+          <ol class="stepscroll" style="height: 100%; overflow-y: auto; margin: 0; padding: 4px 0 90px; box-sizing: border-box; list-style: none; display: flex; flex-direction: column; gap: 16px; scrollbar-width: none">
+            <sc-for list="{{simple}}" as="st" hint-placeholder-count="8">
+              <li class="blurin" style="display: flex; gap: 12px; align-items: baseline; animation-delay: {{st.dl}}s">
+                <span style="flex: none; width: 24px; font-size: 15px; font-weight: 600; color: #8a8580; font-variant-numeric: tabular-nums">{{st.n}}</span>
+                <span style="font-size: 18px; line-height: 24px"><sc-for list="{{st.parts}}" as="p" hint-placeholder-count="2"><span class="{{p.cls}}">{{p.t}}</span></sc-for></span>
+              </li>
+            </sc-for>
+          </ol>
+          <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 96px; pointer-events: none; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 70%); mask-image: linear-gradient(180deg, transparent, #000 70%); background: linear-gradient(180deg, rgba(255,255,255,0), #ffffff 85%)"></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{isOver}}" hint-placeholder-val="{{true}}">
+      <dl class="blurin" style="margin: auto 0 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1.5px solid #efede9; padding-top: 12px">
+        <div><dt style="font-size: 12px; line-height: 16px; color: #8a8580">Steps</dt><dd style="margin: 2px 0 0; font-size: 22px; line-height: 26px; font-weight: 500">8</dd></div>
+        <div><dt style="font-size: 12px; line-height: 16px; color: #8a8580">Serves</dt><dd style="margin: 2px 0 0; font-size: 22px; line-height: 26px; font-weight: 500"><span class="{{servesCls}}">{{serves}}</span></dd></div>
+        <div><dt style="font-size: 12px; line-height: 16px; color: #8a8580">Spice</dt><dd style="margin: 2px 0 0; font-size: 22px; line-height: 26px; font-weight: 500"><span class="{{spiceCls}}">{{spice}}</span></dd></div>
+      </dl>
+      </sc-if>
+    </div>
+  </section>
+
+  <section aria-label="{{swapAria}}" style="position: absolute; left: 326px; top: 20px; width: 294px; height: 266px; box-sizing: border-box; border: 1.5px solid #e6e3de; border-radius: 24px; overflow: hidden">
+    <button type="button" class="tap" onClick="{{swap}}" style="position: absolute; inset: 0; border: 0; background: transparent; color: #1f1c19; cursor: pointer; text-align: left">
+      <span class="roll" style="position: absolute; left: 20px; right: 20px; top: 18px; bottom: 20px; display: flex; flex-direction: column; justify-content: space-between; transform: translateY({{timeY}}px); filter: blur({{timeBlur}}px); opacity: {{timeOp}}">
+        <span style="font-size: 22px; line-height: 26px; font-weight: 500">Cooking time</span>
+        <span style="display: flex; align-items: baseline; gap: 8px"><span style="font-size: 84px; line-height: 80px; font-weight: 500; letter-spacing: -.04em; font-variant-numeric: tabular-nums"><span class="{{timeCls}}">{{mins}}</span></span><span style="font-size: 22px">mins</span></span>
+      </span>
+      <span class="roll" style="position: absolute; left: 20px; right: 20px; top: 18px; bottom: 20px; display: flex; flex-direction: column; justify-content: space-between; transform: translateY({{toolY}}px); filter: blur({{toolBlur}}px); opacity: {{toolOp}}">
+        <span style="display: flex; align-items: baseline; gap: 10px"><span style="font-size: 22px; line-height: 26px; font-weight: 500">Tools</span><span style="font-size: 13px; color: #8a8580">5</span></span>
+        <span style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; row-gap: 12px">
+          <sc-for list="{{tools}}" as="tl" hint-placeholder-count="5">
+            <span style="display: flex; align-items: center; gap: 10px; font-size: 18px; line-height: 22px; font-weight: 500"><span style="flex: none; width: 36px; height: 36px; border-radius: 12px; background: #f4f3f1; display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1f1c19" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{tl.d}}"></path></svg></span>{{tl.name}}</span>
+          </sc-for>
+        </span>
+      </span>
+    </button>
+    <span aria-hidden="true" style="position: absolute; right: 18px; top: 22px; display: flex; gap: 5px"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{dot1}}; transition: background-color .3s"></span><span style="width: 6px; height: 6px; border-radius: 50%; background: {{dot2}}; transition: background-color .3s"></span></span>
+  </section>
+
+  <section aria-label="Ingredients" style="position: absolute; left: 326px; top: 302px; width: 294px; height: 266px; box-sizing: border-box; border: 1.5px solid #e6e3de; border-radius: 24px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline"><p style="margin: 0; font-size: 22px; line-height: 26px; font-weight: 500">Ingredients</p><p style="margin: 0; font-size: 13px; color: #8a8580">11</p></div>
+    <ul style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 5px">
+      <sc-for list="{{ingr}}" as="g" hint-placeholder-count="11">
+        <li style="display: flex; justify-content: space-between; gap: 6px; font-size: 15px; line-height: 21px; white-space: nowrap">
+          <span><span class="{{g.cls}}">{{g.name}}</span></span>
+          <span style="font-variant-numeric: tabular-nums; color: {{g.amtInk}}"><sc-if value="{{g.raw}}" hint-placeholder-val="{{false}}"><span class="blurin">{{g.rawAmt}}</span></sc-if><sc-if value="{{g.clean}}" hint-placeholder-val="{{true}}"><span class="blurin {{g.acls}}" style="animation-delay: {{g.dl}}s">{{g.amt}}</span></sc-if></span>
+        </li>
+      </sc-for>
+    </ul>
+  </section>
+
+  <p style="position: absolute; right: 22px; bottom: 22px; margin: 0; font-size: 22px; line-height: 26px; font-weight: 500">Wave to start</p>
+
+  <sc-if value="{{speaking}}" hint-placeholder-val="{{false}}">
+    <div class="veil" role="status" aria-live="polite" style="position: absolute; inset: 0; z-index: 10; background: rgba(255,255,255,.62); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 40px; box-sizing: border-box">
+      <span class="orb {{orbCls}}" aria-hidden="true" style="width: 104px; height: 104px; border-radius: 50%; box-shadow: 0 0 48px rgba(236,146,59,.55)"></span>
+      <sc-for list="{{voiceLines}}" as="v" hint-placeholder-count="1">
+        <sc-if value="{{v.show}}" hint-placeholder-val="{{true}}">
+          <div class="blurin" style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+            <p style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.01em; max-width: 480px">{{v.big}}</p>
+            <p style="margin: 0; font-size: 15px; line-height: 20px; color: #6b645a">{{v.small}}</p>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":640,"height":640}}'>
+var CHIPS = [{ k: 'serves2', label: 'Serves 2', hint: 'half of everything' }, { k: 'mild', label: 'Less spicy', hint: 'half the sambal' }, { k: 'chicken', label: 'Chicken', hint: 'instead of pork' }];
+var SAY = { serves2: 'Make it for two people', mild: 'Make it less spicy for Oma', chicken: 'Use chicken instead of pork' };
+var DONE = { serves2: 'Now serves 2. Everything is halved.', mild: 'Sambal is down to half a spoon.', chicken: 'Swapped the pork for chicken.' };
+var ING = [
+  ['Pork', '½ kilo', '500 g', '250 g'], ['Coconut', 'segenggam', '80 g', '40 g'], ['Shallots', '6 butir', '6', '3'], ['Garlic', '4 siung', '4', '2'],
+  ['Sambal', '1 sendok', '1 tbsp', '½ tbsp'], ['Kencur', '2 ruas', '2 cm', '1 cm'], ['Pepper', 'sejumput', '½ tsp', '¼ tsp'], ['Lime leaves', '4 lembar', '4', '2'],
+  ['Lime', '1 buah', '1', '1'], ['Chives', '1 ikat', '1 bunch', '½ bunch'], ['Rice', '2 gelas', '2 cups', '1 cup']
+];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { swap: false, m: { serves2: false, mild: false, chicken: false }, chips: false, tidy: true, voice: 0, said: 'mild', rv: 'over' }; }
+  componentDidMount() { this.intro = setTimeout(() => this.talk(), 3000); this.auto = setInterval(() => { if (!this.state.voice && !this.state.chips) this.setState({ swap: !this.state.swap }); }, 4200); }
+  componentWillUnmount() { clearTimeout(this.intro); clearInterval(this.auto); clearTimeout(this.t1); clearTimeout(this.t2); clearTimeout(this.t3); }
+  toggleMod(k) { var m = Object.assign({}, this.state.m); m[k] = !m[k]; this.setState({ m: m, tidy: true }); }
+  talk() {
+    if (this.state.voice) return;
+    var next = ['mild', 'serves2', 'chicken'].find((k) => !this.state.m[k]) || 'mild';
+    this.setState({ voice: 1, said: next, chips: false });
+    this.t1 = setTimeout(() => this.setState({ voice: 2 }), 1400);
+    this.t2 = setTimeout(() => { this.toggleMod(next); this.setState({ voice: 3 }); }, 2900);
+    this.t3 = setTimeout(() => this.setState({ voice: 0 }), 4300);
+  }
+  renderVals() {
+    var s = this.state, m = s.m;
+    var mins = 40 - (m.serves2 ? 10 : 0) - (m.chicken ? 5 : 0);
+    return {
+      serves: m.serves2 ? 2 : 4, servesCls: m.serves2 ? 'mark' : '',
+      meat: m.chicken ? 'chicken' : 'pork', meatCls: m.chicken ? 'mark' : '', paste: m.mild ? 'gentle spice paste' : 'fresh spice paste',
+      spice: m.mild ? 'Mild' : 'Hot', spiceCls: m.mild ? 'mark' : '', dishFill: m.chicken ? '#ead7b8' : '#c98f7c',
+      isOver: s.rv === 'over', isSteps: s.rv === 'steps', toggleSteps: () => this.setState({ rv: s.rv === 'over' ? 'steps' : 'over' }),
+      stAria: s.rv === 'over' ? 'Show the steps' : 'Show the overview', stBg: '#f4f3f1', stInk: '#1f1c19',
+      stIcon: s.rv === 'over' ? 'M7 5h10M7 10h10M7 15h10M3 5h.1M3 10h.1M3 15h.1' : 'M3 4h14v12H3z M3 12l4-3 3 2 4-4 3 3',
+      simple: [
+        [['Toast the coconut in a dry pan until golden']],
+        [['Grind half the shallots and garlic with '], [m.mild ? 'a little sambal' : 'the sambal', m.mild], [', kencur, pepper and lime leaves']],
+        [['Heat the oil and fry the rest of the shallots and garlic']],
+        [['Add the paste and cook until it smells sweet']],
+        [['Add the '], [m.chicken ? 'chicken' : 'pork', m.chicken], [' and the toasted coconut']],
+        [['Keep stirring until no pink is left']],
+        [['Squeeze in the lime and add the chives']],
+        [['Serve on pandan rice']]
+      ].map(function (parts, i) { return { n: i + 1, dl: (i * 0.05).toFixed(2), parts: parts.filter(function (p) { return p[0]; }).map(function (p) { return { t: p[0], cls: p[1] ? 'mark' : '' }; }) }; }),
+      tools: [
+        { name: 'Bowl', d: 'M3 10h18c0 6-4 10-9 10s-9-4-9-10z M9 20h6' },
+        { name: 'Dry pan', d: 'M2 12h13a3 3 0 0 1-3 4H5a3 3 0 0 1-3-4z M15 13h7' },
+        { name: 'Blender', d: 'M7 3h10l-1.5 11h-7z M8 14h8v6H8z M12 17h.01' },
+        { name: 'Spatula', d: 'M14 3h5v6h-5z M16.5 9v12' },
+        { name: 'Rice pot', d: 'M4 9h16v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z M2 9h20 M10 6h4' }
+      ],
+      tapVoice: () => this.talk(), speaking: s.voice > 0, orbCls: s.voice === 3 ? '' : 'orbtalk',
+      voiceLines: [
+        { show: s.voice === 1, big: 'Listening…', small: 'Say what you’d like to change' },
+        { show: s.voice === 2, big: '“' + SAY[s.said] + '”', small: 'Changing the recipe' },
+        { show: s.voice === 3, big: DONE[s.said], small: 'Underlined on the home view' }
+      ],
+      chipsOpen: s.chips, tapModify: () => this.setState({ chips: !s.chips }),
+      modBg: s.chips ? '#1f1c19' : '#f4f3f1', modInk: s.chips ? '#ffffff' : '#1f1c19',
+      chips: CHIPS.map((c) => ({ label: c.label, hint: c.hint, on: !!m[c.k], bg: m[c.k] ? '#1f1c19' : '#f4f3f1', ink: m[c.k] ? '#ffffff' : '#1f1c19', pick: () => { this.toggleMod(c.k); this.setState({ chips: false }); } })),
+      tidy: s.tidy, tapTidy: () => this.setState({ tidy: !s.tidy }),
+      tidyLabel: s.tidy ? 'Tidied' : 'Tidy', tidyHint: s.tidy ? 'On' : 'Oma’s words', tidyBg: s.tidy ? '#1f1c19' : '#f4f3f1', tidyInk: s.tidy ? '#ffffff' : '#1f1c19',
+      swap: () => this.setState({ swap: !s.swap }), swapAria: s.swap ? 'Tools: bowl, dry pan, blender, spatula and rice pot. Tap for cooking time' : 'Cooking time ' + mins + ' minutes. Tap for tools',
+      mins: mins, timeCls: mins !== 40 ? 'mark' : '',
+      timeY: s.swap ? -50 : 0, timeBlur: s.swap ? 8 : 0, timeOp: s.swap ? 0 : 1,
+      toolY: s.swap ? 0 : 50, toolBlur: s.swap ? 0 : 8, toolOp: s.swap ? 1 : 0,
+      dot1: s.swap ? '#d9d5cf' : '#1f1c19', dot2: s.swap ? '#1f1c19' : '#d9d5cf',
+      ingr: ING.map(function (r, i) {
+        var meat = i === 0 && m.chicken, spicy = i === 4 && m.mild;
+        var amt = m.serves2 ? r[3] : r[2];
+        if (spicy) amt = m.serves2 ? '¼ tbsp' : '½ tbsp';
+        return { name: meat ? 'Chicken' : r[0], cls: meat ? 'mark' : '', raw: !s.tidy, clean: s.tidy, rawAmt: r[1], amt: amt, dl: (i * 0.04).toFixed(2),
+          acls: (m.serves2 && r[2] !== r[3]) || spicy ? 'mark' : '', amtInk: '#8a8580' };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

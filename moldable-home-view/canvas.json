@@ -1,0 +1,52 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Home.dc.html": {
+      "h": 640,
+      "is_interactive": true,
+      "title": "07 Grandkid home view, 5.73 in",
+      "w": 640,
+      "x": 0,
+      "y": 3520
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-18T04:05:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/SqTQNQwCjgeMwnnyMZNbpP",
+      "copiedAt": "2026-10-18T04:05:00Z",
+      "namespace": "moldable",
+      "title": "Moldable",
+      "version": null
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "grandkid": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Grandkid side: molding Oma's recipe on the home view",
+      "w": 240,
+      "x": 0,
+      "y": 3260
+    },
+    "homeHow": {
+      "fill": "green",
+      "text": "Try it: tap a blurred step to roll it into focus. Tap Change it for Oma to say a change, then pick from Serves 2, Less spicy or Chicken. Changed words get an ember underline. The middle pill rolls between cooking time and tools.",
+      "w": 340,
+      "x": 720,
+      "y": 3520
+    }
+  },
+  "order": [
+    "Home.dc.html"
+  ],
+  "pages": [],
+  "title": "Moldable Board Wireframes"
+}

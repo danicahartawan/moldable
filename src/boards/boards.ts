@@ -4,6 +4,7 @@ export const BOARDS = [
   { slug: 'weigh', number: '03', title: 'Weigh on the board' },
   { slug: 'record', number: '04', title: 'Record grandma' },
   { slug: 'anatomy', number: '05', title: 'Anatomy and open questions' },
+  { slug: 'home', number: '06', title: 'Grandkid home view' },
 ] as const
 
 export type BoardSlug = (typeof BOARDS)[number]['slug']
