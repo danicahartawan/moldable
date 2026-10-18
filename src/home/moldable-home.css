@@ -42,7 +42,7 @@
   width: 32%;
   padding: 0;
   border: 0;
-  background: linear-gradient(90deg, rgba(176, 205, 255, 0.48), rgba(232, 239, 255, 0.14) 62%, transparent);
+  background: radial-gradient(circle at left top, rgba(176, 205, 255, 0.52), rgba(232, 239, 255, 0.18) 38%, transparent 72%);
   cursor: pointer;
 }
 

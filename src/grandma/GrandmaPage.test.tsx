@@ -91,6 +91,10 @@ describe('GrandmaPage', () => {
 
     expect(await screen.findByRole('main', { name: 'Grandma story HomeView' })).toBeInTheDocument()
     expect(document.querySelector('.grandma-handoff')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute(
+      'src',
+      '/assets/grandma-character.png',
+    )
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 

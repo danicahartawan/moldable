@@ -10,6 +10,11 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 760, height: 900 
     await page.goto('/')
 
     const display = page.locator('.moldable-display')
+    const triggerBackground = await page.locator('.tool-rail__trigger').evaluate(
+      (element) => getComputedStyle(element).backgroundImage,
+    )
+    expect(triggerBackground).toContain('radial-gradient')
+    expect(triggerBackground).toMatch(/(left top|0% 0%|0px 0px)/)
     const displayBox = await display.boundingBox()
     expect(displayBox).not.toBeNull()
     expect(Math.abs(displayBox!.width - displayBox!.height)).toBeLessThanOrEqual(1)

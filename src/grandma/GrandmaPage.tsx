@@ -80,7 +80,12 @@ export function GrandmaPage() {
   if (recorder.hasCompletedRecording) {
     return (
       <HomeViewFrame label="Grandma story HomeView" className="grandma-homeview grandma-handoff">
-        {null}
+        <img
+          className="grandma-character"
+          src="/assets/grandma-character.png"
+          alt="Grandma companion"
+          draggable={false}
+        />
       </HomeViewFrame>
     )
   }
