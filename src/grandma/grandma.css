@@ -14,6 +14,15 @@
   container-type: inline-size;
 }
 
+.grandma-homeview::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(circle at left top, rgba(176, 205, 255, .52), rgba(232, 239, 255, .18) 18%, transparent 42%);
+  content: '';
+  pointer-events: none;
+}
+
 .grandma-header {
   display: flex;
   align-items: flex-start;

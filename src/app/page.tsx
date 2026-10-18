@@ -1,5 +1,5 @@
-import { MoldableHome } from '../home/MoldableHome'
+import { GrandmaPage } from '../grandma/GrandmaPage'
 
 export default function Home() {
-  return <MoldableHome />
+  return <GrandmaPage />
 }
