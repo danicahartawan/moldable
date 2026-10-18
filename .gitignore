@@ -5,3 +5,4 @@ test-results/
 *.tsbuildinfo
 .next/
 next-env.d.ts
+.DS_Store
