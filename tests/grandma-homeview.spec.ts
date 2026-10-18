@@ -97,6 +97,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 760, height: 900 
     expect(intersects(transcriptBox, railBox)).toBe(false)
     expect(intersects(titleBox, mascotBox)).toBe(false)
     expect(intersects(titleBox, railBox)).toBe(false)
+    expect(intersects(titleBox, transcriptBox)).toBe(false)
   })
 }
 
