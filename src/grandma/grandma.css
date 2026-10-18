@@ -10,6 +10,10 @@
   padding: 18px 22px 24px;
 }
 
+.grandma-homeview {
+  container-type: inline-size;
+}
+
 .grandma-header {
   display: flex;
   align-items: flex-start;
@@ -21,6 +25,13 @@
   top: 18px;
   right: 22px;
   justify-content: flex-end;
+}
+
+.grandma-homeview .grandma-header--right {
+  top: 5%;
+  right: 6%;
+  z-index: 4;
+  max-width: 56%;
 }
 
 .grandma-recorder-stack {
@@ -49,6 +60,16 @@
   animation: grandma-character-arrive 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+.grandma-homeview .grandma-character {
+  position: absolute;
+  top: 45%;
+  right: 8%;
+  z-index: 2;
+  width: 28%;
+  height: auto;
+  transform: translateY(-50%);
+}
+
 .grandma-generated-title {
   margin: 0;
   color: #000;
@@ -57,6 +78,12 @@
   line-height: 1.2;
   letter-spacing: -0.015em;
   white-space: nowrap;
+}
+
+.grandma-homeview .grandma-generated-title {
+  max-width: 24ch;
+  white-space: normal;
+  text-align: right;
 }
 
 .grandma-guiding-question {

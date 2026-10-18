@@ -2,44 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DotSpinner, Icon } from '../Icon'
+import { HomeViewFrame } from '../home/HomeViewFrame'
 import { useVoiceRecorder } from '../useVoiceRecorder'
 import { requestGeneratedTitle, shouldGenerateTitle } from './title'
 import { transcribeAudio } from './transcribe'
 import { GrandmaWritingScreen } from './GrandmaWritingScreen'
+import { GuidingQuestionRail, guidingQuestions } from './GuidingQuestionRail'
+import { RollingTranscript } from './RollingTranscript'
 import './grandma.css'
-
-const guidingQuestions = [
-  'What color should it be?',
-  'What should it smell like?',
-  'What should it taste like?',
-  'What would you tell the people making it?',
-]
-
-function TypedTranscript({ text }: { text: string }) {
-  const [visibleText, setVisibleText] = useState('')
-
-  useEffect(() => {
-    if (!text) {
-      setVisibleText('')
-      return
-    }
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      setVisibleText(text)
-      return
-    }
-    if (visibleText === text) return
-
-    const timeout = window.setTimeout(() => {
-      setVisibleText((current) => {
-        if (!text.startsWith(current)) return text.slice(0, 1)
-        return text.slice(0, current.length + 1)
-      })
-    }, 22)
-    return () => window.clearTimeout(timeout)
-  }, [text, visibleText])
-
-  return <>{visibleText}</>
-}
 
 export function GrandmaPage() {
   const recorder = useVoiceRecorder({ transcribeAudio })
@@ -94,7 +64,7 @@ export function GrandmaPage() {
   }
 
   return (
-    <main className="grandma-canvas" aria-label="Record grandma">
+    <HomeViewFrame label="Grandma HomeView" className="grandma-homeview">
       <header className="grandma-header grandma-header--right" data-testid="grandma-header">
         {title ? (
           <h1 className="grandma-generated-title">{title}</h1>
@@ -103,14 +73,6 @@ export function GrandmaPage() {
         ) : null}
         <div className="grandma-recorder-stack" data-testid="grandma-recorder-stack">
           <div className="grandma-recorder-control" data-testid="grandma-recorder-control">
-            {isRecording ? (
-              <img
-                className="grandma-character"
-                src="/assets/grandma-character.png"
-                alt="Grandma character"
-                draggable={false}
-              />
-            ) : null}
             <button
               className="grandma-record-button grandma-record-button--plain grandma-record-button--embossed"
               type="button"
@@ -128,21 +90,22 @@ export function GrandmaPage() {
               )}
             </button>
           </div>
-
-          {recorder.errorMessage ? (
-            <p className="grandma-transcript grandma-transcript--error grandma-transcript--under-control" role="status">{recorder.errorMessage}</p>
-          ) : fullTranscript ? (
-            <p className="grandma-transcript grandma-transcript--preview grandma-transcript--under-control" data-testid="transcript-preview" aria-live="polite">
-              <TypedTranscript text={fullTranscript} />
-            </p>
-          ) : null}
         </div>
       </header>
+      <img
+        className="grandma-character"
+        src="/assets/grandma-character.png"
+        alt="Grandma companion"
+        draggable={false}
+      />
       {guidingQuestionIndex !== null ? (
-        <p className="grandma-guiding-question" aria-live="polite" key={guidingQuestionIndex}>
-          {guidingQuestions[guidingQuestionIndex]}
-        </p>
+        <GuidingQuestionRail activeIndex={guidingQuestionIndex} />
       ) : null}
-    </main>
+      <RollingTranscript
+        finalText={recorder.transcript}
+        interimText={recorder.interimTranscript}
+        errorMessage={recorder.errorMessage}
+      />
+    </HomeViewFrame>
   )
 }

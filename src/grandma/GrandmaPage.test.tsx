@@ -57,31 +57,35 @@ describe('GrandmaPage', () => {
     })))
   })
 
-  it('starts as a blank recording canvas with a compact record control', () => {
+  it('starts in the square HomeView with a compact record control and cloud companion', () => {
     render(<GrandmaPage />)
 
-    expect(screen.getByRole('main', { name: 'Record grandma' })).toBeInTheDocument()
+    expect(screen.getByRole('main', { name: 'Grandma HomeView' })).toBeInTheDocument()
+    expect(document.querySelector('.grandma-homeview')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Record' })).toHaveClass(
       'grandma-record-button--plain',
       'grandma-record-button--embossed',
     )
+    expect(screen.getByRole('button', { name: 'Record' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute('src', '/assets/grandma-character.png')
     expect(screen.getByTestId('grandma-header')).toHaveClass('grandma-header--right')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('character-placeholder')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Guiding questions' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 
   it('shows a constrained live preview and opens the writing screen after stopping', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Stop recording' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Stop recording' })).toHaveAttribute('aria-pressed', 'true'))
 
     recognition.emit({
       isFinal: true,
       0: { transcript: 'Grandma toasted the spices slowly. Then she added the broth and told us to wait for the fragrance. We stayed beside the stove until the whole kitchen smelled warm.' },
     })
 
-    const preview = await screen.findByTestId('transcript-preview')
-    expect(preview).toHaveClass('grandma-transcript--preview', 'grandma-transcript--under-control')
+    const preview = await screen.findByRole('region', { name: 'Live transcript' })
+    expect(preview).toHaveTextContent('Grandma toasted the spices slowly.')
     expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toHaveClass('grandma-generated-title')
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
 
@@ -89,7 +93,7 @@ describe('GrandmaPage', () => {
     expect(screen.getByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
     expect(screen.getByLabelText(/Grandma toasted the spices slowly/)).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Moldable character writing with a silver pencil' })).toBeInTheDocument()
-    expect(screen.queryByTestId('transcript-preview')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 
   it('requests an AI title only after a few sentences have been transcribed', async () => {
@@ -153,37 +157,30 @@ describe('GrandmaPage', () => {
     expect(screen.queryByText('Listening…')).not.toBeInTheDocument()
 
     recognition.emit({ isFinal: false, 0: { transcript: 'Toast the spices gently.' } })
-    expect(await screen.findByTestId('transcript-preview')).toHaveClass('grandma-transcript--under-control')
+    expect(await screen.findByRole('region', { name: 'Live transcript' })).toHaveTextContent('Toast the spices gently.')
   })
 
-  it('shows the transparent character beside Stop while recording', async () => {
+  it('keeps the cloud companion visible while recording', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
 
     const stopButton = await screen.findByRole('button', { name: 'Stop recording' })
-    const controlRow = screen.getByTestId('grandma-recorder-control')
-    expect(controlRow).toContainElement(screen.getByRole('img', { name: 'Grandma character' }))
-    expect(controlRow).toContainElement(stopButton)
+    expect(stopButton).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('img', { name: 'Grandma companion' })).toBeInTheDocument()
   })
 
-  it('types newly transcribed words onto the screen', async () => {
-    vi.useFakeTimers()
+  it('marks newly transcribed words for the rolling reveal', async () => {
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
-    await act(async () => {})
+    await waitFor(() => expect(recognition.start).toHaveBeenCalled())
 
     act(() => {
       recognition.emit({ isFinal: false, 0: { transcript: 'Soup' } })
     })
 
-    const preview = screen.getByTestId('transcript-preview')
-    expect(preview).not.toHaveTextContent('Soup')
-    act(() => { vi.advanceTimersByTime(25) })
-    expect(preview).toHaveTextContent('S')
-    act(() => { vi.advanceTimersByTime(25) })
-    act(() => { vi.advanceTimersByTime(25) })
-    act(() => { vi.advanceTimersByTime(25) })
+    const preview = screen.getByRole('region', { name: 'Live transcript' })
     expect(preview).toHaveTextContent('Soup')
+    expect(document.querySelector('.grandma-transcript__interim')).toHaveTextContent('Soup')
   })
 
   it('shows rotating guidance at the bottom-right after thirty seconds', async () => {
@@ -196,7 +193,8 @@ describe('GrandmaPage', () => {
     expect(screen.queryByText('What color should it be?')).not.toBeInTheDocument()
 
     act(() => { vi.advanceTimersByTime(1) })
-    expect(screen.getByText('What color should it be?')).toHaveClass('grandma-guiding-question')
+    expect(screen.getByRole('region', { name: 'Guiding questions' })).toBeInTheDocument()
+    expect(screen.getByText('What color should it be?')).toHaveAttribute('aria-live', 'polite')
 
     act(() => { vi.advanceTimersByTime(12_000) })
     expect(screen.getByText('What should it smell like?')).toBeInTheDocument()
@@ -216,7 +214,7 @@ describe('GrandmaPage', () => {
       '/api/grandma/transcribe',
       expect.objectContaining({ method: 'POST' }),
     ))
-    await waitFor(() => expect(screen.getByTestId('transcript-preview')).toHaveTextContent('Toast the spices gently.'))
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent('Toast the spices gently.'))
   })
 
   it('keeps a successful transcript when a newer audio request fails', async () => {
@@ -247,7 +245,7 @@ describe('GrandmaPage', () => {
       json: async () => ({ transcript: 'Grandma stirred the soup slowly.' }),
     } as Response)
 
-    await waitFor(() => expect(screen.getByTestId('transcript-preview')).toHaveTextContent(
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
       'Grandma stirred the soup slowly.',
     ))
   })
