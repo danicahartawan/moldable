@@ -74,6 +74,51 @@
   animation: grandma-question-in 360ms ease both;
 }
 
+.grandma-question-rail {
+  position: absolute;
+  top: 18%;
+  bottom: 18%;
+  left: 3%;
+  width: 42%;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
+}
+
+.grandma-question-rail__question {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: min(26ch, 100%);
+  margin: 0;
+  color: #1f1c19;
+  font-size: clamp(13px, 2.2cqw, 18px);
+  line-height: 1.3;
+  opacity: 0;
+  transform: translate(-10%, -50%) scale(.78);
+  transition: opacity 360ms ease, transform 420ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.grandma-question-rail__question[data-offset="0"] {
+  opacity: 1;
+  transform: translate(12%, -50%) scale(1);
+}
+
+.grandma-question-rail__question[data-offset="-1"] {
+  opacity: .46;
+  transform: translate(2%, -210%) scale(.86);
+}
+
+.grandma-question-rail__question[data-offset="1"] {
+  opacity: .46;
+  transform: translate(2%, 110%) scale(.86);
+}
+
+.grandma-question-rail__question[data-offset="-2"],
+.grandma-question-rail__question[data-offset="2"] {
+  opacity: .16;
+  transform: translate(-8%, 270%) scale(.7);
+}
+
 .grandma-record-button {
   display: inline-flex;
   height: 42px;
