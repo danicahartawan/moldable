@@ -12,7 +12,7 @@
 
 .grandma-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 18px;
 }
 
@@ -21,6 +21,15 @@
   top: 18px;
   right: 22px;
   justify-content: flex-end;
+}
+
+.grandma-recorder-stack {
+  display: flex;
+  width: 28ch;
+  max-width: calc(100vw - 44px);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .grandma-generated-title {
@@ -54,6 +63,14 @@
   background: transparent;
 }
 
+.grandma-record-button--embossed {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.grandma-record-button--embossed svg {
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.95)) drop-shadow(0 -1px 0 rgba(0, 0, 0, 0.12));
+}
+
 .grandma-record-button:hover { background: rgba(0, 0, 0, 0.045); }
 
 .grandma-record-button:active { transform: scale(0.97); }
@@ -78,8 +95,7 @@
 }
 
 .grandma-transcript--preview {
-  width: 28ch;
-  max-width: calc(100vw - 44px);
+  width: 100%;
   max-height: calc(1.45em * 4);
   overflow: hidden;
   overflow-wrap: anywhere;
@@ -87,10 +103,9 @@
   mask-image: linear-gradient(to bottom, transparent 0, #000 24%, #000 100%);
 }
 
-.grandma-transcript--bottom-right {
-  position: absolute;
-  right: 22px;
-  bottom: 24px;
+.grandma-transcript--under-control {
+  width: 100%;
+  text-align: right;
 }
 
 .grandma-transcript__interim { color: #aaa7a2; }
@@ -121,9 +136,9 @@
   .grandma-canvas { padding: 14px; }
   .grandma-header--right { top: 14px; right: 14px; gap: 10px; }
   .grandma-generated-title { max-width: 52vw; overflow: hidden; text-overflow: ellipsis; }
+  .grandma-recorder-stack { max-width: calc(100vw - 28px); }
   .grandma-transcript--preview,
   .grandma-transcript--error { max-width: calc(100vw - 28px); }
-  .grandma-transcript--bottom-right { right: 14px; bottom: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

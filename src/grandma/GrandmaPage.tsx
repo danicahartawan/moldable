@@ -54,33 +54,35 @@ export function GrandmaPage() {
         ) : isTitlePending ? (
           <p className="grandma-generated-title grandma-generated-title--pending" aria-live="polite">Naming this story…</p>
         ) : null}
-        <button
-          className="grandma-record-button grandma-record-button--plain"
-          type="button"
-          aria-label={isRecording ? 'Stop recording' : 'Record'}
-          aria-pressed={isRecording}
-          disabled={isStarting || recorder.status === 'stopping'}
-          onClick={recorder.toggle}
-        >
-          {isStarting ? (
-            <><DotSpinner /><span>Starting</span></>
-          ) : isRecording ? (
-            <><span className="grandma-record-button__dot" /><span>Stop</span></>
-          ) : (
-            <><Icon name="mic" size={18} /><span>Record</span></>
-          )}
-        </button>
-      </header>
+        <div className="grandma-recorder-stack" data-testid="grandma-recorder-stack">
+          <button
+            className="grandma-record-button grandma-record-button--plain grandma-record-button--embossed"
+            type="button"
+            aria-label={isRecording ? 'Stop recording' : 'Record'}
+            aria-pressed={isRecording}
+            disabled={isStarting || recorder.status === 'stopping'}
+            onClick={recorder.toggle}
+          >
+            {isStarting ? (
+              <><DotSpinner /><span>Starting</span></>
+            ) : isRecording ? (
+              <><span className="grandma-record-button__dot" /><span>Stop</span></>
+            ) : (
+              <><Icon name="mic" size={18} /><span>Record</span></>
+            )}
+          </button>
 
-      {recorder.errorMessage ? (
-        <p className="grandma-transcript grandma-transcript--error grandma-transcript--bottom-right" role="status">{recorder.errorMessage}</p>
-      ) : fullTranscript ? (
-        <p className="grandma-transcript grandma-transcript--preview grandma-transcript--bottom-right" data-testid="transcript-preview" aria-live="polite">
-          {recorder.transcript}<span className="grandma-transcript__interim">{recorder.interimTranscript}</span>
-        </p>
-      ) : isRecording ? (
-        <p className="grandma-listening grandma-transcript--bottom-right" aria-live="polite">Listening…</p>
-      ) : null}
+          {recorder.errorMessage ? (
+            <p className="grandma-transcript grandma-transcript--error grandma-transcript--under-control" role="status">{recorder.errorMessage}</p>
+          ) : fullTranscript ? (
+            <p className="grandma-transcript grandma-transcript--preview grandma-transcript--under-control" data-testid="transcript-preview" aria-live="polite">
+              {recorder.transcript}<span className="grandma-transcript__interim">{recorder.interimTranscript}</span>
+            </p>
+          ) : isRecording ? (
+            <p className="grandma-listening grandma-transcript--under-control" aria-live="polite">Listening…</p>
+          ) : null}
+        </div>
+      </header>
     </main>
   )
 }

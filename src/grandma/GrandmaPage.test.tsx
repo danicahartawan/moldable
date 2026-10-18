@@ -47,7 +47,10 @@ describe('GrandmaPage', () => {
     render(<GrandmaPage />)
 
     expect(screen.getByRole('main', { name: 'Record grandma' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Record' })).toHaveClass('grandma-record-button--plain')
+    expect(screen.getByRole('button', { name: 'Record' })).toHaveClass(
+      'grandma-record-button--plain',
+      'grandma-record-button--embossed',
+    )
     expect(screen.getByTestId('grandma-header')).toHaveClass('grandma-header--right')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
     expect(screen.queryByTestId('character-placeholder')).not.toBeInTheDocument()
@@ -64,7 +67,7 @@ describe('GrandmaPage', () => {
     })
 
     const preview = await screen.findByTestId('transcript-preview')
-    expect(preview).toHaveClass('grandma-transcript--preview', 'grandma-transcript--bottom-right')
+    expect(preview).toHaveClass('grandma-transcript--preview', 'grandma-transcript--under-control')
     expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toHaveClass('grandma-generated-title')
     fireEvent.click(screen.getByRole('button', { name: 'Stop recording' }))
 
@@ -88,7 +91,7 @@ describe('GrandmaPage', () => {
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/grandma/title', expect.objectContaining({ method: 'POST' })))
     expect(await screen.findByRole('heading', { name: 'Sunday Soto Stories' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Stop recording' }).parentElement).toContainElement(
+    expect(screen.getByTestId('grandma-header')).toContainElement(
       screen.getByRole('heading', { name: 'Sunday Soto Stories' }),
     )
   })
@@ -106,7 +109,7 @@ describe('GrandmaPage', () => {
 
     const pendingTitle = await screen.findByText('Naming this story…')
     const stopButton = screen.getByRole('button', { name: 'Stop recording' })
-    expect(stopButton.parentElement).toContainElement(pendingTitle)
+    expect(screen.getByTestId('grandma-header')).toContainElement(pendingTitle)
 
     fireEvent.click(stopButton)
     expect(await screen.findByTestId('complete-transcript')).toBeInTheDocument()
@@ -122,5 +125,18 @@ describe('GrandmaPage', () => {
     expect(await screen.findByTestId('complete-transcript')).toHaveTextContent(
       'No transcript was captured in this browser.',
     )
+  })
+
+  it('places listening and live transcription directly beneath Stop', async () => {
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    const stopButton = await screen.findByRole('button', { name: 'Stop recording' })
+    const controls = screen.getByTestId('grandma-recorder-stack')
+
+    expect(controls).toContainElement(stopButton)
+    expect(controls).toContainElement(screen.getByText('Listening…'))
+
+    recognition.emit({ isFinal: false, 0: { transcript: 'Toast the spices gently.' } })
+    expect(await screen.findByTestId('transcript-preview')).toHaveClass('grandma-transcript--under-control')
   })
 })
