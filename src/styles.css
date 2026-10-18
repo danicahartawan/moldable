@@ -339,6 +339,16 @@ button {
 .recipe-article__note { margin-top: 22px !important; color: #5f615c; font-style: italic; }
 .recipe-article blockquote { margin: 30px 0 0; padding: 22px 0 0; border-top: 1px solid #dededb; color: #3f413d; font-size: 17px; font-style: italic; line-height: 1.5; }
 
+.recipe-article__illustration {
+  float: right;
+  width: min(48%, 300px);
+  height: auto;
+  margin: -10px -12px 18px 28px;
+  color: #242623;
+  shape-outside: ellipse(52% 46% at 52% 48%);
+  shape-margin: 14px;
+}
+
 @keyframes article-arrives {
   from { opacity: 0; transform: translateY(20px) scale(.985); }
   to { opacity: 1; transform: none; }
@@ -445,6 +455,14 @@ button {
   .project-bar-stack > .voice-transcript { margin-top: 4px; margin-right: 10px; }
 
   .recipe-article { width: calc(100vw - 40px); margin-top: 34px; }
+
+  .recipe-article__illustration {
+    float: none;
+    display: block;
+    width: min(78vw, 300px);
+    margin: 0 auto 24px;
+    shape-outside: none;
+  }
 
   .ginger-stage { padding-top: 154px; }
   .ginger-stage__image { width: min(78vw, 420px); min-width: 0; }
