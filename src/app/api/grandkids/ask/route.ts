@@ -22,7 +22,7 @@ function isRecipeState(value: unknown): value is GrandkidsRecipeState {
   const state = value as Record<string, unknown>
   return (state.servings === 2 || state.servings === 4)
     && (state.activeStep === null || (Number.isInteger(state.activeStep) && GRANDKIDS_STEP_TARGETS.includes(state.activeStep as never)))
-    && (state.versionLabel === null || (typeof state.versionLabel === 'string' && state.versionLabel.length <= 120))
+    && (state.versionLabel === null || state.versionLabel === 'Nevan + Fred · 2 servings')
     && typeof state.kencurSubstitution === 'boolean'
 }
 

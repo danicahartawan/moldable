@@ -124,6 +124,12 @@ export function useGrandkidsVoiceGuide({
           body: form,
           signal: session.abortController.signal,
         })
+        if (transcriptionResponse.status === 422) {
+          active.current = null
+          setStatus('idle')
+          setErrorMessage('I didn’t catch that. Try again.')
+          return
+        }
         if (!transcriptionResponse.ok) throw new Error('transcription failed')
         const transcription = await transcriptionResponse.json() as { transcript?: unknown }
         const question = typeof transcription.transcript === 'string' ? transcription.transcript.trim() : ''
@@ -185,7 +191,15 @@ export function useGrandkidsVoiceGuide({
           setErrorMessage('I can show you, but I can’t speak just now.')
         }
         setStatus('speaking')
-        await audio.play()
+        try {
+          await audio.play()
+        } catch {
+          if (session.objectUrl) URL.revokeObjectURL(session.objectUrl)
+          session.objectUrl = null
+          active.current = null
+          setStatus('error')
+          setErrorMessage('I can show you, but I can’t speak just now.')
+        }
       } catch (error) {
         if (session.abortController.signal.aborted || active.current?.id !== session.id) return
         active.current = null

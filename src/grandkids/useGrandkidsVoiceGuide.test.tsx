@@ -32,10 +32,11 @@ class FakeMediaRecorder {
 
 class FakeAudio {
   static instances: FakeAudio[] = []
+  static playError: Error | null = null
   src: string
   onended: (() => void) | null = null
   onerror: (() => void) | null = null
-  play = vi.fn().mockResolvedValue(undefined)
+  play = vi.fn(() => FakeAudio.playError ? Promise.reject(FakeAudio.playError) : Promise.resolve())
   pause = vi.fn()
 
   constructor(src: string) {
@@ -55,6 +56,7 @@ describe('useGrandkidsVoiceGuide', () => {
     vi.useFakeTimers()
     FakeMediaRecorder.instances = []
     FakeAudio.instances = []
+    FakeAudio.playError = null
     track.stop.mockClear()
     vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
     vi.stubGlobal('Audio', FakeAudio)
@@ -127,6 +129,16 @@ describe('useGrandkidsVoiceGuide', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
+  it('treats a transcription no-speech response as a retry, not an AI failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ error: 'No speech was recognized.' }, { status: 422 })))
+    const { result } = renderHook(() => useGrandkidsVoiceGuide({ recipeState, onTarget: vi.fn(), recordingDurationMs: 5 }))
+
+    await act(async () => { await result.current.start(); await vi.advanceTimersByTimeAsync(5); await flushRequests() })
+
+    expect(result.current.status).toBe('idle')
+    expect(result.current.errorMessage).toBe('I didn’t catch that. Try again.')
+  })
+
   it('cancels active media, requests, audio, and object URLs on restart and unmount', async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(Response.json({ transcript: 'question' }))
       .mockResolvedValueOnce(Response.json({ answer: 'Answer', target: 'overview' }))
@@ -160,6 +172,21 @@ describe('useGrandkidsVoiceGuide', () => {
     expect(result.current.errorMessage).toBe('I can show you, but I can’t speak just now.')
   })
 
+  it('releases generated audio when browser playback fails', async () => {
+    FakeAudio.playError = new Error('autoplay blocked')
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(Response.json({ transcript: 'what tool' }))
+      .mockResolvedValueOnce(Response.json({ answer: 'Use the dry pan.', target: 'tools' }))
+      .mockResolvedValueOnce(new Response('audio')))
+    const { result } = renderHook(() => useGrandkidsVoiceGuide({ recipeState, onTarget: vi.fn(), recordingDurationMs: 5 }))
+
+    await act(async () => { await result.current.start(); await vi.advanceTimersByTimeAsync(5); await flushRequests() })
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.errorMessage).toBe('I can show you, but I can’t speak just now.')
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:answer')
+  })
+
   it('sends only the newest four complete conversation pairs', async () => {
     let transcriptNumber = 0
     const askBodies: Array<{ history: Array<{ question: string; answer: string }> }> = []
@@ -178,7 +205,7 @@ describe('useGrandkidsVoiceGuide', () => {
 
     for (let exchange = 0; exchange < 6; exchange += 1) {
       await act(async () => { await result.current.start(); await vi.advanceTimersByTimeAsync(5); await flushRequests() })
-      act(() => { FakeAudio.instances.at(-1)?.onended?.() })
+      act(() => { FakeAudio.instances[FakeAudio.instances.length - 1]?.onended?.() })
     }
 
     expect(askBodies[5].history).toEqual([
