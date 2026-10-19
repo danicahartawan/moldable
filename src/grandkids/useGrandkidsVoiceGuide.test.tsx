@@ -12,6 +12,7 @@ const recipeState = {
 
 class FakeMediaRecorder {
   static instances: FakeMediaRecorder[] = []
+  static startError: Error | null = null
   stream: MediaStream
   state = 'inactive'
   ondataavailable: ((event: { data: Blob }) => void) | null = null
@@ -22,7 +23,10 @@ class FakeMediaRecorder {
     FakeMediaRecorder.instances.push(this)
   }
 
-  start() { this.state = 'recording' }
+  start() {
+    if (FakeMediaRecorder.startError) throw FakeMediaRecorder.startError
+    this.state = 'recording'
+  }
   stop() {
     this.state = 'inactive'
     this.ondataavailable?.({ data: new Blob(['voice'], { type: 'audio/webm' }) })
@@ -55,6 +59,7 @@ describe('useGrandkidsVoiceGuide', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     FakeMediaRecorder.instances = []
+    FakeMediaRecorder.startError = null
     FakeAudio.instances = []
     FakeAudio.playError = null
     track.stop.mockClear()
@@ -90,6 +95,17 @@ describe('useGrandkidsVoiceGuide', () => {
 
     expect(fetchMock).toHaveBeenCalledWith('/api/grandma/transcribe', expect.objectContaining({ method: 'POST' }))
     expect(track.stop).toHaveBeenCalled()
+  })
+
+  it('releases microphone tracks when recording cannot start', async () => {
+    FakeMediaRecorder.startError = new Error('unsupported recorder')
+    const { result } = renderHook(() => useGrandkidsVoiceGuide({ recipeState, onTarget: vi.fn() }))
+
+    await act(async () => { await result.current.start() })
+
+    expect(track.stop).toHaveBeenCalled()
+    expect(result.current.status).toBe('error')
+    expect(result.current.errorMessage).toBe('I can’t use the microphone. Try again or check permission.')
   })
 
   it('keeps the transcript private, targets the answer, and speaks only the answer text', async () => {

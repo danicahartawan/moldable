@@ -97,7 +97,16 @@ export function useGrandkidsVoiceGuide({
     }
     session.stream = stream
     const chunks: Blob[] = []
-    const recorder = new MediaRecorder(stream)
+    let recorder: MediaRecorder
+    try {
+      recorder = new MediaRecorder(stream)
+    } catch {
+      stream.getTracks().forEach((track) => track.stop())
+      active.current = null
+      setStatus('error')
+      setErrorMessage('I can’t use the microphone. Try again or check permission.')
+      return
+    }
     session.recorder = recorder
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) chunks.push(event.data)
@@ -208,7 +217,15 @@ export function useGrandkidsVoiceGuide({
       }
     }
 
-    recorder.start()
+    try {
+      recorder.start()
+    } catch {
+      stream.getTracks().forEach((track) => track.stop())
+      active.current = null
+      setStatus('error')
+      setErrorMessage('I can’t use the microphone. Try again or check permission.')
+      return
+    }
     setStatus('listening')
     session.timer = setTimeout(() => {
       if (active.current?.id === session.id && recorder.state === 'recording') recorder.stop()
