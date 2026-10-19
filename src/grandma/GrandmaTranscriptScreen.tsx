@@ -26,17 +26,39 @@ const recipeSteps: readonly (readonly Segment[])[] = [
 ]
 
 const ROW_MS = 520
+const TIDY_LOADING_MS = 1900
 
 export function GrandmaTranscriptScreen({ title, transcript }: GrandmaTranscriptScreenProps) {
   const [view, setView] = useState<View>('story')
   const [rowsDone, setRowsDone] = useState(0)
+  const [tidying, setTidying] = useState(false)
+  const tidyTimer = useRef<number | undefined>(undefined)
   const [penRow, setPenRow] = useState<number | null>(null)
   const [penPos, setPenPos] = useState<{ left: number; top: number } | null>(null)
   const storyRef = useRef<HTMLParagraphElement>(null)
   const listRef = useRef<HTMLOListElement>(null)
   const plainText = transcript.replace(toolTags, '').replace(toolVerbs, '$1')
 
-  const toggle = (next: Exclude<View, 'story'>) => setView((current) => (current === next ? 'story' : next))
+  useEffect(() => () => window.clearTimeout(tidyTimer.current), [])
+
+  const toggle = (next: Exclude<View, 'story'>) => {
+    window.clearTimeout(tidyTimer.current)
+    setTidying(false)
+    if (view === next) {
+      setView('story')
+      return
+    }
+    if (next !== 'tidy') {
+      setView(next)
+      return
+    }
+    // Tidy loads behind the same fog and spinning mascot as the earlier listening state.
+    setTidying(true)
+    tidyTimer.current = window.setTimeout(() => {
+      setTidying(false)
+      setView('tidy')
+    }, TIDY_LOADING_MS)
+  }
 
   // The story scrolls on its own, like words arriving, until the reader takes over.
   useEffect(() => {
@@ -87,7 +109,7 @@ export function GrandmaTranscriptScreen({ title, transcript }: GrandmaTranscript
   const toggles = (
     <div className="grandma-transcript-screen__toggle" role="group" aria-label="Story view">
       <button type="button" aria-pressed={view === 'changes'} onClick={() => toggle('changes')}>Recipe change</button>
-      <button type="button" aria-pressed={view === 'tidy'} onClick={() => toggle('tidy')}>Tidy</button>
+      <button type="button" aria-pressed={view === 'tidy'} aria-busy={tidying} onClick={() => toggle('tidy')}>Tidy</button>
     </div>
   )
 
@@ -128,6 +150,11 @@ export function GrandmaTranscriptScreen({ title, transcript }: GrandmaTranscript
           <img className="hv-pen" src="/assets/grandma-writer.png" alt="Moldable mascot writing in the recipe" style={{ left: penPos.left, top: penPos.top }} />
         )}
       </section>
+      <div className={`hv-fog${tidying ? ' is-on' : ''}`} aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="hv-fog__mascot" src="/assets/mascot-gradient.png" alt="" draggable={false} />
+        <p className="hv-fog__heard">Tidying up…</p>
+      </div>
     </div>
   )
 }

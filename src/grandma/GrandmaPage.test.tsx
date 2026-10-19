@@ -62,10 +62,7 @@ describe('GrandmaPage', () => {
 
     expect(screen.getByRole('main', { name: 'Grandma HomeView' })).toBeInTheDocument()
     expect(document.querySelector('.grandma-homeview')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Record' })).toHaveClass(
-      'grandma-record-button--plain',
-      'grandma-record-button--embossed',
-    )
+    expect(screen.getByRole('button', { name: 'Record' })).toHaveClass('grandma-recorder-card__idle')
     expect(screen.getByRole('button', { name: 'Record' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute('src', '/assets/mascot-blue.png')
     expect(screen.getByTestId('grandma-header')).toHaveClass('grandma-header--right')
@@ -97,7 +94,7 @@ describe('GrandmaPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Recipe change' }))
     expect(screen.getByRole('region', { name: 'Recipe' })).toHaveTextContent('Toast the grated coconut')
     fireEvent.click(screen.getByRole('button', { name: 'Tidy' }))
-    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Lelawar Bali' }, { timeout: 4000 })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 

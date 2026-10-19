@@ -9,6 +9,7 @@ import { requestGeneratedTitle, shouldGenerateTitle } from './title'
 import { transcribeAudio } from './transcribe'
 import { GuidingQuestionRail, guidingQuestions } from './GuidingQuestionRail'
 import { RollingTranscript } from './RollingTranscript'
+import { RecordingWaveform } from './RecordingWaveform'
 import { GrandmaTranscriptScreen } from './GrandmaTranscriptScreen'
 import './grandma.css'
 
@@ -74,11 +75,14 @@ export function GrandmaPage() {
   const [isTitlePending, setIsTitlePending] = useState(false)
   const [guidingQuestionIndex, setGuidingQuestionIndex] = useState<number | null>(null)
   const [demoTranscript, setDemoTranscript] = useState('')
+  const [demoName, setDemoName] = useState('')
   const [activatedTool, setActivatedTool] = useState<ToolId | null>(null)
   const [flyingTool, setFlyingTool] = useState<{ id: ToolId; key: number } | null>(null)
   const flightSequence = useRef(0)
+  const demoClock = useRef({ elapsed: 0, replies: 0, questions: 0, started: false })
   const titleRequested = useRef(false)
   const isRecording = recorder.status === 'recording'
+  const isPaused = recorder.isPaused
   const isStarting = recorder.status === 'requesting'
   const hasSpokenTranscript = Boolean(recorder.transcript || recorder.interimTranscript)
   const pullToolIntoShelf = useCallback((tool: ToolId) => {
@@ -93,44 +97,58 @@ export function GrandmaPage() {
     return () => window.clearTimeout(clearFlight)
   }, [flyingTool])
 
+  // Demo clock: the scripted questions and replies only advance while recording is not paused.
   useEffect(() => {
+    const clock = demoClock.current
     if (!isRecording) {
+      demoClock.current = { elapsed: 0, replies: 0, questions: 0, started: false }
       setGuidingQuestionIndex(null)
-      return
-    }
-
-    let rotation: number | undefined
-    const firstQuestion = window.setTimeout(() => {
-      setGuidingQuestionIndex(0)
-      rotation = window.setInterval(() => {
-        setGuidingQuestionIndex((current) => current === null ? current : (current + 1) % guidingQuestions.length)
-      }, 10_000)
-    }, 2_000)
-
-    return () => {
-      window.clearTimeout(firstQuestion)
-      if (rotation !== undefined) window.clearInterval(rotation)
-    }
-  }, [isRecording])
-
-  useEffect(() => {
-    if (!isRecording) {
       setDemoTranscript('')
       return
     }
+    if (!clock.started) {
+      clock.started = true
+      // Grandma gives one sentence, then goes quiet so the cook can ask about the finger.
+      setDemoTranscript(demoStorySegments[0])
+    }
+    if (isPaused) return
 
-    // Grandma gives one sentence, then goes quiet so the cook can ask about the finger.
-    setDemoTranscript(demoStorySegments[0])
+    const begin = Date.now()
+    const timers: number[] = []
+    const after = (at: number, fn: () => void) => {
+      const delay = Math.max(0, at - (clock.elapsed + Date.now() - begin))
+      timers.push(window.setTimeout(fn, delay))
+    }
     const reply = (text: string) => {
       setDemoTranscript((current) => `${current} ${text}`)
       void speakReply(text)
     }
-    const transcriptTimers = [
-      window.setTimeout(() => reply(DEMO_REPLY_FIRST), DEMO_REPLY_DELAY),
-      window.setTimeout(() => reply(DEMO_REPLY_SECOND), DEMO_REPLY_DELAY + DEMO_REPLY_GAP),
-    ]
+    if (clock.replies < 1) after(DEMO_REPLY_DELAY, () => { clock.replies = 1; reply(DEMO_REPLY_FIRST) })
+    if (clock.replies < 2) after(DEMO_REPLY_DELAY + DEMO_REPLY_GAP, () => { clock.replies = 2; reply(DEMO_REPLY_SECOND) })
+    const scheduleQuestion = () => {
+      const index = clock.questions
+      after(2_000 + index * 10_000, () => {
+        clock.questions = index + 1
+        setGuidingQuestionIndex(index % guidingQuestions.length)
+        scheduleQuestion()
+      })
+    }
+    scheduleQuestion()
 
-    return () => transcriptTimers.forEach((timer) => window.clearTimeout(timer))
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer))
+      clock.elapsed += Date.now() - begin
+    }
+  }, [isRecording, isPaused])
+
+  // With no spoken words to name from, the demo recording is named five seconds in.
+  useEffect(() => {
+    if (!isRecording) {
+      setDemoName('')
+      return
+    }
+    const naming = window.setTimeout(() => setDemoName('Lawar Bali, Oma’s way'), 5_000)
+    return () => window.clearTimeout(naming)
   }, [isRecording])
 
   useEffect(() => {
@@ -173,29 +191,32 @@ export function GrandmaPage() {
         </span>
       ) : null}
       <header className="grandma-header grandma-header--right" data-testid="grandma-header">
-        {title ? (
+        {!isRecording && title ? (
           <h1 className="grandma-generated-title">{title}</h1>
-        ) : isTitlePending ? (
+        ) : !isRecording && isTitlePending ? (
           <p className="grandma-generated-title grandma-generated-title--pending" aria-live="polite">Naming this story…</p>
         ) : null}
         <div className="grandma-recorder-stack" data-testid="grandma-recorder-stack">
-          <div className="grandma-recorder-control" data-testid="grandma-recorder-control">
+          <div className={`grandma-recorder-card${isRecording ? ' is-recording' : ''}`} data-testid="grandma-recorder-control">
             <button
-              className="grandma-record-button grandma-record-button--plain grandma-record-button--embossed"
+              className="grandma-recorder-card__idle"
               type="button"
-              aria-label={isRecording ? 'Stop recording' : 'Record'}
-              aria-pressed={isRecording}
-              disabled={isStarting || recorder.status === 'stopping'}
+              aria-label="Record"
+              aria-pressed="false"
+              aria-hidden={isRecording}
+              tabIndex={isRecording ? -1 : 0}
+              disabled={isStarting || recorder.status === 'stopping' || isRecording}
               onClick={recorder.toggle}
             >
               {isStarting ? (
                 <><DotSpinner /><span>Starting</span></>
-              ) : isRecording ? (
-                <><span className="grandma-record-button__dot" /><span>Stop</span></>
               ) : (
-                <><RecordIcon size={30} /><span>Record</span></>
+                <><RecordIcon size={26} /><span>Record</span></>
               )}
             </button>
+            {isRecording && (
+              <RecordingWaveform levelRef={recorder.levelRef} name={title || demoName || null} isNaming={isTitlePending} isPaused={isPaused} onTogglePause={recorder.togglePause} onStop={recorder.toggle} />
+            )}
           </div>
           <img
             className="grandma-character"

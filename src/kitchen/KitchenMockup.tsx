@@ -64,8 +64,8 @@ function InstructionCard({ instruction }: { instruction: Instruction }) {
             <span>{instruction.text}</span>
           </p>
         </div>
-        <div className="instruction-card__art" aria-hidden="true">
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="instruction-card__art" src={`/assets/steps/step-${instruction.step}.svg`} alt="" draggable={false} />
         <div className="instruction-ingredients" role="group" aria-label={`Ingredients used in step ${instruction.step}`} data-open={ingredientsOpen}>
           <button type="button" className="instruction-ingredients__toggle" aria-label={ingredientsOpen ? 'Hide step ingredients' : 'Show step ingredients'} aria-expanded={ingredientsOpen} onClick={() => setIngredientsOpen((open) => !open)}>
             <Grains size={24} weight="regular" aria-hidden="true" />

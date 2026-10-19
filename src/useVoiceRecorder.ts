@@ -41,6 +41,10 @@ export function useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone = fal
   const [aiTranscript, setAiTranscript] = useState('')
   const [interimTranscript, setInterimTranscript] = useState('')
   const [hasCompletedRecording, setHasCompletedRecording] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  // Live microphone loudness 0..1, or null when there is no real input to measure.
+  const levelRef = useRef<number | null>(null)
+  const meterRef = useRef<{ frame: number; context: AudioContext } | null>(null)
   const statusRef = useRef<VoiceRecorderStatus>('idle')
   const streamRef = useRef<MediaStream | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
@@ -54,7 +58,42 @@ export function useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone = fal
     setStatus(nextStatus)
   }, [])
 
+  const stopMeter = useCallback(() => {
+    const meter = meterRef.current
+    meterRef.current = null
+    levelRef.current = null
+    if (!meter) return
+    window.cancelAnimationFrame(meter.frame)
+    void meter.context.close().catch(() => {})
+  }, [])
+
+  const startMeter = useCallback((stream: MediaStream) => {
+    const AudioContextClass = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    if (!AudioContextClass) return
+    try {
+      const context = new AudioContextClass()
+      const analyser = context.createAnalyser()
+      analyser.fftSize = 512
+      context.createMediaStreamSource(stream).connect(analyser)
+      const samples = new Uint8Array(analyser.fftSize)
+      const meter = { frame: 0, context }
+      const tick = () => {
+        analyser.getByteTimeDomainData(samples)
+        let sum = 0
+        for (const sample of samples) sum += ((sample - 128) / 128) ** 2
+        levelRef.current = Math.min(1, Math.sqrt(sum / samples.length) * 4)
+        meter.frame = window.requestAnimationFrame(tick)
+      }
+      meter.frame = window.requestAnimationFrame(tick)
+      meterRef.current = meter
+    } catch {
+      levelRef.current = null
+    }
+  }, [])
+
   const stop = useCallback(() => {
+    stopMeter()
+    setIsPaused(false)
     const completedRecording = statusRef.current === 'recording'
     updateStatus('stopping')
     recognitionRef.current?.stop()
@@ -65,7 +104,7 @@ export function useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone = fal
     streamRef.current = null
     if (completedRecording) setHasCompletedRecording(true)
     updateStatus('idle')
-  }, [updateStatus])
+  }, [stopMeter, updateStatus])
 
   const start = useCallback(async () => {
     const Recognition = getSpeechRecognitionConstructor()
@@ -129,6 +168,7 @@ export function useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone = fal
         }
       }
       recorder.start(transcribeAudio ? 3000 : undefined)
+      startMeter(stream)
       recognition?.start()
       updateStatus('recording')
     } catch {
@@ -142,7 +182,23 @@ export function useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone = fal
       updateStatus('error')
       setErrorMessage('Microphone access was denied.')
     }
-  }, [allowWithoutMicrophone, transcribeAudio, updateStatus])
+  }, [allowWithoutMicrophone, startMeter, transcribeAudio, updateStatus])
+
+  const togglePause = useCallback(() => {
+    if (statusRef.current !== 'recording') return
+    setIsPaused((paused) => {
+      const next = !paused
+      const recorder = recorderRef.current
+      if (next) {
+        if (recorder?.state === 'recording') recorder.pause()
+        recognitionRef.current?.stop()
+      } else {
+        if (recorder?.state === 'paused') recorder.resume()
+        try { recognitionRef.current?.start() } catch { /* already running */ }
+      }
+      return next
+    })
+  }, [])
 
   const toggle = useCallback(() => {
     if (statusRef.current === 'recording') stop()
@@ -157,6 +213,9 @@ export function useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone = fal
     interimTranscript: aiTranscript ? '' : interimTranscript,
     errorMessage,
     hasCompletedRecording,
+    isPaused,
+    levelRef,
+    togglePause,
     toggle,
   }
 }

@@ -45,7 +45,7 @@
 
 .grandma-recorder-stack {
   display: flex;
-  width: 28ch;
+  width: auto;
   max-width: calc(100vw - 44px);
   flex-direction: column;
   align-items: flex-end;
@@ -534,3 +534,30 @@
 .grandma-transcript-screen__steps li:nth-child(7) { animation-delay: 740ms; }
 .grandma-transcript-screen__steps li:nth-child(8) { animation-delay: 800ms; }
 @media (prefers-reduced-motion: reduce) { .grandma-transcript-screen__widget, .grandma-transcript-screen__widget * { animation: none !important; } }
+
+/* Recording widget: stop button, name, timer and a live loudness waveform. */
+.grandma-waveform { position: absolute; inset: 0; box-sizing: border-box; padding: 12px 14px 14px; animation: grandma-card-content-in 420ms cubic-bezier(.2, .8, .2, 1) 180ms both; }
+.grandma-waveform__head { display: flex; align-items: center; gap: 10px; color: #000; }
+.grandma-waveform__pause span { width: 4px; height: 14px; border-radius: 2px; background: #000; }
+.grandma-waveform__pause, .grandma-waveform__stop { display: flex; width: 26px; height: 26px; flex: none; align-items: center; justify-content: center; gap: 4px; padding: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer; }
+.grandma-waveform__pause:hover, .grandma-waveform__stop:hover { background: rgba(0, 0, 0, .06); }
+.grandma-waveform__stop span { width: 12px; height: 12px; border-radius: 3px; background: #000; }
+.grandma-waveform__play { width: 0 !important; height: 0 !important; margin-left: 3px; border-style: solid; border-width: 7px 0 7px 12px; border-color: transparent transparent transparent #000; border-radius: 0 !important; background: transparent !important; }
+.grandma-waveform__name { min-width: 0; flex: 1; margin: 0; overflow: hidden; font-size: 17px; font-weight: 300; line-height: 22px; letter-spacing: -.01em; text-overflow: ellipsis; white-space: nowrap; animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both; }
+.grandma-waveform__name--pending { opacity: .5; animation: none; }
+.grandma-waveform__time { font-size: 17px; font-weight: 300; font-variant-numeric: tabular-nums; }
+.grandma-waveform__bars { display: flex; height: 64px; align-items: center; justify-content: space-between; gap: 3px; margin-top: 10px; padding: 0 6px; border-radius: 14px; background: rgba(255, 255, 255, .6); -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+.grandma-waveform__bars span { width: 3px; flex: none; border-radius: 2px; background: linear-gradient(180deg, #cfe8ff, #86c0fb); transition: height 90ms linear; }
+@media (prefers-reduced-motion: reduce) { .grandma-waveform, .grandma-waveform__name { animation: none; } }
+
+/* Record pill that expands into the recording widget; content blurs and fades as the card scales. */
+.grandma-recorder-card { position: relative; width: 168px; height: 56px; flex: none; align-self: flex-end; overflow: hidden; border: 1px solid rgba(255, 255, 255, .6); border-radius: 28px; background: rgba(240, 241, 247, .72); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 8px 24px rgba(70, 90, 140, .1); transition: width 560ms cubic-bezier(.2, .8, .2, 1), height 560ms cubic-bezier(.2, .8, .2, 1), border-radius 560ms cubic-bezier(.2, .8, .2, 1); }
+.grandma-recorder-card.is-recording { width: 320px; height: 128px; border-radius: 22px; }
+.grandma-recorder-card__idle { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0 18px; border: 0; background: transparent; color: #000; font: inherit; font-size: 19px; font-weight: 300; letter-spacing: -.01em; white-space: nowrap; cursor: pointer; transition: opacity 260ms ease, filter 260ms ease, transform 260ms ease; }
+.grandma-recorder-card__idle:disabled { cursor: default; }
+.grandma-recorder-card.is-recording .grandma-recorder-card__idle { opacity: 0; filter: blur(8px); transform: scale(.94); pointer-events: none; }
+.grandma-recorder-card__idle:active { transform: scale(.97); }
+.grandma-recorder-card__idle:focus-visible { outline: 2px solid #1f1c19; outline-offset: -4px; border-radius: 28px; }
+@keyframes grandma-card-content-in { from { opacity: 0; filter: blur(8px); transform: scale(.96); } to { opacity: 1; filter: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .grandma-recorder-card { transition: none; } .grandma-waveform { animation: none; } }
+.grandma-waveform.is-paused .grandma-waveform__bars span { opacity: .45; }
