@@ -508,6 +508,7 @@
 
 /* Own surface: .hv-screen carries the home view's token overrides and bokeh backdrop. */
 .st-screen { position: relative; width: 640px; height: 640px; flex: none; overflow: hidden; border-radius: 36px; background: var(--flour); color: var(--ink); font-family: var(--font-sans); box-shadow: 0 0 0 10px var(--ink), 0 30px 70px rgba(31, 28, 25, 0.25); }
+.st-screen--embedded { zoom: 1 !important; position: absolute; top: 0; left: 0; border-radius: 0; box-shadow: none; }
 @media (max-width: 700px) { .st-screen { zoom: 0.8; } }
 @media (max-width: 560px) { .st-screen { zoom: 0.6; } }
 @media (max-width: 430px) { .st-screen { zoom: 0.5; } }

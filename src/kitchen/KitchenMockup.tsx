@@ -3,6 +3,7 @@
 import { BowlFood, Drop, Grains, Jar, JarLabel, Leaf, Orange, OrangeSlice, Pepper, PiggyBank, Plant, TreePalm, type Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { ExploreBoard } from '@/boards/Explore'
+import { COOKING_STEP_COUNT, CookingStepBoard } from '@/boards/CookingStep'
 import { HomeViewBoard } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { GrandmaReply } from './GrandmaReply'
@@ -170,7 +171,7 @@ export function KitchenMockup() {
     setDragX(0)
     if (perspective === 'grandkids' && instructionStep !== null) {
       if (distance > 56) goToStep(instructionStep > 1 ? instructionStep - 1 : null, true)
-      if (distance < -56 && instructionStep < INSTRUCTIONS.length) goToStep(instructionStep + 1)
+      if (distance < -56 && instructionStep < COOKING_STEP_COUNT) goToStep(instructionStep + 1)
       return
     }
     if (perspective === 'grandkids' && distance < -56) {
@@ -203,12 +204,12 @@ export function KitchenMockup() {
             </div>
             {leavingStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--out${slideBack ? ' is-back' : ''}`} key={`out-${leavingStep}`} aria-hidden="true">
-                <InstructionCard instruction={INSTRUCTIONS[leavingStep - 1]} />
+                <CookingStepBoard embedded step={leavingStep - 1} />
               </div>
             )}
             {instructionStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--in${slideBack ? ' is-back' : ''}`} key={instructionStep}>
-                <InstructionCard instruction={INSTRUCTIONS[instructionStep - 1]} live />
+                <CookingStepBoard embedded step={instructionStep - 1} onStepTap={() => instructionStep < COOKING_STEP_COUNT && goToStep(instructionStep + 1)} />
               </div>
             )}
             {instructionStep !== null && (
@@ -216,7 +217,7 @@ export function KitchenMockup() {
             )}
             {instructionStep === null ? (
               <button type="button" className="kitchen__edge-next" aria-label="Open step 1" onClick={() => goToStep(1)} />
-            ) : instructionStep < INSTRUCTIONS.length && (
+            ) : instructionStep < COOKING_STEP_COUNT && (
               <button type="button" className="kitchen__edge-next kitchen__edge-next--wide" aria-label="Next instruction" onClick={() => goToStep((instructionStep ?? 0) + 1)} />
             )}
           </div>

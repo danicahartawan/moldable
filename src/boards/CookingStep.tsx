@@ -115,8 +115,20 @@ function Mascot() {
   )
 }
 
-export function CookingStepBoard() {
-  const [i, setI] = useState(0)
+export const COOKING_STEP_COUNT = STEPS.length
+
+type CookingStepProps = {
+  /** Sits inside the kitchen display's 640px screen, with no stage chrome or caption. */
+  embedded?: boolean
+  /** Which step to show (0-based) when a host drives the carousel; omit to let the board keep its own. */
+  step?: number
+  /** Called when the step number is tapped, in place of the board advancing itself. */
+  onStepTap?: () => void
+}
+
+export function CookingStepBoard({ embedded = false, step: hostStep, onStepTap }: CookingStepProps = {}) {
+  const [own, setI] = useState(0)
+  const i = hostStep ?? own
   const [ing, setIng] = useState(false)
   const [closing, setClosing] = useState(false)
   const closeTimer = useRef<number | undefined>(undefined)
@@ -140,13 +152,13 @@ export function CookingStepBoard() {
   }
 
   return (
-    <div className="hv-stage">
-      <div className="st-screen">
+    <div className={embedded ? 'hv-embed' : 'hv-stage'}>
+      <div className={`st-screen${embedded ? ' st-screen--embedded' : ''}`}>
         <div className="ck-body">
           <header className="ck-freeze" style={frozen}>
             <h1 className="st-title">
               <button type="button" className="ck-step" aria-label={`Step ${i + 1}. Tap for the next step`}
-                onClick={() => setI((n) => (n === STEPS.length - 1 ? 0 : n + 1))}>
+                onClick={() => (onStepTap ? onStepTap() : setI((n) => (n === STEPS.length - 1 ? 0 : n + 1)))}>
                 Step {i + 1}
               </button>
             </h1>
@@ -207,7 +219,7 @@ export function CookingStepBoard() {
           Ingredients
         </button>
       </div>
-      <p className="hv-caption">Cooking step on the 5.73 in display. Tap the step number for the next step, and Ingredients for what this step uses.</p>
+      {!embedded && <p className="hv-caption">Cooking step on the 5.73 in display. Tap the step number for the next step, and Ingredients for what this step uses.</p>}
     </div>
   )
 }

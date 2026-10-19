@@ -49,11 +49,11 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPe
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 0.95
+  renderer.toneMappingExposure = 0.8
   renderer.outputColorSpace = THREE.SRGBColorSpace
 
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color('#3a2a1f')
+  scene.background = new THREE.Color('#2b2822')
   const pmrem = new THREE.PMREMGenerator(renderer)
   const envTarget = pmrem.fromScene(new RoomEnvironment(renderer), 0.04)
   scene.environment = envTarget.texture
@@ -110,7 +110,7 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPe
   // Grandma's kitchen: teak, woven bamboo, hand-painted tile and morning light.
   const grandmaRoomTex = canvasTex(256, 128, (g, w, hh) => {
     const plaster = g.createLinearGradient(0, 0, w, hh)
-    plaster.addColorStop(0, '#8c5b35'); plaster.addColorStop(0.5, '#bd8755'); plaster.addColorStop(1, '#704328')
+    plaster.addColorStop(0, '#2b2a26'); plaster.addColorStop(0.5, '#4d4a42'); plaster.addColorStop(1, '#6a665b')
     g.fillStyle = plaster; g.fillRect(0, 0, w, hh)
     g.fillStyle = '#cda66d'; g.fillRect(0, 0, 76, 88)
     g.strokeStyle = 'rgba(91,54,26,.22)'; g.lineWidth = 1
@@ -158,8 +158,8 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPe
   table.position.set(0, -2, -40)
   table.receiveShadow = true
   scene.add(table)
-  const roomMaterial = new THREE.MeshBasicMaterial({ map: roomTex, toneMapped: false, transparent: true })
-  const grandmaRoomMaterial = new THREE.MeshBasicMaterial({ map: grandmaRoomTex, toneMapped: false, transparent: true, opacity: 0 })
+  const roomMaterial = new THREE.MeshBasicMaterial({ map: roomTex, toneMapped: false, transparent: true, color: '#8a8a8a' })
+  const grandmaRoomMaterial = new THREE.MeshBasicMaterial({ map: grandmaRoomTex, toneMapped: false, transparent: true, opacity: 0, color: '#9a9a9a' })
   const room = new THREE.Mesh(new THREE.PlaneGeometry(900, 450), roomMaterial)
   const grandmaRoom = new THREE.Mesh(new THREE.PlaneGeometry(900, 450), grandmaRoomMaterial)
   room.position.set(60, 120, -420)

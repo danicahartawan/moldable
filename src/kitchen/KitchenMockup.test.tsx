@@ -39,98 +39,46 @@ describe('KitchenMockup perspectives', () => {
     expect(screen.getByTestId('kitchen-perspective-stage')).toHaveAttribute('data-perspective', 'grandma')
   })
 
-  it('opens the borderless step card with the mascot from the grandkids view', () => {
+  it('opens Fred’s cooking step with Grandma’s cue from the grandkids view', () => {
     render(<KitchenMockup />)
     fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
 
-    const instruction = screen.getByRole('region', { name: 'Recipe instruction step 1' })
-    expect(within(instruction).getByText('Step 1')).toBeInTheDocument()
-    expect(within(instruction).getByRole('img', { name: 'Moldable mascot' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Step 1' })).not.toBeInTheDocument()
-    expect(within(instruction).getByText('Blend')).toHaveClass('instruction-chip')
-    expect(within(instruction).getByText('half the onions, garlic, sambal, kencur, pepper, and lime leaves into a fine paste.')).toBeInTheDocument()
-    expect(within(instruction).queryByRole('button', { name: 'Back to recipe' })).not.toBeInTheDocument()
+    const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
+    expect(within(board).getByRole('button', { name: /Step 1/ })).toBeInTheDocument()
+    expect(board).toHaveTextContent('half the onions, garlic, sambal')
+    expect(within(board).getByLabelText('Blend the aromatics first, little one. Don’t make it watery; you should still see a little texture.')).toBeInTheDocument()
   })
 
-  it('keeps the step ingredients collapsed until the lower-left control is pressed', () => {
+  it('shows what the step uses only after Ingredients is pressed', () => {
     render(<KitchenMockup />)
     fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
 
-    const ingredients = screen.getByRole('group', { name: 'Ingredients used in step 1' })
-    expect(ingredients).toHaveAttribute('data-open', 'false')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Show step ingredients' }))
-
-    expect(ingredients).toHaveAttribute('data-open', 'true')
-    for (const name of ['Onion', 'Garlic', 'Sambal', 'Pepper', 'Lime leaves']) {
-      expect(within(ingredients).getByLabelText(name)).toBeInTheDocument()
+    const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
+    expect(within(board).queryByRole('region', { name: 'Ingredients for this step' })).not.toBeInTheDocument()
+    fireEvent.click(within(board).getByRole('button', { name: 'Ingredients' }))
+    const uses = within(board).getByRole('region', { name: 'Ingredients for this step' })
+    for (const name of ['Onions', 'Garlic', 'Sambal', 'Kencur', 'Pepper', 'Lime leaves']) {
+      expect(within(uses).getByText(name)).toBeInTheDocument()
     }
   })
 
-  it('advances through the remaining instruction cards from the invisible right edge', () => {
+  it('advances through the steps from the right edge and the step number', () => {
     render(<KitchenMockup />)
     fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
+    const board = () => document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
 
     fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    expect(screen.getByRole('region', { name: 'Recipe instruction step 2' })).toHaveTextContent('Toast the coconut flour in a dry pan until golden brown.')
+    expect(board()).toHaveTextContent('Toast')
+    expect(board()).toHaveTextContent('the coconut in a dry pan until it turns golden.')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    expect(screen.getByRole('region', { name: 'Recipe instruction step 3' })).toHaveTextContent('Sauté the remaining onions, garlic, and the spice paste in a little oil until fragrant.')
-    expect(screen.getByRole('region', { name: 'Recipe instruction step 3' })).toHaveTextContent('Stir in lime juice and fresh chives.')
+    fireEvent.click(within(board()).getByRole('button', { name: /Step 2/ }))
+    expect(board()).toHaveTextContent('Fry')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    expect(screen.getByRole('region', { name: 'Recipe instruction step 4' })).toHaveTextContent('Serve over white pandan rice.')
+    for (let i = 3; i < 8; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
+    expect(board()).toHaveTextContent('Serve')
     expect(screen.queryByRole('button', { name: 'Next instruction' })).not.toBeInTheDocument()
-  })
-
-  it('uses chips only for cooking tools and keeps verbs in the instruction copy', () => {
-    render(<KitchenMockup />)
-    fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
-
-    let instruction = screen.getByRole('region', { name: 'Recipe instruction step 1' })
-    expect(within(instruction).getByText('Blend')).toHaveClass('instruction-chip')
-    expect(instruction).toHaveTextContent('Blend half the onions')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    instruction = screen.getByRole('region', { name: 'Recipe instruction step 2' })
-    expect(within(instruction).getByText('Toast')).toHaveClass('instruction-chip')
-    expect(instruction).toHaveTextContent('Toast the coconut flour')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    instruction = screen.getByRole('region', { name: 'Recipe instruction step 3' })
-    expect(within(instruction).getByText('Sauté')).toHaveClass('instruction-chip')
-    expect(instruction).toHaveTextContent('Sauté the remaining onions')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    instruction = screen.getByRole('region', { name: 'Recipe instruction step 4' })
-    expect(instruction.querySelector('.instruction-chip')).not.toBeInTheDocument()
-    expect(within(instruction).queryByText('Rice pot')).not.toBeInTheDocument()
-    expect(instruction).toHaveTextContent('Serve over white pandan rice.')
-  })
-
-  it('starts Grandma talking on each slide, with the finger story on step two', async () => {
-    vi.useFakeTimers()
-    render(<KitchenMockup />)
-    fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
-    const reply = () => document.querySelector('.instruction-reply')
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(6_000) })
-    expect(reply()).toHaveTextContent('Blend the aromatics first')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    await act(async () => { await vi.advanceTimersByTimeAsync(6_000) })
-    expect(reply()).toHaveTextContent('Keep the coconut moving')
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(6_000) })
-    expect(reply()).toHaveTextContent('No, you didn’t!')
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(9_000) })
-    expect(reply()).toHaveTextContent('so eager to cut the onions')
-    vi.useRealTimers()
   })
 })
