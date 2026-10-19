@@ -1,0 +1,38 @@
+/* The display on a wooden kitchen table, with the home view and Explore live on its screen. */
+.kitchen {
+  --room: #3a2a1f;
+  --glass: color-mix(in srgb, var(--flour-raised) 74%, transparent);
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--room);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+.kitchen__gl { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+.kitchen__css { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
+.kitchen__screen { position: absolute; left: 0; top: 0; width: 640px; height: 640px; overflow: hidden; border-radius: 40px; background: #fff; transform-origin: 0 0; pointer-events: auto; }
+.kitchen__host { position: absolute; inset: 0; transition: opacity 450ms ease, filter 450ms ease; }
+.kitchen__host.is-off { opacity: 0; filter: blur(8px); pointer-events: none; }
+.kitchen__glare { position: absolute; inset: 0; border-radius: 40px; pointer-events: none; background: linear-gradient(150deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 30%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 0 36px rgba(40, 24, 10, 0.06); }
+
+/* The board components carry their own stage and bezel; on the device only the screen shows. */
+.kitchen .hv-stage { display: block; padding: 0; }
+.kitchen .hv-caption { display: none; }
+.kitchen .hv-screen { zoom: 1; border-radius: 0; box-shadow: none; }
+.kitchen .ex-notch, .kitchen .ex-tools { display: none; }
+
+.kitchen__dock { position: fixed; z-index: 3; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; width: max-content; max-width: calc(100vw - 32px); flex-direction: column; align-items: center; gap: 10px; transform: translateX(-50%); }
+.kitchen__hint { margin: 0; padding: 6px 12px; border-radius: var(--radius-pill); background: var(--glass); color: var(--ink-muted); font-size: 13px; line-height: 18px; text-align: center; text-wrap: balance; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.kitchen__bar { display: flex; align-items: center; gap: 4px; padding: 5px; border-radius: var(--radius-pill); background: var(--glass); box-shadow: 0 10px 30px rgba(20, 12, 6, 0.28), 0 0 0 1px rgba(31, 28, 25, 0.12); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); }
+.kitchen__bar button { height: 38px; padding: 0 18px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--ink); font: 500 14px/1 var(--font-sans); cursor: pointer; transition: background-color 200ms ease, color 200ms ease; }
+.kitchen__bar button:hover { background: rgba(31, 28, 25, 0.06); }
+.kitchen__bar button[aria-pressed='true'] { background: var(--ink); color: var(--flour); }
+.kitchen__bar button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.kitchen__loading { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: var(--room); transition: opacity 700ms ease; }
+.kitchen__loading p { margin: 0; color: #e9dccb; font-family: var(--font-display); font-size: 22px; }
+.kitchen__loading.is-gone { opacity: 0; pointer-events: none; }
+
+@media (max-width: 520px) { .kitchen__hint { font-size: 12px; } }
+@media (prefers-reduced-motion: reduce) { .kitchen__host { transition: none; } }
