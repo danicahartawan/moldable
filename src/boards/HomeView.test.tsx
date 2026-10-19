@@ -91,6 +91,20 @@ describe('HomeViewBoard AI voice guide', () => {
     expect(screen.queryByText('Oma says 2 ruas.', { selector: ':not(.hv-sr-only)' })).not.toBeInTheDocument()
   })
 
+  it('clears transient pencil emphasis after speech finishes', () => {
+    voice.status = 'speaking'
+    voice.answer = 'Oma says segenggam.'
+    voice.target = { answer: voice.answer, target: 'ingredients', ingredient: 'coconut' }
+    const { rerender } = render(<HomeViewBoard />)
+    act(() => voice.onTarget?.(voice.target as GrandkidsAnswer))
+    expect(screen.getByText('Coconut').closest('li')).toHaveClass('is-voice-target')
+
+    voice.status = 'idle'
+    rerender(<HomeViewBoard />)
+
+    expect(screen.getByText('Coconut').closest('li')).not.toHaveClass('is-voice-target')
+  })
+
   it('cancels an active session before Adjust starts another', () => {
     voice.status = 'listening'
     render(<HomeViewBoard />)

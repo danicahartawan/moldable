@@ -65,6 +65,10 @@ export function HomeViewBoard() {
     document.querySelector<HTMLElement>(`[data-recipe-step="${voiceTarget.step}"]`)?.scrollIntoView?.({ block: 'center' })
   }, [voiceTarget])
 
+  useEffect(() => {
+    if (voiceGuide.status === 'idle' && voiceGuide.answer) setVoiceTarget(null)
+  }, [voiceGuide.answer, voiceGuide.status])
+
   const activeVoice = ['requesting', 'listening', 'thinking', 'speaking'].includes(voiceGuide.status)
   const beginVoiceQuestion = () => {
     setVoiceTarget(null)
