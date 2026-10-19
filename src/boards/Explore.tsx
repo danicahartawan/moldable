@@ -76,7 +76,7 @@ function CardFace({ r }: { r: Recipe }) {
   )
 }
 
-export function ExploreBoard() {
+export function ExploreBoard({ onOpenRecipe }: { onOpenRecipe?: (name: string) => void } = {}) {
   const [mode, setMode] = useState<'globe' | 'grid'>('globe')
   const [settled, setSettled] = useState(false)
   const [pick, setPick] = useState(-1)
@@ -259,7 +259,7 @@ export function ExploreBoard() {
               <p className="hv-voice__small">{BOOKS[book].from}</p>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button type="button" className="hv-tap ex-pill" onClick={() => setPick(-1)}>Back</button>
-                <button type="button" className="hv-tap ex-pill ex-pill--dark">Open recipe</button>
+                <button type="button" className="hv-tap ex-pill ex-pill--dark" onClick={() => { onOpenRecipe?.(picked.name); setPick(-1) }}>Open recipe</button>
               </div>
             </div>
           </div>

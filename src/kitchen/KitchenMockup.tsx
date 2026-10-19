@@ -203,7 +203,7 @@ export function KitchenMockup() {
             )}
           </div>
           <div data-testid="kitchen-explore" className={`kitchen__host kitchen__host--explore${perspective === 'explore' ? '' : ' is-off'}`} aria-hidden={perspective !== 'explore'} inert={perspective !== 'explore'}>
-            <ExploreBoard />
+            <ExploreBoard onOpenRecipe={() => { setInstructionStep(null); setLeavingStep(null); setPerspective('grandkids') }} />
           </div>
           <div className="kitchen__glare" aria-hidden="true" />
         </div>
