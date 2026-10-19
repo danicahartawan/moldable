@@ -285,6 +285,11 @@
 /* 06 Grandkid home view, 640 × 640 */
 .hv-stage { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 0 40px; }
 .hv-screen {
+  --ink: #111111;
+  --ink-muted: #111111;
+  --ink-faint: #111111;
+  --flour-raised: #f1f2ef;
+  --flour-sunken: #ffffff;
   position: relative;
   width: 640px;
   height: 640px;
@@ -326,6 +331,7 @@
 .hv-steps ol { display: flex; height: 100%; flex-direction: column; gap: 16px; margin: 0; padding: 4px 0 90px; box-sizing: border-box; overflow-y: auto; list-style: none; scrollbar-width: none; }
 .hv-steps ol::-webkit-scrollbar { display: none; }
 .hv-steps li { display: flex; align-items: baseline; gap: 12px; font-size: 18px; line-height: 24px; }
+.hv-steps li.is-voice-target { border-radius: 8px; box-shadow: inset 0 -3px 0 var(--thermal-ember); }
 .hv-steps__n { width: 24px; flex: none; color: var(--ink-muted); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .hv-steps__veil { position: absolute; left: 0; right: 0; bottom: 0; height: 96px; pointer-events: none; -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 70%); mask-image: linear-gradient(180deg, transparent, #000 70%); background: linear-gradient(180deg, transparent, var(--flour-raised) 85%); }
 
@@ -345,12 +351,21 @@
 .hv-ingr { left: 326px; top: 302px; width: 294px; height: 266px; display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; }
 .hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 5px; margin: 0; padding: 0; list-style: none; }
 .hv-ingr li { display: flex; justify-content: space-between; gap: 6px; font-size: 15px; line-height: 21px; white-space: nowrap; }
+.hv-ingr li.is-voice-target { border-radius: 6px; box-shadow: inset 0 -3px 0 var(--thermal-ember); }
 .hv-amt { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.hv-pencil-mascot { --rewrite-row: 0; --rewrite-col: 0; position: absolute; z-index: 8; left: calc(8px + var(--rewrite-col) * 132px); top: calc(62px + var(--rewrite-row) * 27px); width: 112px; height: 96px; object-fit: contain; pointer-events: none; transform: translateY(-46%); filter: drop-shadow(0 5px 8px rgba(0,0,0,.12)); transition: left 180ms ease, top 180ms ease; animation: hv-pencil-arrive 220ms var(--ease-out) both; }
+
+@keyframes hv-pencil-arrive { from { opacity: 0; transform: translate(-10px, -46%) scale(.92); } to { opacity: 1; transform: translate(0, -46%) scale(1); } }
 
 .hv-wave { position: absolute; right: 22px; bottom: 22px; margin: 0; font-size: 22px; line-height: 26px; font-weight: 500; }
 
-.hv-adjust { position: absolute; z-index: 5; left: 20px; bottom: 14px; display: inline-flex; height: 44px; align-items: center; gap: 8px; padding: 0 16px 0 14px; border: 0; border-radius: 22px; background: var(--flour-sunken); color: var(--ink); font-size: 15px; font-weight: 500; }
-.hv-adjust.is-on, .hv-chip.is-on { background: var(--ink); color: var(--flour); }
+.hv-adjust { position: absolute; z-index: 5; left: 20px; bottom: 14px; display: inline-flex; height: 44px; align-items: center; gap: 8px; padding: 0 16px 0 14px; border: 0; border-radius: 22px; background: #fff; color: #111; font-size: 15px; font-weight: 500; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
+.hv-adjust.is-listening { box-shadow: 0 0 0 5px rgba(236, 146, 59, 0.2), 0 0 20px rgba(236, 146, 59, 0.38); animation: hv-orbtalk 0.9s ease-in-out infinite; }
+.hv-adjust.is-requesting, .hv-adjust.is-thinking { box-shadow: 0 0 0 4px rgba(84, 69, 180, 0.16); }
+.hv-adjust.is-speaking { box-shadow: 0 0 0 4px rgba(236, 146, 59, 0.18); }
+.hv-voice-error { position: absolute; z-index: 6; left: 20px; bottom: 66px; max-width: 270px; margin: 0; padding: 8px 12px; border-radius: 12px; background: #fff; color: #111; font-size: 13px; line-height: 17px; box-shadow: 0 6px 18px rgba(31, 28, 25, 0.1); }
+.hv-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.hv-round, .hv-tool__icon { background: #fff; }
 .hv-chips { position: absolute; z-index: 6; left: 20px; bottom: 70px; display: flex; width: 300px; box-sizing: border-box; flex-direction: column; gap: 6px; padding: 8px; border-radius: 24px; background: color-mix(in srgb, var(--flour-raised) 96%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 12px 32px rgba(31, 28, 25, 0.18); }
 .hv-chips__title { margin: 4px 10px 2px; color: var(--ink-muted); font-size: 13px; line-height: 16px; }
 .hv-chips__rule { height: 1px; margin: 4px 10px; background: var(--line); }
@@ -367,8 +382,8 @@
 @media (max-width: 560px) { .hv-screen { zoom: 0.6; } }
 @media (max-width: 430px) { .hv-screen { zoom: 0.5; } }
 @media (prefers-reduced-motion: reduce) {
-  .hv-blurin, .hv-orb--talk, .hv-veil { animation: none !important; }
-  .hv-roll { transition: none; }
+  .hv-blurin, .hv-orb--talk, .hv-veil, .hv-pencil-mascot, .hv-adjust { animation: none !important; }
+  .hv-roll, .hv-pencil-mascot { transition: none; }
 }
 
 /* 08 Explore recipes, magnet globe */
