@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { MoldableWordmark } from '@/MoldableWordmark'
 import { BOARDS, type BoardSlug } from './boards'
 
 type Props = {
@@ -25,8 +26,7 @@ export function BoardShell({ current, children }: Props) {
 export function BoardHeader({ children }: { children: ReactNode }) {
   return (
     <header className="b-header">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="b-header__logo" src="/assets/moldable-logo.png" alt="Moldable" />
+      <MoldableWordmark className="b-header__logo" />
       {children}
     </header>
   )

@@ -10,8 +10,8 @@ describe('MoldableHome', () => {
     expect(view.container.querySelector('.moldable-display')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Moldable companion' })).toHaveAttribute(
       'src',
-      '/assets/grandma-character.png',
+      '/assets/mascot-blue.png',
     )
-    expect(screen.getByRole('toolbar', { name: 'Cooking tools' })).toBeInTheDocument()
+    expect(screen.getByRole('toolbar', { name: 'Cooking tools and pantry' })).toBeInTheDocument()
   })
 })

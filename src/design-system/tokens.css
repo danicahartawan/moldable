@@ -87,19 +87,41 @@
   --dur-slow: 900ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --font-display: "Archivo", system-ui, sans-serif;
-  --font-sans: "Archivo", system-ui, sans-serif;
+  --font-display: "Inter Tight", "Archivo", "Helvetica Neue", system-ui, sans-serif;
+  --font-sans: "Inter Tight", "Archivo", "Helvetica Neue", system-ui, sans-serif;
+  /* Spec / technical labels, like Daisy's PP Neue Montreal Mono. */
+  --font-mono: ui-monospace, "SF Mono", "Geist Mono", "JetBrains Mono", Menlo, monospace;
 }
-.display-xl { font-family: var(--font-display); font-size: 72px; line-height: 72px; font-weight: 500; letter-spacing: -0.025em; }
-.display-l { font-family: var(--font-display); font-size: 48px; line-height: 52px; font-weight: 500; letter-spacing: -0.025em; }
-.display-m { font-family: var(--font-display); font-size: 32px; line-height: 38px; font-weight: 500; letter-spacing: -0.015em; }
-.quote { font-family: var(--font-display); font-size: 24px; line-height: 32px; font-weight: 400; letter-spacing: -0.01em; font-style: italic; }
-.title { font-family: var(--font-sans); font-size: 22px; line-height: 28px; font-weight: 500; }
-.body-l { font-family: var(--font-sans); font-size: 20px; line-height: 30px; font-weight: 400; }
-.body { font-family: var(--font-sans); font-size: 18px; line-height: 28px; font-weight: 400; }
-.label { font-family: var(--font-sans); font-size: 16px; line-height: 22px; font-weight: 500; }
-.caption { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; }
-.eyebrow { font-family: var(--font-sans); font-size: 13px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; }
-.board-step { font-family: var(--font-sans); font-size: 44px; line-height: 52px; font-weight: 500; letter-spacing: -0.01em; }
-.board-cue { font-family: var(--font-sans); font-size: 28px; line-height: 36px; font-weight: 400; }
-.board-timer { font-family: var(--font-sans); font-size: 64px; line-height: 64px; font-weight: 500; letter-spacing: -0.02em; }
+.display-xl { font-family: var(--font-display); font-size: 72px; line-height: 72px; font-weight: 300; letter-spacing: -0.025em; }
+.display-l { font-family: var(--font-display); font-size: 48px; line-height: 52px; font-weight: 300; letter-spacing: -0.025em; }
+.display-m { font-family: var(--font-display); font-size: 32px; line-height: 38px; font-weight: 300; letter-spacing: -0.015em; }
+.quote { font-family: var(--font-display); font-size: 24px; line-height: 32px; font-weight: 300; letter-spacing: -0.01em; font-style: italic; }
+.title { font-family: var(--font-sans); font-size: 22px; line-height: 28px; font-weight: 300; }
+.body-l { font-family: var(--font-sans); font-size: 20px; line-height: 30px; font-weight: 300; }
+.body { font-family: var(--font-sans); font-size: 18px; line-height: 28px; font-weight: 300; }
+.label { font-family: var(--font-sans); font-size: 16px; line-height: 22px; font-weight: 300; }
+.caption { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 300; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; line-height: 16px; font-weight: 300; letter-spacing: 0.04em; text-transform: lowercase; }
+.board-step { font-family: var(--font-sans); font-size: 44px; line-height: 52px; font-weight: 300; letter-spacing: -0.01em; }
+.board-cue { font-family: var(--font-sans); font-size: 28px; line-height: 36px; font-weight: 300; }
+.board-timer { font-family: var(--font-sans); font-size: 64px; line-height: 64px; font-weight: 300; letter-spacing: -0.02em; }
+
+/* Light weight only. */
+h1, h2, h3, h4, h5, h6, strong, b, th { font-weight: 300; }
+/* Daisy-style lowercase headings. */
+h1, h2, h3, .display-xl, .display-l, .display-m { text-transform: lowercase; }
+body { font-weight: 300; }
+
+/* Panel reveal: the card unfolds from a one-line pill, then its rows rise in one by one. */
+@keyframes widget-open {
+  from { clip-path: inset(0 0 calc(100% - 46px) 0 round 22px); opacity: 0; transform: translateY(-8px) scale(.985); }
+  25% { opacity: 1; }
+  to { clip-path: inset(0 0 0 0 round 22px); opacity: 1; transform: none; }
+}
+@keyframes widget-rise {
+  from { opacity: 0; filter: blur(6px); transform: translateY(10px); }
+  to { opacity: 1; filter: none; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .widget-reveal, .widget-reveal * { animation: none !important; }
+}

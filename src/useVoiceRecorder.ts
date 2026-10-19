@@ -30,9 +30,11 @@ function getSpeechRecognitionConstructor() {
 
 type VoiceRecorderOptions = {
   transcribeAudio?: (audio: Blob) => Promise<string>
+  // Keep the session running without a microphone so scripted demos work anywhere.
+  allowWithoutMicrophone?: boolean
 }
 
-export function useVoiceRecorder({ transcribeAudio }: VoiceRecorderOptions = {}) {
+export function useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone = false }: VoiceRecorderOptions = {}) {
   const [status, setStatus] = useState<VoiceRecorderStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [transcript, setTranscript] = useState('')
@@ -69,6 +71,11 @@ export function useVoiceRecorder({ transcribeAudio }: VoiceRecorderOptions = {})
     const Recognition = getSpeechRecognitionConstructor()
 
     if ((!Recognition && !transcribeAudio) || !('MediaRecorder' in window) || !navigator.mediaDevices?.getUserMedia) {
+      if (allowWithoutMicrophone) {
+        setErrorMessage(null)
+        updateStatus('recording')
+        return
+      }
       updateStatus('unsupported')
       setErrorMessage(unsupportedMessage)
       return
@@ -127,10 +134,15 @@ export function useVoiceRecorder({ transcribeAudio }: VoiceRecorderOptions = {})
     } catch {
       streamRef.current?.getTracks().forEach((track) => track.stop())
       streamRef.current = null
+      if (allowWithoutMicrophone) {
+        setErrorMessage(null)
+        updateStatus('recording')
+        return
+      }
       updateStatus('error')
       setErrorMessage('Microphone access was denied.')
     }
-  }, [transcribeAudio, updateStatus])
+  }, [allowWithoutMicrophone, transcribeAudio, updateStatus])
 
   const toggle = useCallback(() => {
     if (statusRef.current === 'recording') stop()

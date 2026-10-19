@@ -67,11 +67,12 @@ describe('GrandmaPage', () => {
       'grandma-record-button--embossed',
     )
     expect(screen.getByRole('button', { name: 'Record' })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute('src', '/assets/grandma-character.png')
+    expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute('src', '/assets/mascot-blue.png')
     expect(screen.getByTestId('grandma-header')).toHaveClass('grandma-header--right')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Guiding questions' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open Mold shelf' })).not.toBeInTheDocument()
   })
 
   it('shows a constrained live preview and stays inside HomeView after stopping', async () => {
@@ -91,29 +92,46 @@ describe('GrandmaPage', () => {
 
     expect(await screen.findByRole('main', { name: 'Grandma story HomeView' })).toBeInTheDocument()
     expect(document.querySelector('.grandma-handoff')).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute(
-      'src',
-      '/assets/grandma-character.png',
-    )
+    expect(screen.getByRole('region', { name: 'Transcript' })).toHaveTextContent('Grandma toasted the spices slowly.')
+    expect(screen.getByRole('button', { name: 'Tidy' })).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(screen.getByRole('button', { name: 'Recipe change' }))
+    expect(screen.getByRole('region', { name: 'Recipe' })).toHaveTextContent('Toast the grated coconut')
+    fireEvent.click(screen.getByRole('button', { name: 'Tidy' }))
+    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 
-  it('runs the approved Grandma story as a timed transcript demo', async () => {
+  it('says one sentence, pauses, then answers the finger question in Grandma’s voice', async () => {
     vi.useFakeTimers()
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
     await act(async () => {})
 
-    expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
-      'Take half an onion, garlic, chili, kencur, pepper, and lime leaves.',
-    )
-    act(() => { vi.advanceTimersByTime(12_000) })
-    expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
-      'one handful of ground beef and a pinch of salt',
-    )
-    expect(screen.getByRole('region', { name: 'Live transcript' })).toHaveTextContent(
-      'warm, savory, and a little peppery',
-    )
+    const transcript = () => screen.getByRole('region', { name: 'Live transcript' })
+    expect(transcript()).toHaveTextContent('Take half an onion, garlic, chili, kencur, pepper, and lime leaves.')
+    act(() => { vi.advanceTimersByTime(9_000) })
+    expect(transcript()).not.toHaveTextContent('No, you didn’t.')
+    expect(transcript()).not.toHaveTextContent('Don’t make it completely watery')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_000) })
+    expect(transcript()).toHaveTextContent('No, you didn’t.')
+    expect(transcript()).not.toHaveTextContent('so eager to cut the onions')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_000) })
+    expect(transcript()).toHaveTextContent('You were just so eager to cut the onions.')
+    expect(document.querySelectorAll('.grandma-transcript-tool-chip[data-tool="blend"]')).toHaveLength(1)
+  })
+
+  it('pulls a completed transcript tool into the Mold shelf and selects it', async () => {
+    vi.useFakeTimers()
+    render(<GrandmaPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Record' }))
+    await act(async () => {})
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(3_200) })
+
+    expect(screen.getByRole('button', { name: 'Blend' })).toHaveAttribute('aria-pressed', 'true')
+    expect(document.querySelector('.grandma-tool-flight[data-tool="blend"]')).toHaveTextContent('Blend')
   })
 
   it('requests an AI title only after a few sentences have been transcribed', async () => {
@@ -184,7 +202,9 @@ describe('GrandmaPage', () => {
 
     const stopButton = await screen.findByRole('button', { name: 'Stop recording' })
     expect(stopButton).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('img', { name: 'Grandma companion' })).toBeInTheDocument()
+    expect(screen.getByTestId('grandma-recorder-stack')).toContainElement(
+      screen.getByRole('img', { name: 'Grandma companion' }),
+    )
   })
 
   it('marks newly transcribed words for the rolling reveal', async () => {
@@ -201,13 +221,13 @@ describe('GrandmaPage', () => {
     expect(document.querySelector('.grandma-transcript__interim')).toHaveTextContent('Soup')
   })
 
-  it('shows contextual guidance on the left after ten seconds', async () => {
+  it('shows contextual guidance on the left two seconds after recording starts', async () => {
     vi.useFakeTimers()
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
     await act(async () => {})
 
-    act(() => { vi.advanceTimersByTime(9_999) })
+    act(() => { vi.advanceTimersByTime(1_999) })
     expect(screen.queryByText('How old was Nev when that happened?')).not.toBeInTheDocument()
 
     act(() => { vi.advanceTimersByTime(1) })

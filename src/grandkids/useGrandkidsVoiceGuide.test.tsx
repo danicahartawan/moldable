@@ -109,7 +109,7 @@ describe('useGrandkidsVoiceGuide', () => {
   })
 
   it('keeps the transcript private, targets the answer, and speaks only the answer text', async () => {
-    const answer = { answer: 'Oma says segenggam—one handful.', target: 'ingredients' as const, ingredient: 'coconut' }
+    const answer = { answer: 'Oma says segenggam, one handful.', target: 'ingredients' as const, ingredient: 'coconut' }
     const onTarget = vi.fn()
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(Response.json({ transcript: 'how much coconut' }))

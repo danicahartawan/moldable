@@ -7,7 +7,7 @@ export function MoldableHome() {
       <ToolRail />
       <img
         className="moldable-mascot"
-        src="/assets/grandma-character.png"
+        src="/assets/mascot-blue.png"
         alt="Moldable companion"
         draggable={false}
       />

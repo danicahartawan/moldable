@@ -1,8 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { GrandkidsPage } from './GrandkidsPage'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 describe('GrandkidsPage', () => {
   it('opens Lawar Bali from the recipe fridge', () => {
@@ -48,6 +52,28 @@ describe('GrandkidsPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /next step/i }))
     expect(screen.getByRole('heading', { name: /serve/i })).toBeInTheDocument()
+  })
+
+  it('asks the speech route to narrate the current cooking card', async () => {
+    const play = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, blob: async () => new Blob(['audio']) }))
+    vi.stubGlobal('Audio', class {
+      src = ''
+      onended: (() => void) | null = null
+      onerror: (() => void) | null = null
+      constructor(src: string) { this.src = src }
+      play = play
+      pause = vi.fn()
+    })
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:grandma')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+    render(<GrandkidsPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /open lawar bali/i }))
+    fireEvent.click(screen.getByRole('button', { name: /wave or tap to start/i }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/grandkids/speak', expect.objectContaining({ method: 'POST' })))
+    expect(play).toHaveBeenCalled()
   })
 
   it('keeps recipe descriptions out of the visual interface', () => {

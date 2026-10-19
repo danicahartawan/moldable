@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, BowlFood, CookingPot, HandWaving, ListBullets, Microphone, PaintBrush, Sparkle, Timer, Wrench, X } from '@phosphor-icons/react'
 import './grandkids.css'
 
@@ -37,6 +37,49 @@ export function GrandkidsPage() {
   const [section, setSection] = useState<Section>('time')
   const [started, setStarted] = useState(false)
   const [step, setStep] = useState(0)
+  const [speaking, setSpeaking] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const audioUrlRef = useRef<string | null>(null)
+
+  const speak = useCallback(async (text: string) => {
+    audioRef.current?.pause()
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
+    setSpeaking(true)
+    try {
+      const response = await fetch('/api/grandkids/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!response.ok) return
+      const audioUrl = URL.createObjectURL(await response.blob())
+      const audio = new Audio(audioUrl)
+      audioRef.current = audio
+      audioUrlRef.current = audioUrl
+      audio.onended = () => setSpeaking(false)
+      audio.onerror = () => setSpeaking(false)
+      await audio.play()
+    } catch {
+      setSpeaking(false)
+    }
+  }, [])
+
+  useEffect(() => () => {
+    audioRef.current?.pause()
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current)
+  }, [])
+
+  function startWalkthrough() {
+    setStarted(true)
+    setStep(0)
+    void speak(cookingSteps[0].instruction)
+  }
+
+  function nextStep() {
+    const next = Math.min(step + 1, cookingSteps.length - 1)
+    setStep(next)
+    void speak(cookingSteps[next].instruction)
+  }
 
   return (
     <main className="grandkids-stage">
@@ -46,7 +89,7 @@ export function GrandkidsPage() {
         </button>
 
         <div className="gradient-toolbar" role="toolbar" aria-label="Recipe tools" data-open={toolbarOpen} onMouseLeave={() => setToolbarOpen(false)}>
-          <button type="button" aria-label="Talk to Grandma"><Microphone weight="fill" /></button>
+          <button type="button" aria-label="Talk to Grandma" data-speaking={speaking} onClick={() => { if (started) void speak(cookingSteps[step].instruction) }}><Microphone weight="fill" /></button>
           <button type="button" aria-label="Change recipe"><PaintBrush weight="fill" /></button>
           <button type="button" aria-label="Recipes"><BowlFood weight="fill" /></button>
           <button type="button" aria-label="Hide recipe tools" onClick={() => setToolbarOpen(false)}><X /></button>
@@ -56,7 +99,7 @@ export function GrandkidsPage() {
           <section className="fridge" aria-label="Recipe fridge">
             <div className="recipe-magnets">
               {recipeCards.map((recipe) => (
-                <button className={`recipe-note recipe-note--${recipe.className}`} type="button" key={recipe.name} aria-label={recipe.name === 'Lawar Bali' ? 'Open Lawar Bali' : `${recipe.name} — coming soon`} onClick={recipe.name === 'Lawar Bali' ? () => setRecipeOpen(true) : undefined}>
+                <button className={`recipe-note recipe-note--${recipe.className}`} type="button" key={recipe.name} aria-label={recipe.name === 'Lawar Bali' ? 'Open Lawar Bali' : `${recipe.name}, coming soon`} onClick={recipe.name === 'Lawar Bali' ? () => setRecipeOpen(true) : undefined}>
                   <span className="magnet" aria-hidden="true">{recipe.emoji}</span>
                   <strong>{recipe.name}</strong>
                   <span className="dish-sketch" aria-hidden="true"><BowlFood weight="duotone" /></span>
@@ -78,14 +121,14 @@ export function GrandkidsPage() {
                   <small><span aria-hidden="true">🌺</span> tip from Popo · {cookingSteps[step].tip}</small>
                 </article>
                 <div className="step-progress" aria-hidden="true">{cookingSteps.map((item, index) => <i key={item.title} data-active={index === step} />)}</div>
-                <button className="step-next" type="button" aria-label="Next step" disabled={step === cookingSteps.length - 1} onClick={() => setStep((current) => Math.min(current + 1, cookingSteps.length - 1))}><ArrowRight weight="bold" /></button>
+                <button className="step-next" type="button" aria-label="Next step" disabled={step === cookingSteps.length - 1} onClick={nextStep}><ArrowRight weight="bold" /></button>
               </section>
             ) : (
               <>
                 <aside className="recipe-player" aria-label="Recipe player">
                   <CookingPot weight="duotone" aria-hidden="true" />
                   <p aria-hidden="true" />
-                  <button className="start-button" type="button" aria-label="Wave or tap to start" onClick={() => { setStarted(true); setStep(0) }}><HandWaving weight="fill" /></button>
+                  <button className="start-button" type="button" aria-label="Wave or tap to start" onClick={startWalkthrough}><HandWaving weight="fill" /></button>
                 </aside>
 
                 <nav className="section-dots" aria-label="Recipe sections">

@@ -7,73 +7,80 @@ const toolNames = ['Microwave', 'Blend', 'Timer', 'Weigh', 'Temperature']
 afterEach(cleanup)
 
 describe('ToolRail', () => {
-  it('exposes all five cooking tools from a collapsed rail', () => {
+  it('shows the shelf without a trigger button or section tabs', () => {
     render(<ToolRail />)
 
-    expect(screen.getByRole('toolbar', { name: 'Cooking tools' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Open cooking tools' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('toolbar', { name: 'Cooking tools and pantry' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open Mold shelf' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
     toolNames.forEach((name) => {
       expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'false')
     })
   })
 
-  it('opens across the shared pointer hit area and collapses when leaving', () => {
-    render(<ToolRail />)
-    const trigger = screen.getByRole('button', { name: 'Open cooking tools' })
-    const rail = trigger.closest('.tool-rail') as HTMLElement
+  it('stays hidden until the top-left corner is hovered, then closes on leave', () => {
+    const { container } = render(<ToolRail />)
+    const rail = container.querySelector('.tool-rail') as HTMLElement
 
-    fireEvent.pointerEnter(rail)
-    expect(trigger).toHaveAttribute('aria-expanded', 'true')
-
+    expect(rail).not.toHaveClass('tool-rail--open')
+    fireEvent.pointerEnter(container.querySelector('.tool-rail__hotspot') as HTMLElement)
+    expect(rail).toHaveClass('tool-rail--open')
     fireEvent.pointerLeave(rail)
-    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(rail).not.toHaveClass('tool-rail--open')
   })
 
-  it('opens and expands a focused tool', () => {
-    render(<ToolRail />)
-    const timer = screen.getByRole('button', { name: 'Timer' })
+  it('renders icon-only chips', () => {
+    const { container } = render(<ToolRail />)
 
-    fireEvent.focus(timer)
-
-    expect(screen.getByRole('button', { name: 'Open cooking tools' })).toHaveAttribute('aria-expanded', 'true')
-    expect(timer).toHaveClass('tool-chip--expanded')
-  })
-
-  it('selects one tool without navigating or collapsing', () => {
-    render(<ToolRail />)
-    const weigh = screen.getByRole('button', { name: 'Weigh' })
-
-    fireEvent.click(weigh)
-
-    expect(weigh).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Open cooking tools' })).toHaveAttribute('aria-expanded', 'true')
-    toolNames.filter((name) => name !== 'Weigh').forEach((name) => {
-      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'false')
+    expect(container.querySelectorAll('.tool-chip__label')).toHaveLength(0)
+    toolNames.forEach((name) => {
+      expect(screen.getByRole('button', { name })).toHaveClass('tool-chip')
     })
   })
 
-  it('collapses on Escape and returns focus to the trigger', () => {
+  it('expands a focused chip', () => {
     render(<ToolRail />)
-    const trigger = screen.getByRole('button', { name: 'Open cooking tools' })
     const timer = screen.getByRole('button', { name: 'Timer' })
 
     fireEvent.focus(timer)
-    fireEvent.keyDown(timer, { key: 'Escape' })
 
-    expect(trigger).toHaveAttribute('aria-expanded', 'false')
-    expect(trigger).toHaveFocus()
+    expect(timer).toHaveClass('tool-chip--expanded')
   })
 
-  it('collapses when keyboard focus leaves the rail', () => {
-    render(<><ToolRail /><button type="button">Outside</button></>)
-    const trigger = screen.getByRole('button', { name: 'Open cooking tools' })
-    const timer = screen.getByRole('button', { name: 'Timer' })
-    const outside = screen.getByRole('button', { name: 'Outside' })
+  it('selects one tool at a time', () => {
+    render(<ToolRail />)
 
-    fireEvent.focus(timer)
-    expect(trigger).toHaveAttribute('aria-expanded', 'true')
-    fireEvent.blur(timer, { relatedTarget: outside })
+    fireEvent.click(screen.getByRole('button', { name: 'Timer' }))
 
-    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: 'Timer' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Microwave' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('shows three items at a time with the fourth faded at the edge', () => {
+    render(<ToolRail />)
+
+    expect(screen.getByRole('button', { name: 'Microwave' })).not.toHaveClass('tool-chip--hidden')
+    expect(screen.getByRole('button', { name: 'Timer' })).not.toHaveClass('tool-chip--hidden')
+    expect(screen.getByRole('button', { name: 'Weigh' })).toHaveClass('tool-chip--edge')
+    expect(screen.getByRole('button', { name: 'Temperature' })).toHaveClass('tool-chip--hidden')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Weigh' }))
+
+    expect(screen.getByRole('button', { name: 'Microwave' })).toHaveClass('tool-chip--hidden')
+    expect(screen.getByRole('button', { name: 'Temperature' })).toHaveClass('tool-chip--edge')
+  })
+
+  it('scrolls the carousel when swiping up and back down', () => {
+    const { container } = render(<ToolRail />)
+    const rail = container.querySelector('.tool-rail') as HTMLElement
+
+    fireEvent.pointerDown(rail, { clientX: 100, clientY: 200 })
+    fireEvent.pointerMove(rail, { clientX: 100, clientY: 150 })
+    expect(screen.getByRole('button', { name: 'Microwave' })).toHaveClass('tool-chip--hidden')
+    expect(screen.getByRole('button', { name: 'Temperature' })).not.toHaveClass('tool-chip--hidden')
+
+    fireEvent.pointerMove(rail, { clientX: 100, clientY: 200 })
+    expect(screen.getByRole('button', { name: 'Microwave' })).not.toHaveClass('tool-chip--hidden')
+    fireEvent.pointerUp(rail)
   })
 })

@@ -31,94 +31,79 @@
 
 .tool-rail {
   position: absolute;
-  inset: 0 auto 0 0;
-  z-index: 2;
-  width: 42%;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  width: 46%;
+  height: 46%;
+  pointer-events: none;
+  touch-action: none;
 }
 
-.tool-rail__trigger {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 32%;
-  padding: 0;
-  border: 0;
-  background: radial-gradient(circle at left top, rgba(176, 205, 255, 0.52), rgba(232, 239, 255, 0.18) 38%, transparent 72%);
-  cursor: pointer;
-}
-
-.tool-rail__trigger:focus-visible {
-  outline: 2px solid #347ee9;
-  outline-offset: -5px;
-}
+.tool-rail--open { pointer-events: auto; }
 
 .tool-rail__orbit {
   position: absolute;
-  inset: 9% auto 9% 4%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
+  inset: 0;
   pointer-events: none;
   opacity: 0;
-  mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
-  transition: opacity 180ms ease;
+  transition: opacity 260ms ease;
 }
 
-.tool-rail--open .tool-rail__orbit {
-  pointer-events: auto;
-  opacity: 1;
-}
+/* Only the top-left corner reacts until the shelf is open. */
+.tool-rail__hotspot { position: absolute; top: 0; left: 0; width: 150px; height: 150px; pointer-events: auto; }
+.tool-rail--open .tool-rail__orbit { opacity: 1; }
+.tool-rail:not(.tool-rail--open) .tool-chip { pointer-events: none; }
 
 .tool-chip {
-  display: flex;
-  width: 46px;
-  height: 46px;
-  align-items: center;
-  gap: 9px;
-  overflow: hidden;
-  padding: 0 12px;
+  position: absolute;
+  pointer-events: auto;
+  display: grid;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  place-items: center;
+  border-radius: 0;
   border: 0;
-  border-radius: 999px;
-  background: rgba(244, 246, 255, 0.92);
-  color: #1f1c19;
-  white-space: nowrap;
+  background: transparent;
+  color: #111;
   cursor: pointer;
-  opacity: 0.94;
-  transform: translateX(0) scale(1);
-  transition: width 240ms cubic-bezier(.2, .8, .2, 1), transform 240ms cubic-bezier(.2, .8, .2, 1), opacity 180ms ease, background-color 180ms ease, color 180ms ease;
+  transition: left 420ms cubic-bezier(.2, .8, .2, 1), top 420ms cubic-bezier(.2, .8, .2, 1), transform 420ms cubic-bezier(.2, .8, .2, 1), opacity 260ms ease, filter 260ms ease, background-color 200ms ease;
 }
 
-.tool-chip__label {
+/* Depth of field: the front icon is large and sharp, the rest soften and shrink away. */
+.tool-chip[data-position="0"] { transform: scale(1.35); filter: blur(0); }
+.tool-chip[data-position="1"] { transform: scale(1); filter: blur(.8px); opacity: .85; }
+.tool-chip[data-position="2"] { transform: scale(.85); filter: blur(1.8px); opacity: .6; }
+
+.tool-chip--edge {
+  transform: scale(.7);
+  opacity: .25;
+  filter: blur(3px);
+}
+
+.tool-chip--hidden {
   opacity: 0;
-  transition: opacity 140ms ease 35ms;
+  pointer-events: none;
+  visibility: hidden;
 }
 
-.tool-chip[data-position="-2"],
-.tool-chip[data-position="2"] {
-  opacity: 0.38;
-  transform: translateX(-18px) scale(0.78);
-}
-
-.tool-chip[data-position="-1"],
-.tool-chip[data-position="1"] {
-  opacity: 0.7;
-  transform: translateX(10px) scale(0.9);
-}
-
-.tool-chip--expanded {
-  width: 142px;
-  background: #e9eefc;
+.tool-chip.tool-chip--expanded {
   opacity: 1;
-  transform: translateX(18px) scale(1);
+  filter: blur(0);
+  transform: scale(1.35);
 }
 
-.tool-chip--expanded[aria-pressed="true"] {
-  background: #347ee9;
-  color: #fff;
+.tool-chip--arrival {
+  animation: tool-chip-arrival 900ms cubic-bezier(.2, .8, .2, 1) both;
 }
 
-.tool-chip--expanded .tool-chip__label {
-  opacity: 1;
+@keyframes tool-chip-arrival {
+  0% { background: #fff; box-shadow: 0 0 0 0 transparent; }
+  35% { background: color-mix(in srgb, var(--tool-color) 45%, #fff); box-shadow: 0 0 0 10px color-mix(in srgb, var(--tool-color) 30%, transparent); }
+  100% { background: var(--tool-color); box-shadow: 0 0 0 22px transparent; }
 }
+
 
 .tool-chip:focus-visible {
   outline: 2px solid #347ee9;
@@ -137,35 +122,24 @@
   }
 
   .tool-rail {
-    width: 46%;
+    width: 52%;
+    height: 52%;
   }
 
   .tool-chip {
-    width: 40px;
-    height: 40px;
-    padding: 0 10px;
-  }
-
-  .tool-chip--expanded {
-    width: 128px;
-  }
-}
-
-@media (hover: none), (pointer: coarse) {
-  .tool-rail__trigger {
-    width: 40%;
+    width: 60px;
+    height: 60px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tool-rail__orbit,
-  .tool-chip,
-  .tool-chip__label {
+  .tool-chip {
     transition: none;
   }
 
-  .tool-chip,
-  .tool-chip[data-position] {
+  .tool-chip--arrival { animation: none; }
+
+  .tool-chip {
     transform: none;
   }
 }

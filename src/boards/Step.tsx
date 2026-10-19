@@ -43,8 +43,8 @@ export function StepBoard() {
         <div className="b-header__mid">
           <button type="button" className="b-icon-btn b-press" aria-label="Previous step"><BoardIcon name="left" /></button>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 'min(420px, 100%)' }}>
-            <p className="b-muted" style={{ margin: 0, fontSize: 11, lineHeight: '14px', fontWeight: 500 }}>Step 2 of 8, rendang padang</p>
-            <p style={{ margin: 0, fontSize: 24, lineHeight: '28px', fontWeight: 600, letterSpacing: '-0.01em' }}>Slice the shallots thin</p>
+            <p className="b-muted" style={{ margin: 0, fontSize: 11, lineHeight: '14px', fontWeight: 300 }}>Step 2 of 8, rendang padang</p>
+            <p style={{ margin: 0, fontSize: 24, lineHeight: '28px', fontWeight: 300, letterSpacing: '-0.01em' }}>Slice the shallots thin</p>
             <div className="b-progress" role="img" aria-label="Progress: step 2 of 8">
               {progress.map((i) => (
                 <span key={i} className={i === 0 ? 'is-done' : undefined}>
@@ -78,7 +78,7 @@ export function StepBoard() {
               {s.flash > 0 && s.idle <= 0 && <path key={s.flash} className="b-flash" d={nextD} stroke="var(--thermal-ember)" />}
               <path d={nextD} stroke="var(--ember-ink)" strokeWidth="2.4" />
               <path d="M0 72v30M-10 92l10 12 10-12" />
-              <text x="0" y="62" textAnchor="middle" stroke="none" fill="var(--ink)" fontFamily="var(--font-sans)" fontSize="13" fontWeight="600">Cut here next</text>
+              <text x="0" y="62" textAnchor="middle" stroke="none" fill="var(--ink)" fontFamily="var(--font-sans)" fontSize="13" fontWeight="300">Cut here next</text>
             </g>
             <path d="M716 80v500" stroke="var(--chili)" strokeDasharray="10 8" />
             <path d="M716 80c40 10 60 40 60 70M716 580c40-10 60-40 60-70" stroke="var(--chili)" />
@@ -103,11 +103,11 @@ export function StepBoard() {
               ))}
             </div>
             <p style={{ margin: 0, fontSize: 14, lineHeight: '20px' }}>
-              <b style={{ fontWeight: 600 }}>{s.shallots} of {TOTAL_SHALLOTS}</b> shallots, <span className="b-tabular">{Math.round(s.shallots * 15.3)}</span> g weighed
+              <b style={{ fontWeight: 300 }}>{s.shallots} of {TOTAL_SHALLOTS}</b> shallots, <span className="b-tabular">{Math.round(s.shallots * 15.3)}</span> g weighed
             </p>
           </div>
           <div className="b-well" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <p className="b-muted" style={{ margin: 0, fontSize: 11, lineHeight: '14px', fontWeight: 500 }}>How you know it’s right</p>
+            <p className="b-muted" style={{ margin: 0, fontSize: 11, lineHeight: '14px', fontWeight: 300 }}>How you know it’s right</p>
             <p style={{ margin: 0, fontSize: 20, lineHeight: '28px' }}>About 3 mm. You should almost see through them.</p>
           </div>
           <blockquote style={{ margin: 0, padding: 18, borderRadius: 'var(--radius-md)', background: 'var(--magenta-soft)', color: 'var(--magenta-ink)' }}>

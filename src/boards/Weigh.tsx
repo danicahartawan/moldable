@@ -102,14 +102,14 @@ export function WeighBoard() {
       <BoardHeader>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           <p className="b-muted" style={{ margin: 0, fontSize: 14, lineHeight: '18px' }}>Step 1 of 8, soto ayam</p>
-          <p style={{ margin: 0, fontSize: 24, lineHeight: '28px', fontWeight: 500, letterSpacing: '-0.01em' }}>
+          <p style={{ margin: 0, fontSize: 24, lineHeight: '28px', fontWeight: 300, letterSpacing: '-0.01em' }}>
             {done ? `${item.name} weighed` : `Pour in the ${item.name.toLowerCase()}`}
           </p>
         </div>
         <div style={{ position: 'relative' }}>
           <button type="button" className="b-icon-btn b-press" aria-haspopup="menu" aria-expanded={menuOpen}
             onClick={() => { setMenuOpen((o) => !o); setHi(-1) }}
-            style={{ width: 'auto', height: 52, gap: 8, padding: '0 16px 0 18px', fontSize: 16, fontWeight: 500, background: menuOpen ? 'var(--line)' : 'var(--flour-sunken)' }}>
+            style={{ width: 'auto', height: 52, gap: 8, padding: '0 16px 0 18px', fontSize: 16, fontWeight: 300, background: menuOpen ? 'var(--line)' : 'var(--flour-sunken)' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               <BoardIcon name="scale" />Scale
               <BoardIcon name="chevDown" size={16} stroke={1.8} style={{ transform: `rotate(${menuOpen ? 180 : 0}deg)`, transition: 'transform 240ms cubic-bezier(0.3, 1.4, 0.5, 1)' }} />
@@ -152,7 +152,7 @@ export function WeighBoard() {
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <p className="b-muted" style={{ margin: 0, fontSize: 15, lineHeight: '20px' }}>{item.name}</p>
               {unit === 'g' && (
-                <p className="b-blurin b-tabular" aria-hidden="true" style={{ margin: 0, fontSize: 'clamp(64px, 11vw, 104px)', lineHeight: 1, fontWeight: 500, letterSpacing: '-0.045em', display: 'flex', alignItems: 'baseline' }}>
+                <p className="b-blurin b-tabular" aria-hidden="true" style={{ margin: 0, fontSize: 'clamp(64px, 11vw, 104px)', lineHeight: 1, fontWeight: 300, letterSpacing: '-0.045em', display: 'flex', alignItems: 'baseline' }}>
                   {fmt(grams).split('').map((c, i) =>
                     c === ',' ? (
                       <span key={i} style={{ color: 'var(--ink-faint)' }}>,</span>
@@ -164,21 +164,21 @@ export function WeighBoard() {
                       </span>
                     ),
                   )}
-                  <span className="b-muted" style={{ fontSize: 36, fontWeight: 400, letterSpacing: 0, marginLeft: 10 }}>g</span>
+                  <span className="b-muted" style={{ fontSize: 36, fontWeight: 300, letterSpacing: 0, marginLeft: 10 }}>g</span>
                 </p>
               )}
               {unit === 'cups' && (
-                <p className="b-blurin" style={{ margin: 0, fontSize: 'clamp(64px, 11vw, 104px)', lineHeight: 1, fontWeight: 500, letterSpacing: '-0.045em' }}>
-                  {cupsOf(g)}<span className="b-muted" style={{ fontSize: 36, fontWeight: 400, letterSpacing: 0, marginLeft: 10 }}>cups</span>
+                <p className="b-blurin" style={{ margin: 0, fontSize: 'clamp(64px, 11vw, 104px)', lineHeight: 1, fontWeight: 300, letterSpacing: '-0.045em' }}>
+                  {cupsOf(g)}<span className="b-muted" style={{ fontSize: 36, fontWeight: 300, letterSpacing: 0, marginLeft: 10 }}>cups</span>
                 </p>
               )}
               {!done && (
                 <p className="b-muted" style={{ margin: 0, fontSize: 18, lineHeight: '24px' }}>
-                  {unit === 'g' ? `of ${fmt(target)} g` : `of ${cupsOf(target)} cups`}, <b style={{ color: 'var(--yolk-ink)', fontWeight: 500 }}>{fmt(target - grams)} g to go</b>
+                  {unit === 'g' ? `of ${fmt(target)} g` : `of ${cupsOf(target)} cups`}, <b style={{ color: 'var(--yolk-ink)', fontWeight: 300 }}>{fmt(target - grams)} g to go</b>
                 </p>
               )}
               {done && (
-                <p className="b-pop" style={{ margin: 0, height: 36, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '0 16px 0 12px', borderRadius: 'var(--radius-sm)', background: 'var(--basil-soft)', color: 'var(--basil)', fontSize: 17, fontWeight: 500 }}>
+                <p className="b-pop" style={{ margin: 0, height: 36, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '0 16px 0 12px', borderRadius: 'var(--radius-sm)', background: 'var(--basil-soft)', color: 'var(--basil)', fontSize: 17, fontWeight: 300 }}>
                   <BoardIcon name="check" className="b-drawcheck" stroke={2} />Right on target
                 </p>
               )}
@@ -199,7 +199,7 @@ export function WeighBoard() {
 
           <div className="b-card" style={{ padding: '18px 16px 16px' }}>
             <p className="b-muted" style={{ margin: '0 4px 12px', fontSize: 15, lineHeight: '20px' }}>
-              You’ve weighed <b style={{ color: 'var(--ink)', fontWeight: 500 }}>{doneCount} of {ITEMS.length}</b> for this soto
+              You’ve weighed <b style={{ color: 'var(--ink)', fontWeight: 300 }}>{doneCount} of {ITEMS.length}</b> for this soto
             </p>
             <div className="b-days" role="radiogroup" aria-label="Ingredients to weigh">
               {ITEMS.map((x, i) => {
@@ -225,11 +225,11 @@ export function WeighBoard() {
               <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={ICON[selected.icon]} /></svg>
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 17, lineHeight: '22px', fontWeight: 500 }}>{selected.name}</p>
+              <p style={{ margin: 0, fontSize: 17, lineHeight: '22px', fontWeight: 300 }}>{selected.name}</p>
               <p className="b-muted" style={{ margin: '2px 0 0', fontSize: 13, lineHeight: '18px' }}>{selected.note}</p>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p className="b-tabular" style={{ margin: 0, fontSize: 17, lineHeight: '22px', fontWeight: 500 }}>
+              <p className="b-tabular" style={{ margin: 0, fontSize: 17, lineHeight: '22px', fontWeight: 300 }}>
                 {selState === 'live' ? `${fmt(grams)} / ${fmt(selected.target)} g` : `${fmt(selected.target)} g`}
               </p>
               <p style={{ margin: '2px 0 0', fontSize: 13, lineHeight: '18px', color: tone.text }}>{tone.label}</p>

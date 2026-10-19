@@ -15,7 +15,7 @@ describe('ProjectPill', () => {
     const buttons = within(chooser).getAllByRole('button')
 
     expect(chooser).toHaveClass('project-pill')
-    expect(screen.getByRole('img', { name: 'Moldable' })).toHaveAttribute('src', '/assets/moldable-logo.png')
+    expect(screen.getByRole('img', { name: 'Moldable' })).toHaveClass('moldable-wordmark')
     expect(buttons).toHaveLength(10)
     expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
       'Bean pancakes',

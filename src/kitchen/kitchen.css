@@ -8,26 +8,100 @@
   background: var(--room);
   color: var(--ink);
   font-family: var(--font-sans);
+  touch-action: pan-y;
+  cursor: grab;
 }
+.kitchen:active { cursor: grabbing; }
 .kitchen__gl { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
 .kitchen__css { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
-.kitchen__screen { position: absolute; left: 0; top: 0; width: 640px; height: 640px; overflow: hidden; border-radius: 40px; background: #fff; transform-origin: 0 0; pointer-events: auto; }
-.kitchen__host { position: absolute; inset: 0; transition: opacity 450ms ease, filter 450ms ease; }
-.kitchen__host.is-off { opacity: 0; filter: blur(8px); pointer-events: none; }
-.kitchen__glare { position: absolute; inset: 0; border-radius: 40px; pointer-events: none; background: linear-gradient(150deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 30%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 0 36px rgba(40, 24, 10, 0.06); }
+.kitchen__screen { position: absolute; left: 0; top: 0; width: 640px; height: 640px; overflow: hidden; border-radius: 68px; background: #fff; transform-origin: 0 0; pointer-events: auto; }
+.kitchen__host { position: absolute; inset: 0; transition: opacity 520ms cubic-bezier(.2,.8,.2,1), filter 520ms ease, transform 520ms cubic-bezier(.2,.8,.2,1); }
+.kitchen__host--grandma.is-off { opacity: 0; filter: blur(9px); transform: translateX(-42px) scale(.985); pointer-events: none; }
+.kitchen__host--explore.is-off { opacity: 0; filter: blur(9px); transform: translateX(42px) scale(.985); pointer-events: none; }
+.kitchen__host--grandkids.is-off { opacity: 0; filter: blur(9px); transform: translateX(42px) scale(.985); pointer-events: none; }
+.kitchen__grandkids-view { position: absolute; inset: 0; transition: transform 900ms cubic-bezier(.32, .72, 0, 1), opacity 900ms ease; }
+.kitchen__grandkids-view.is-off { opacity: .4; transform: translateX(-34%); pointer-events: none; }
+.kitchen__grandkids-view--in { animation: kitchen-swipe-in 900ms cubic-bezier(.32, .72, 0, 1) both; box-shadow: -18px 0 40px rgba(0, 0, 0, .08); }
+.kitchen__grandkids-view--out { animation: kitchen-swipe-out 900ms cubic-bezier(.32, .72, 0, 1) both; pointer-events: none; }
+@keyframes kitchen-swipe-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes kitchen-swipe-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-34%); opacity: .4; } }
+.kitchen__edge-next--wide { width: 50%; height: calc(100% - 104px); }
+.kitchen__edge-next { position: absolute; z-index: 4; top: 0; right: 0; width: 58px; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.kitchen__edge-next:focus-visible { outline: 3px solid rgba(88, 64, 52, 0.7); outline-offset: -7px; }
+.kitchen__glare { position: absolute; inset: 0; border-radius: 68px; pointer-events: none; background: linear-gradient(150deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 30%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 0 36px rgba(40, 24, 10, 0.06); }
+
+/* Step card closely follows the supplied peach portfolio-card reference. */
+.instruction-screen { position: absolute; inset: 0; overflow: clip; background: #fff; color: #000; font-family: var(--font-sans); }
+.instruction-card { position: absolute; inset: 0; width: 640px; height: 640px; overflow: clip; box-sizing: border-box; border: 0; border-radius: 0; background: #fff; box-shadow: none; }
+.instruction-card__label { height: 88px; margin: 0; border: 0; border-bottom: 1px solid #dedede; color: #000; font-size: 28px; line-height: 88px; letter-spacing: -0.01em; font-weight: 300; text-align: center; }
+.instruction-card__copy { position: relative; z-index: 2; padding: 24px 32px 0; }
+.instruction-card__mascot { display: block; width: 92px; height: 92px; object-fit: contain; }
+.instruction-card__copy p { max-width: 475px; margin: 16px 0 0; color: #000; font-size: 24px; line-height: 32px; font-weight: 300; letter-spacing: -0.01em; }
+.instruction-card__copy.is-long { padding-top: 18px; }
+.instruction-card__copy.is-long .instruction-card__mascot { width: 76px; height: 76px; }
+.instruction-card__copy.is-long p { max-width: 560px; margin-top: 9px; font-size: 19px; line-height: 25px; }
+.instruction-chip { display: inline-flex; height: 42px; align-items: center; gap: 7px; margin: 0 3px 4px 0; padding: 0 14px 0 12px; border-radius: 0; background: var(--tool-color); color: #1f1c19; font-size: 22px; line-height: 1; font-weight: 300; vertical-align: middle; box-shadow: 0 2px 12px rgba(76, 74, 92, 0.08); }
+.instruction-chip { --tool-color: #FF89CB; }
+.instruction-chip[data-tool="Dry pan"] { --tool-color: #FF89CB; }
+.instruction-chip[data-tool="Blender"] { --tool-color: #D5CF00; }
+.instruction-chip[data-tool="Sauté pan"] { --tool-color: #87E0DC; }
+.instruction-card__art { position: absolute; left: -28px; right: -28px; bottom: -92px; height: 350px; border-radius: 50% 50% 0 0 / 40% 40% 0 0; background:
+  radial-gradient(circle at 27% 30%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.8px),
+  radial-gradient(circle at 63% 56%, rgba(120, 120, 118, 0.2) 0 1px, transparent 2px),
+  radial-gradient(circle at 48% 44%, rgba(255, 255, 255, 0.5) 0 1.5px, transparent 2.5px),
+  linear-gradient(150deg, #e6e6e4, #cfcfcd 62%, #bcbcba);
+  background-size: 7px 7px, 9px 9px, 12px 12px, auto;
+  box-shadow: inset 0 20px 40px rgba(255, 255, 255, 0.3); }
+.instruction-ingredients { position: absolute; z-index: 5; left: 22px; bottom: 22px; width: 556px; height: 74px; }
+.instruction-ingredients__toggle { position: absolute; z-index: 2; left: 0; bottom: 0; display: grid; width: 52px; height: 52px; padding: 0; place-items: center; border: 0; border-radius: 0; color: #111;
+  background: linear-gradient(145deg, rgba(245, 214, 83, .78), rgba(236, 146, 59, .72) 34%, rgba(180, 52, 124, .78) 68%, rgba(78, 11, 145, .86));
+  -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, .65), inset 0 -10px 18px rgba(78, 11, 145, .28), 0 8px 22px rgba(180, 52, 124, .3);
+  cursor: pointer; transition: transform 240ms ease, box-shadow 240ms ease; }
+.instruction-ingredients__toggle:active { transform: scale(.94); }
+.instruction-ingredients__toggle:focus-visible { outline: 0; }
+.instruction-ingredients__items { position: absolute; left: 0; bottom: 0; }
+.instruction-ingredient { position: absolute; left: 1px; bottom: 1px; display: grid; width: 50px; height: 50px; place-items: center; border-radius: 0; background: #CED2D2; color: #111; opacity: 0; transform: translateX(0) scale(.7); transition: transform 760ms cubic-bezier(.2,.8,.2,1), opacity 620ms ease; pointer-events: none; }
+.instruction-ingredient small { position: absolute; left: 50%; bottom: 58px; padding: 4px 9px; border-radius: 0; background: #111; color: #fff; font: 400 12px/16px var(--font-sans); white-space: nowrap; opacity: 0; pointer-events: none; transform: translate(-50%, 4px); transition: opacity 160ms ease, transform 200ms cubic-bezier(.2,.9,.2,1); }
+.instruction-ingredient:hover small, .instruction-ingredient:focus-visible small { opacity: 1; transform: translate(-50%, 0); }
+.instruction-ingredient:nth-child(5n+1) { background: #87E0DC; }
+.instruction-ingredient:nth-child(5n+2) { background: #FF89CB; }
+.instruction-ingredient:nth-child(5n+3) { background: #D5CF00; }
+.instruction-ingredient:nth-child(5n+4) { background: #ACD1FF; }
+.instruction-ingredient:focus-visible { outline: 0; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(1) { transition-delay: 0ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(2) { transition-delay: 90ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(3) { transition-delay: 180ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(4) { transition-delay: 270ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(5) { transition-delay: 360ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(6) { transition-delay: 450ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(7) { transition-delay: 540ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(8) { transition-delay: 630ms; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient { opacity: 1; pointer-events: auto; }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(1) { transform: translateX(66px) scale(1); }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(2) { transform: translateX(126px) scale(1); }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(3) { transform: translateX(186px) scale(1); }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(4) { transform: translateX(246px) scale(1); }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(5) { transform: translateX(306px) scale(1); }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(6) { transform: translateX(366px) scale(1); }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(7) { transform: translateX(426px) scale(1); }
+.instruction-ingredients[data-open='true'] .instruction-ingredient:nth-child(8) { transform: translateX(486px) scale(1); }
 
 /* The board components carry their own stage and bezel; on the device only the screen shows. */
 .kitchen .hv-stage { display: block; padding: 0; }
 .kitchen .hv-caption { display: none; }
 .kitchen .hv-screen { zoom: 1; border-radius: 0; box-shadow: none; }
 .kitchen .ex-notch, .kitchen .ex-tools { display: none; }
+.kitchen .moldable-environment { width: 640px; height: 640px; min-height: 0; background: #fff; }
+.kitchen .moldable-display { width: 640px; height: 640px; border-radius: 0; box-shadow: none; }
 
 .kitchen__dock { position: fixed; z-index: 3; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; width: max-content; max-width: calc(100vw - 32px); flex-direction: column; align-items: center; gap: 10px; transform: translateX(-50%); }
 .kitchen__hint { margin: 0; padding: 6px 12px; border-radius: var(--radius-pill); background: var(--glass); color: var(--ink-muted); font-size: 13px; line-height: 18px; text-align: center; text-wrap: balance; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-.kitchen__bar { display: flex; align-items: center; gap: 4px; padding: 5px; border-radius: var(--radius-pill); background: var(--glass); box-shadow: 0 10px 30px rgba(20, 12, 6, 0.28), 0 0 0 1px rgba(31, 28, 25, 0.12); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); }
-.kitchen__bar button { height: 38px; padding: 0 18px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--ink); font: 500 14px/1 var(--font-sans); cursor: pointer; transition: background-color 200ms ease, color 200ms ease; }
-.kitchen__bar button:hover { background: rgba(31, 28, 25, 0.06); }
-.kitchen__bar button[aria-pressed='true'] { background: var(--ink); color: var(--flour); }
+.kitchen__bar { display: flex; align-items: center; gap: 10px; padding: 7px 13px; border-radius: var(--radius-pill); background: var(--glass); box-shadow: 0 10px 30px rgba(20, 12, 6, 0.2), 0 0 0 1px rgba(31, 28, 25, 0.1); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); }
+.kitchen__bar > span { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .28; }
+.kitchen__bar button { height: 27px; padding: 0 4px; border: 0; background: transparent; color: var(--ink); opacity: .5; font: 300 13px/1 var(--font-sans); cursor: pointer; transition: opacity 200ms ease; }
+.kitchen__bar button:hover { opacity: .78; }
+.kitchen__bar button[aria-pressed='true'] { opacity: 1; }
 .kitchen__bar button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 .kitchen__loading { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: var(--room); transition: opacity 700ms ease; }
@@ -35,4 +109,41 @@
 .kitchen__loading.is-gone { opacity: 0; pointer-events: none; }
 
 @media (max-width: 520px) { .kitchen__hint { font-size: 12px; } }
-@media (prefers-reduced-motion: reduce) { .kitchen__host { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .kitchen__host { transition: none; } .kitchen__grandkids-view--in, .kitchen__grandkids-view--out { animation: none; } }
+
+.kitchen__edge-prev { position: absolute; z-index: 4; top: 0; left: 0; width: 30%; height: calc(100% - 104px); padding: 0; border: 0; background: transparent; cursor: pointer; }
+.kitchen__grandkids-view--in.is-back { animation-name: kitchen-swipe-in-back; box-shadow: none; }
+.kitchen__grandkids-view--out.is-back { animation-name: kitchen-swipe-out-back; }
+@keyframes kitchen-swipe-in-back { from { transform: translateX(-34%); opacity: .4; } to { transform: translateX(0); opacity: 1; } }
+@keyframes kitchen-swipe-out-back { from { transform: translateX(0); box-shadow: -18px 0 40px rgba(0, 0, 0, .08); } to { transform: translateX(100%); } }
+
+.kitchen__host.is-dragging { transition: none; }
+
+.kitchen__host--grandkids:not(.is-off) .hv-card { animation: paper-open-right 1100ms cubic-bezier(.22, .8, .22, 1) both; backface-visibility: hidden; }
+/* Like sheets of paper opening from the centre seam: the left card hinges on its right edge, the right cards on their left edge. */
+.kitchen__host--grandkids:not(.is-off) .hv-recipe { transform-origin: 100% 50%; animation-name: paper-open-left; animation-delay: 0ms; }
+.kitchen__host--grandkids:not(.is-off) .hv-swap { transform-origin: 0 50%; animation-delay: 160ms; }
+.kitchen__host--grandkids:not(.is-off) .hv-ingr { transform-origin: 0 50%; animation-delay: 300ms; }
+@keyframes paper-open-right {
+  from { opacity: 0; transform: perspective(1400px) rotateY(88deg); filter: brightness(.82); }
+  25% { opacity: 1; }
+  70% { transform: perspective(1400px) rotateY(-4deg); filter: brightness(1.02); }
+  to { opacity: 1; transform: perspective(1400px) rotateY(0); filter: brightness(1); }
+}
+@keyframes paper-open-left {
+  from { opacity: 0; transform: perspective(1400px) rotateY(-88deg); filter: brightness(.82); }
+  25% { opacity: 1; }
+  70% { transform: perspective(1400px) rotateY(4deg); filter: brightness(1.02); }
+  to { opacity: 1; transform: perspective(1400px) rotateY(0); filter: brightness(1); }
+}
+.kitchen__host--grandkids:not(.is-off) .hv-recipe__inner > *,
+.kitchen__host--grandkids:not(.is-off) .hv-swap__btn,
+.kitchen__host--grandkids:not(.is-off) .hv-ingr > div,
+.kitchen__host--grandkids:not(.is-off) .hv-ingr li { animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both; }
+.kitchen__host--grandkids:not(.is-off) .hv-recipe__inner > :nth-child(1) { animation-delay: 260ms; }
+.kitchen__host--grandkids:not(.is-off) .hv-recipe__inner > :nth-child(2) { animation-delay: 340ms; }
+.kitchen__host--grandkids:not(.is-off) .hv-recipe__inner > :nth-child(3) { animation-delay: 420ms; }
+.kitchen__host--grandkids:not(.is-off) .hv-swap__btn { animation-delay: 370ms; }
+.kitchen__host--grandkids:not(.is-off) .hv-ingr > div { animation-delay: 480ms; }
+.kitchen__host--grandkids:not(.is-off) .hv-ingr li { animation-delay: calc(540ms + var(--i, 0) * 45ms); }
+@media (prefers-reduced-motion: reduce) { .kitchen__host--grandkids .hv-card, .kitchen__host--grandkids .hv-card * { animation: none !important; } }

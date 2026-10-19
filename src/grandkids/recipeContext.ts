@@ -49,7 +49,7 @@ export function formatRecipeGrounding(state: GrandkidsRecipeState): string {
       ? GRANDKIDS_RECIPE_CONTEXT.substitutions.kencur
       : ingredient.name
     const tidyAmount = state.servings === 2 ? ingredient.tidyAmount2 : ingredient.tidyAmount4
-    return `- ${ingredient.key}: ${shownName} — Oma says ${ingredient.familyAmount}; tidy amount for ${state.servings}: ${tidyAmount}`
+    return `- ${ingredient.key}: ${shownName}: Oma says ${ingredient.familyAmount}; tidy amount for ${state.servings}: ${tidyAmount}`
   })
   const stepLines = GRANDKIDS_RECIPE_CONTEXT.steps.map((step) => `${step.number}. ${step.text}`)
 

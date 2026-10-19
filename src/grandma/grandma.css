@@ -37,8 +37,8 @@
 }
 
 .grandma-homeview .grandma-header--right {
-  top: 5%;
-  right: 6%;
+  top: 4%;
+  right: 5%;
   z-index: 4;
   max-width: 56%;
 }
@@ -49,20 +49,20 @@
   max-width: calc(100vw - 44px);
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 
 .grandma-recorder-control {
   display: flex;
-  min-height: 58px;
+  min-height: 72px;
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
 }
 
 .grandma-character {
-  width: 58px;
-  height: 58px;
+  width: 104px;
+  height: 104px;
   object-fit: contain;
   user-select: none;
   filter: drop-shadow(0 7px 9px rgba(27, 41, 43, 0.1));
@@ -70,20 +70,18 @@
 }
 
 .grandma-homeview .grandma-character {
-  position: absolute;
-  top: 45%;
-  right: 8%;
-  z-index: 2;
-  width: 28%;
+  position: static;
+  width: 116px;
   height: auto;
-  transform: translateY(-50%);
+  margin: 2px 13px 0 0;
+  transform: none;
 }
 
 .grandma-generated-title {
   margin: 0;
   color: #000;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.2;
   letter-spacing: -0.015em;
   white-space: nowrap;
@@ -103,7 +101,7 @@
   margin: 0;
   color: #000;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.45;
   text-align: right;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -1px 0 rgba(0, 0, 0, 0.08);
@@ -112,61 +110,65 @@
 
 .grandma-question-rail {
   position: absolute;
-  top: 18%;
-  bottom: 18%;
-  left: 3%;
-  width: 32%;
-  overflow: hidden;
-  mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent);
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  width: min(30ch, 64%);
+  height: 0;
+  pointer-events: none;
 }
 
+/* One question at a time: it condenses out of a blur, holds, then dissolves outward. */
 .grandma-question-rail__question {
   position: absolute;
-  top: 50%;
+  top: 0;
   left: 0;
-  width: min(26ch, 100%);
+  width: 100%;
+  box-sizing: border-box;
   margin: 0;
+  padding: 16px 20px;
+  border-radius: 10px;
   color: #1f1c19;
-  font-size: clamp(13px, 2.2cqw, 18px);
+  font-size: clamp(15px, 2.6cqw, 22px);
   line-height: 1.3;
+  text-align: center;
+  text-wrap: balance;
   opacity: 0;
-  transform: translate(-10%, -50%) scale(.78);
-  transition: opacity 360ms ease, transform 420ms cubic-bezier(.2, .8, .2, 1);
+  filter: blur(14px);
+  letter-spacing: .06em;
+  transform: translate(-50%, calc(-50% + 18px)) scale(.9);
+  transition: opacity 620ms ease, filter 620ms ease, letter-spacing 760ms cubic-bezier(.2, .8, .2, 1), transform 760ms cubic-bezier(.2, 1.1, .3, 1);
 }
 
-.grandma-question-rail__question[data-offset="0"] {
+.grandma-question-rail__question[data-state="active"] {
   opacity: 1;
-  transform: translate(12%, -50%) scale(1);
+  filter: blur(0);
+  letter-spacing: 0;
+  transform: translate(-50%, -50%) scale(1);
+  transition-delay: 140ms;
 }
 
-.grandma-question-rail__question[data-offset="-1"] {
-  opacity: .46;
-  transform: translate(2%, -210%) scale(.86);
-}
-
-.grandma-question-rail__question[data-offset="1"] {
-  opacity: .46;
-  transform: translate(2%, 110%) scale(.86);
-}
-
-.grandma-question-rail__question[data-offset="-2"],
-.grandma-question-rail__question[data-offset="2"] {
-  opacity: .16;
-  transform: translate(-8%, 270%) scale(.7);
+.grandma-question-rail__question[data-state="leaving"] {
+  opacity: 0;
+  filter: blur(10px);
+  letter-spacing: -.01em;
+  transform: translate(-50%, calc(-50% - 14px)) scale(1.08);
+  transition-duration: 420ms, 420ms, 420ms, 520ms;
 }
 
 .grandma-record-button {
   display: inline-flex;
-  height: 42px;
+  height: 68px;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  padding: 0 16px;
+  gap: 14px;
+  padding: 0 24px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 14px;
   color: #000;
-  font-size: 15px;
-  font-weight: 400;
+  font-size: 26px;
+  font-weight: 300;
+  font-weight: 300;
   cursor: pointer;
   transition: background-color 160ms ease, transform 140ms ease;
 }
@@ -191,8 +193,8 @@
 .grandma-record-button:disabled { cursor: wait; opacity: 0.72; }
 
 .grandma-record-button__dot {
-  width: 10px;
-  height: 10px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #df7774;
   animation: grandma-pulse 1.2s ease-in-out infinite;
@@ -203,7 +205,7 @@
   margin: 0;
   color: #000;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.45;
 }
 
@@ -233,8 +235,8 @@
   height: calc(1.45em * 2);
   overflow: hidden;
   color: #85827e;
-  font-size: 15px;
-  font-weight: 400;
+  font-size: 21px;
+  font-weight: 300;
   line-height: 1.45;
   text-align: right;
   mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, .72) 32%, #000 72%);
@@ -277,10 +279,10 @@
   gap: 5px;
   margin: 0 4px;
   padding: 1px 9px;
-  border-radius: 9px;
-  background: rgba(226, 226, 223, .94);
-  color: #343330;
-  font-size: 15px;
+  border-radius: 0;
+  background: var(--tool-color, #CED2D2);
+  color: #1f1c19;
+  font-size: 21px;
   line-height: 1.35;
   vertical-align: baseline;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
@@ -288,6 +290,66 @@
 
 .grandma-transcript-tool-chip svg {
   flex: 0 0 auto;
+}
+
+/* The tool leaves the transcript as a water droplet: it arcs up to the shelf, stretching in flight and shrinking as it lands. */
+.grandma-tool-flight {
+  --drop: #CED2D2;
+  position: absolute;
+  right: 9%;
+  bottom: 7%;
+  z-index: 8;
+  width: 0;
+  height: 0;
+  font-size: 0;
+  color: transparent;
+  pointer-events: none;
+  animation: grandma-drop-x 1100ms cubic-bezier(.45, .05, .25, 1) both;
+}
+
+.grandma-tool-flight::before,
+.grandma-tool-flight::after {
+  position: absolute;
+  left: -13px;
+  top: -13px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(circle at 34% 30%, rgba(255, 255, 255, .85) 0 12%, var(--drop) 42%);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--drop) 55%, transparent);
+  content: '';
+  animation: grandma-drop-y 1100ms cubic-bezier(.3, .1, .2, 1) both;
+}
+
+.grandma-tool-flight::after {
+  width: 15px;
+  height: 15px;
+  left: -7px;
+  top: -7px;
+  opacity: .7;
+  animation-delay: 110ms;
+  animation-duration: 1100ms;
+}
+
+.grandma-tool-flight[data-tool="blend"] { --drop: #D5CF00; }
+.grandma-tool-flight[data-tool="microwave"] { --drop: #87E0DC; }
+.grandma-tool-flight[data-tool="timer"],
+.grandma-tool-flight[data-tool="temperature"] { --drop: #FF89CB; }
+.grandma-tool-flight[data-tool="weigh"] { --drop: #ACD1FF; }
+
+@keyframes grandma-drop-x {
+  0% { opacity: 0; transform: translateX(0); }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-60cqw); }
+}
+
+@keyframes grandma-drop-y {
+  0% { transform: translateY(0) scale(.2, .2); }
+  14% { transform: translateY(-9cqw) scale(.9, 1.25) rotate(-8deg); }
+  52% { transform: translateY(-48cqw) scale(.85, 1.35) rotate(-20deg); }
+  86% { transform: translateY(-64cqw) scale(.8, 1.1) rotate(-12deg); }
+  100% { transform: translateY(-67cqw) scale(1.5, .5); }
 }
 
 .grandma-rolling-transcript--error {
@@ -304,6 +366,13 @@
   to { opacity: 1; filter: blur(0); transform: translateY(0); }
 }
 
+@keyframes grandma-tool-flight {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  34% { opacity: 1; transform: translate(-18cqw, -22cqw) scale(.94) rotate(-2deg); }
+  78% { opacity: .92; transform: translate(-54cqw, -62cqw) scale(.72) rotate(1deg); }
+  100% { opacity: 0; transform: translate(-59cqw, -66cqw) scale(.58); }
+}
+
 .grandma-story {
   display: grid;
   place-items: center;
@@ -315,7 +384,7 @@
   max-width: 14ch;
   margin: 0 0 36px;
   font-size: clamp(42px, 8vw, 86px);
-  font-weight: 500;
+  font-weight: 300;
   line-height: 0.98;
   letter-spacing: -0.055em;
 }
@@ -334,7 +403,7 @@
 
 .story-book { position: fixed; inset: 0; z-index: 20; min-height: 100dvh; overflow: hidden; background: #fff; color: #20211f; animation: grandma-page-in 240ms ease-out both; }
 .story-book__actions { position: fixed; top: 24px; right: 26px; z-index: 24; display: flex; gap: 18px; }
-.story-book__action { display: flex; min-height: 34px; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; color: #20211f; font-size: 14px; font-weight: 400; cursor: pointer; }
+.story-book__action { display: flex; min-height: 34px; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; color: #20211f; font-size: 14px; font-weight: 300; cursor: pointer; }
 .story-book__action:hover { color: #696a66; }
 .story-book__action:focus-visible { outline: 2px solid #008c98; outline-offset: 3px; }
 .story-book__writing-stage { position: relative; display: grid; width: 100%; height: 100dvh; min-height: 680px; grid-template-columns: 1fr 1fr; overflow: hidden; background: #fff; }
@@ -342,7 +411,7 @@
 .story-book__panel--story { border-left: 1px solid rgba(32, 33, 31, .16); }
 .story-book__traveler { position: absolute; top: 9%; left: -18%; z-index: 3; display: block; width: clamp(250px, 31vw, 440px); height: auto; filter: contrast(1.09) drop-shadow(0 12px 12px rgba(28, 43, 42, .09)); will-change: top, left, transform; animation: grandma-writes 8.2s cubic-bezier(.45, 0, .18, 1) .18s both; }
 .story-book__written-page { position: relative; z-index: 2; display: grid; width: auto; height: 76%; margin: 12% 9% 0; grid-template-rows: repeat(3, minmax(0, auto)); align-content: space-evenly; font-family: inherit; }
-.story-book__written-line { max-width: 68ch; margin: 0; color: #282926; font-size: clamp(14px, 1.25vw, 18px); font-weight: 400; line-height: 1.55; letter-spacing: -.012em; text-wrap: pretty; }
+.story-book__written-line { max-width: 68ch; margin: 0; color: #282926; font-size: clamp(14px, 1.25vw, 18px); font-weight: 300; line-height: 1.55; letter-spacing: -.012em; text-wrap: pretty; }
 .story-book__written-page h1 { font-size: clamp(24px, 3vw, 44px); line-height: 1.05; letter-spacing: -.04em; }
 .story-book__word { opacity: 0; transition: opacity 50ms linear; }
 .story-book__word--visible { opacity: 1; }
@@ -383,8 +452,85 @@
   .grandma-guiding-question,
   .grandma-question-rail__question,
   .grandma-transcript__new,
+  .grandma-tool-flight,
   .story-book,
   .story-book__traveler { animation: none; transition: none; }
+  .grandma-tool-flight { display: none; }
+  .grandma-tool-flight::before, .grandma-tool-flight::after { animation: none; }
   .story-book__traveler { top: 63%; left: 4%; transform: scale(.72); }
   .story-book__word { opacity: 1; }
 }
+
+.grandma-transcript-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  padding: 4.4cqw;
+  overflow: hidden;
+  background: #c9dcee;
+  color: #000;
+}
+
+/* Blurred misty-forest backdrop behind the story widgets. */
+.grandma-transcript-screen::before {
+  position: absolute;
+  inset: -8%;
+  z-index: 0;
+  background: url('/assets/bokeh-bg.jpg') center / cover no-repeat;
+  filter: blur(22px) saturate(1.05);
+  content: '';
+  pointer-events: none;
+}
+
+.grandma-transcript-screen > * { position: relative; z-index: 1; }
+
+.grandma-transcript-screen__widget {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 2.2cqw;
+  padding: 3.4cqw;
+  border: 1px solid rgba(255, 255, 255, .6);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .62);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.1);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 8px 24px rgba(70, 110, 160, .08);
+  animation: widget-open 760ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.grandma-transcript-screen__header { display: flex; align-items: center; justify-content: space-between; gap: 2cqw; animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) 260ms both; }
+.grandma-transcript-screen__header h1 { margin: 0; font-size: 4.2cqw; font-weight: 300; letter-spacing: -.03em; }
+
+.grandma-transcript-screen__toggle { display: flex; gap: 1cqw; }
+.grandma-transcript-screen__toggle button {
+  padding: 1.1cqw 2.6cqw;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #000;
+  font: inherit;
+  font-size: 2.4cqw;
+  font-weight: 300;
+  white-space: nowrap;
+  opacity: .55;
+  cursor: pointer;
+}
+.grandma-transcript-screen__toggle button[aria-pressed="true"] { background: #fff; opacity: 1; box-shadow: 0 1px 2px rgba(40, 70, 110, .1); }
+
+.grandma-transcript-screen__text { margin: 0; overflow-y: auto; font-size: 2.9cqw; font-weight: 300; line-height: 1.5; letter-spacing: -.01em; animation: widget-rise 560ms cubic-bezier(.2, .8, .2, 1) 380ms both; }
+.grandma-transcript-screen__steps { position: relative; padding-left: 4.4cqw; animation: none; }
+.grandma-transcript-screen--tidy { padding: 0; background: transparent; }
+.grandma-transcript-screen__tidy-toggle { position: absolute; z-index: 6; right: 4.2cqw; bottom: 3.6cqw; }
+.grandma-transcript-screen__steps li { margin-bottom: 1.6cqw; padding-left: .6cqw; animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both; }
+.grandma-transcript-screen__steps li:nth-child(1) { animation-delay: 380ms; }
+.grandma-transcript-screen__steps li:nth-child(2) { animation-delay: 440ms; }
+.grandma-transcript-screen__steps li:nth-child(3) { animation-delay: 500ms; }
+.grandma-transcript-screen__steps li:nth-child(4) { animation-delay: 560ms; }
+.grandma-transcript-screen__steps li:nth-child(5) { animation-delay: 620ms; }
+.grandma-transcript-screen__steps li:nth-child(6) { animation-delay: 680ms; }
+.grandma-transcript-screen__steps li:nth-child(7) { animation-delay: 740ms; }
+.grandma-transcript-screen__steps li:nth-child(8) { animation-delay: 800ms; }
+@media (prefers-reduced-motion: reduce) { .grandma-transcript-screen__widget, .grandma-transcript-screen__widget * { animation: none !important; } }

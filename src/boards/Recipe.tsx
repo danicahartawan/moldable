@@ -113,7 +113,7 @@ function Drawing({ hl }: { hl: (g: string) => CSSProperties }) {
         <circle pathLength="1" cx="790" cy="190" r="4" /><circle pathLength="1" cx="806" cy="204" r="3" /><circle pathLength="1" cx="778" cy="210" r="3" /><circle pathLength="1" cx="800" cy="178" r="3" />
       </g>
       <g stroke="none" fill="var(--ink)" fontFamily="var(--font-sans)" fontSize="13" letterSpacing="0">
-        <text className="b-fade" x="640" y="406" textAnchor="middle" fontWeight="600" opacity={hl('pot').opacity}>2 litres</text>
+        <text className="b-fade" x="640" y="406" textAnchor="middle" fontWeight="300" opacity={hl('pot').opacity}>2 litres</text>
         <text className="b-fade" x="640" y="421" textAnchor="middle" opacity={hl('pot').opacity}>chicken broth</text>
         <text className="b-fade" x="140" y="190" opacity={hl('chicken').opacity}>1 chicken, about 1.2 kg</text>
         <text className="b-fade" x="110" y="507" opacity={hl('shallot').opacity}>8 shallots</text>
@@ -225,7 +225,7 @@ export function RecipeBoard() {
     }
     return {
       transform: `translateY(${y}px)`, opacity: op, filter: `blur(${blur}px)`, fontSize: size, lineHeight: `${lh}px`,
-      fontWeight: d === 0 ? 600 : 400, pointerEvents: op > 0.1 ? 'auto' : 'none',
+      fontWeight: 300, pointerEvents: op > 0.1 ? 'auto' : 'none',
     }
   }
 

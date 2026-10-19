@@ -1,11 +1,17 @@
 'use client'
 
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
-import type { GrandkidsAnswer } from '@/app/api/grandkids/ask/route'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
-import { useGrandkidsVoiceGuide } from '@/grandkids/useGrandkidsVoiceGuide'
 
-type Mods = { serves2: boolean; mild: boolean; chicken: boolean }
+type AdjustPhase = 'idle' | 'listening' | 'thinking' | 'writing'
+
+const KENCUR_ROW = GRANDKIDS_RECIPE_CONTEXT.ingredients.findIndex((ingredient) => ingredient.key === 'kencur')
+
+// Scripted two-stage Adjust demo: what the grandkid says, then the pencil pass that follows.
+const ADJUST_SCRIPT = [
+  'Actually, I just want two servings.',
+  'What can I use instead of kencur?',
+] as const
 
 // [name, Oma's words, tidy amount, tidy amount for 2]
 const ING = GRANDKIDS_RECIPE_CONTEXT.ingredients.map((ingredient) => [
@@ -35,52 +41,88 @@ function Icon({ d, size = 18 }: { d: string; size?: number }) {
   )
 }
 
-export function HomeViewBoard() {
+export function HomeViewBoard({ embedded = false, overlay = null }: { embedded?: boolean; overlay?: ReactNode } = {}) {
+  const embedRef = useRef<HTMLDivElement>(null)
+  const [embedScale, setEmbedScale] = useState(1)
+
+  // Embedded, the 640px board scales to whatever square its host gives it.
+  useLayoutEffect(() => {
+    const host = embedRef.current
+    if (!embedded || !host) return
+    const fit = () => setEmbedScale(host.clientWidth / 640 || 1)
+    fit()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit)
+    observer?.observe(host)
+    return () => observer?.disconnect()
+  }, [embedded])
+
   const [swap, setSwap] = useState(false)
-  const [m] = useState<Mods>({ serves2: false, mild: false, chicken: false })
-  const [kencurSwap] = useState(false)
-  const [view, setView] = useState<'over' | 'steps'>('over')
-  const [voiceTarget, setVoiceTarget] = useState<GrandkidsAnswer | null>(null)
+  const [serves2, setServes2] = useState(false)
+  const [rowsDone, setRowsDone] = useState(0)
+  const [kencurSwap, setKencurSwap] = useState(false)
+  const [phase, setPhase] = useState<AdjustPhase>('idle')
+  const [heard, setHeard] = useState('')
+  const [penRow, setPenRow] = useState<number | null>(null)
+  const [penPos, setPenPos] = useState<{ left: number; top: number } | null>(null)
+  const stage = useRef(0)
+  const timers = useRef<number[]>([])
+  const listRef = useRef<HTMLUListElement>(null)
+  const m = { serves2, mild: false, chicken: false }
 
-  const handleTarget = useCallback((next: GrandkidsAnswer) => {
-    setVoiceTarget(next)
-    if (next.target === 'step') setView('steps')
-    if (next.target === 'overview') setView('over')
-    if (next.target === 'tools') setSwap(true)
-    if (next.target === 'time') setSwap(false)
-  }, [])
+  const later = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)) }
+  const clearTimers = () => { timers.current.forEach((timer) => window.clearTimeout(timer)); timers.current = [] }
+  useEffect(() => clearTimers, [])
 
-  const voiceGuide = useGrandkidsVoiceGuide({
-    recipeState: {
-      servings: m.serves2 ? 2 : 4,
-      activeStep: voiceTarget?.target === 'step' ? voiceTarget.step ?? null : null,
-      versionLabel: m.serves2 ? 'Nevan + Fred · 2 servings' : null,
-      kencurSubstitution: kencurSwap,
-    },
-    onTarget: handleTarget,
-  })
+  useLayoutEffect(() => {
+    if (penRow === null) return
+    const row = listRef.current?.children[penRow] as HTMLElement | undefined
+    const amount = row?.querySelector<HTMLElement>('.hv-amt')
+    if (!row || !amount) return
+    // The pencil tip sits at ~92% across and ~81% down the 96 x 82 mascot image.
+    setPenPos({ left: amount.offsetLeft - 88, top: row.offsetTop + row.offsetHeight / 2 - 60 })
+  }, [penRow])
 
-  useEffect(() => {
-    if (voiceTarget?.target !== 'step' || !voiceTarget.step) return
-    document.querySelector<HTMLElement>(`[data-recipe-step="${voiceTarget.step}"]`)?.scrollIntoView?.({ block: 'center' })
-  }, [voiceTarget])
-
-  useEffect(() => {
-    if (voiceGuide.status === 'idle' && voiceGuide.answer) setVoiceTarget(null)
-  }, [voiceGuide.answer, voiceGuide.status])
-
-  const activeVoice = ['requesting', 'listening', 'thinking', 'speaking'].includes(voiceGuide.status)
-  const beginVoiceQuestion = () => {
-    setVoiceTarget(null)
-    if (activeVoice) voiceGuide.cancel()
-    void voiceGuide.start()
+  const runPencilPass = (onRow: (row: number) => void, rowMs: number) => {
+    let at = 0
+    ING.forEach((_, row) => {
+      later(at, () => { setPenRow(row); onRow(row) })
+      at += row === KENCUR_ROW && stage.current === 2 ? 900 : rowMs
+    })
+    later(at + 250, () => { setPenRow(null); setHeard(''); setPhase('idle') })
   }
-  const adjustLabel = voiceGuide.status === 'listening'
+
+  const beginAdjust = () => {
+    if (phase !== 'idle') return
+    clearTimers()
+    if (stage.current >= ADJUST_SCRIPT.length) {
+      setServes2(false)
+      setRowsDone(0)
+      setKencurSwap(false)
+      stage.current = 0
+    }
+    const next = stage.current + 1
+    setPhase('listening')
+    setHeard('')
+    later(1400, () => setHeard(ADJUST_SCRIPT[next - 1]))
+    later(5000, () => setPhase('thinking'))
+    later(5800, () => {
+      stage.current = next
+      setPhase('writing')
+      if (next === 1) {
+        setServes2(true)
+        runPencilPass((row) => setRowsDone(row + 1), 450)
+      } else {
+        runPencilPass((row) => { if (row === KENCUR_ROW) setKencurSwap(true) }, 300)
+      }
+    })
+  }
+
+  const adjustLabel = phase === 'listening'
     ? 'Listening…'
-    : voiceGuide.status === 'thinking' || voiceGuide.status === 'requesting'
+    : phase === 'thinking'
       ? 'Thinking…'
-      : voiceGuide.status === 'speaking'
-        ? 'Speaking…'
+      : phase === 'writing'
+        ? 'Writing…'
         : 'Adjust'
 
   const mins = 40 - (m.serves2 ? 10 : 0) - (m.chicken ? 5 : 0)
@@ -88,68 +130,28 @@ export function HomeViewBoard() {
     transform: `translateY(${shown ? 0 : from}px)`, filter: `blur(${shown ? 0 : 8}px)`, opacity: shown ? 1 : 0,
   })
 
-  const steps: [string, boolean][][] = [
-    [['Toast the coconut in a dry pan until golden', false]],
-    [['Grind half the shallots and garlic with ', false], [m.mild ? 'a little sambal' : 'the sambal', m.mild], [kencurSwap ? ', ginger, lime zest, pepper and lime leaves' : ', kencur, pepper and lime leaves', kencurSwap]],
-    [['Heat the oil and fry the rest of the shallots and garlic', false]],
-    [['Add the paste and cook until it smells sweet', false]],
-    [['Add the ', false], [m.chicken ? 'chicken' : 'pork', m.chicken], [' and the toasted coconut', false]],
-    [['Keep stirring until no pink is left', false]],
-    [['Squeeze in the lime and add the chives', false]],
-    [['Serve on pandan rice', false]],
-  ]
-
   return (
-    <div className="hv-stage">
-      <div className="hv-screen" data-testid="grandkids-square">
-        <button type="button" className={`hv-tap hv-adjust is-${voiceGuide.status}`} aria-label="Adjust recipe by voice" aria-pressed={activeVoice} aria-busy={activeVoice} onClick={beginVoiceQuestion}>
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-            <path d="M3 6h9M15 6h2M3 14h3M9 14h8" /><circle cx="13.5" cy="6" r="1.8" /><circle cx="7.5" cy="14" r="1.8" />
-          </svg>
-          {adjustLabel}
-        </button>
+    <div className={embedded ? 'hv-embed' : 'hv-stage'} ref={embedRef}>
+      <div className={`hv-screen${embedded ? ' hv-screen--embedded' : ''}`} data-testid="grandkids-square" style={embedded ? { transform: `scale(${embedScale})` } : undefined}>
 
         <section className="hv-card hv-recipe" aria-label="Recipe overview">
           <div className="hv-recipe__inner">
             <div className="hv-recipe__head">
               <div style={{ minWidth: 0 }}>
                 <h1 className="hv-title">Lelawar Bali</h1>
-                <p className="hv-sub">{m.serves2 ? 'Nevan + Fred · 2 servings' : 'Oma Lien’s recipe'}</p>
               </div>
-              <button type="button" className="hv-tap hv-round" aria-pressed={view === 'steps'} aria-label={view === 'over' ? 'Show the steps' : 'Show the overview'}
-                onClick={() => setView((v) => (v === 'over' ? 'steps' : 'over'))}>
-                <Icon size={20} d={view === 'over' ? 'M7 5h10M7 10h10M7 15h10M3 5h.1M3 10h.1M3 15h.1' : 'M3 4h14v12H3z M3 12l4-3 3 2 4-4 3 3'} />
-              </button>
             </div>
 
-            {view === 'over' ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="hv-photo hv-blurin" src="/assets/lelawar-photo.png" alt="Lelawar in a dark bowl on a banana leaf, topped with fried shallots" />
-                <p className="hv-overview hv-blurin">
-                  Balinese minced <Mark on={m.chicken}>{m.chicken ? 'chicken' : 'pork'}</Mark> with toasted coconut, fried in a{' '}
-                  <Mark on={m.mild}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</Mark> and served on pandan rice.
-                </p>
-                <dl className="hv-stats hv-blurin">
-                  <div><dt>Steps</dt><dd>8</dd></div>
-                  <div><dt>Serves</dt><dd><Mark on={m.serves2}>{m.serves2 ? 2 : 4}</Mark></dd></div>
-                  <div><dt>Spice</dt><dd><Mark on={m.mild}>{m.mild ? 'Mild' : 'Hot'}</Mark></dd></div>
-                </dl>
-              </>
-            ) : (
-              <div className="hv-steps">
-                <ol>
-                  {steps.map((parts, i) => (
-                    <li key={i} data-recipe-step={i + 1} className={`hv-blurin${voiceTarget?.target === 'step' && voiceTarget.step === i + 1 ? ' is-voice-target' : ''}`} style={{ animationDelay: `${i * 0.05}s` }}>
-                      <span className="hv-steps__n">{i + 1}</span>
-                      <span>{parts.map(([t, on], j) => <Mark key={j} on={on}>{t}</Mark>)}</span>
-                    </li>
-                  ))}
-                </ol>
-                <div aria-hidden="true" className="hv-steps__veil" />
-              </div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="hv-photo hv-blurin" src="/assets/lelawar-oma.png" alt="Oma Lien holding a plate of lelawar" />
+            <p className="hv-overview hv-blurin">
+              Balinese minced <Mark on={m.chicken}>{m.chicken ? 'chicken' : 'pork'}</Mark> with toasted coconut, fried in a{' '}
+              <Mark on={m.mild}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</Mark> and served on pandan rice.
+            </p>
           </div>
+            <button type="button" className={`hv-tap hv-adjust is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
+              {adjustLabel}
+            </button>
         </section>
 
         <section className="hv-card hv-swap" aria-label={swap ? 'Tools: bowl, dry pan, blender, spatula and rice pot. Tap for cooking time' : `Cooking time ${mins} minutes. Tap for tools`}>
@@ -160,6 +162,7 @@ export function HomeViewBoard() {
                 <span className="hv-mins"><Mark on={mins !== 40}>{mins}</Mark></span>
                 <span style={{ fontSize: 22 }}>mins</span>
               </span>
+              <span className="hv-wave">Wave to start</span>
             </span>
             <span className="hv-roll" style={roll(swap, 50)}>
               <span style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}><span className="hv-h">Tools</span><span className="hv-count">5</span></span>
@@ -184,20 +187,18 @@ export function HomeViewBoard() {
         <section className="hv-card hv-ingr" aria-label="Ingredients">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <p className="hv-h" style={{ margin: 0 }}>Ingredients</p>
-            <p className="hv-count" style={{ margin: 0 }}>{ING.length}</p>
+            <p className="hv-count" style={{ margin: 0 }}>Serves <Mark on={serves2}>{serves2 ? 2 : 4}</Mark></p>
           </div>
-          <ul>
+          <ul ref={listRef}>
             {ING.map((r, i) => {
-              const meat = i === 0 && m.chicken
-              const spicy = i === 4 && m.mild
-              const halved = m.serves2
+              const halved = serves2 && i < rowsDone
+              const swapped = i === KENCUR_ROW && kencurSwap
               let amt: string = halved ? r[3] : r[2]
-              if (spicy) amt = halved ? '¼ tbsp' : '½ tbsp'
-              if (i === 5 && kencurSwap) amt = halved ? '1 cm + zest' : '2 cm + zest'
-              const changed = (halved && r[2] !== r[3]) || spicy || (i === 5 && kencurSwap)
+              if (swapped) amt = halved ? '1 cm + zest' : '2 cm + zest'
+              const changed = (halved && r[2] !== r[3]) || swapped
               return (
-                <li key={r[0]} data-family-amount={r[1]} className={voiceTarget?.target === 'ingredients' && voiceTarget.ingredient === GRANDKIDS_RECIPE_CONTEXT.ingredients[i].key ? 'is-voice-target' : undefined}>
-                  <Mark on={meat || (i === 5 && kencurSwap)}>{meat ? 'Chicken' : i === 5 && kencurSwap ? 'Ginger + lime zest' : r[0]}</Mark>
+                <li key={r[0]} data-family-amount={r[1]} style={{ '--i': i } as CSSProperties} className={penRow === i ? 'is-voice-target' : undefined}>
+                  <Mark on={swapped}>{swapped ? 'Ginger + lime zest' : r[0]}</Mark>
                   <span className="hv-amt">
                     <span key={`${amt}-${changed}`} className={`hv-blurin${changed ? ' hv-mark' : ''}`}>{amt}</span>
                   </span>
@@ -205,31 +206,23 @@ export function HomeViewBoard() {
               )
             })}
           </ul>
-          {voiceTarget?.target === 'ingredients' && voiceTarget.ingredient && (() => {
-            const targetIndex = GRANDKIDS_RECIPE_CONTEXT.ingredients.findIndex((ingredient) => ingredient.key === voiceTarget.ingredient)
-            if (targetIndex < 0) return null
-            const targetName = GRANDKIDS_RECIPE_CONTEXT.ingredients[targetIndex].name
-            return (
+          {penRow !== null && penPos && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="hv-pencil-mascot is-voice-target" src="/assets/grandma-writer.png" alt={`Moldable mascot showing ${targetName}`}
-              style={{ '--rewrite-row': Math.floor(targetIndex / 2), '--rewrite-col': targetIndex % 2 } as CSSProperties} />
-            )
-          })()}
+            <img className="hv-pen" src="/assets/mascot-writer-gradient.png" alt="Moldable mascot writing in the ingredient list"
+              style={{ left: penPos.left, top: penPos.top }} />
+          )}
         </section>
 
-        <p className="hv-sr-only" role="status" aria-live="polite">
-          {voiceGuide.answer && voiceGuide.target
-            ? `${voiceGuide.answer} ${voiceGuide.target.target === 'ingredients' && voiceGuide.target.ingredient
-              ? `Ingredients: ${GRANDKIDS_RECIPE_CONTEXT.ingredients.find((ingredient) => ingredient.key === voiceGuide.target?.ingredient)?.name ?? voiceGuide.target.ingredient}.`
-              : voiceGuide.target.target === 'step' ? `Step ${voiceGuide.target.step}.` : `${voiceGuide.target.target}.`}`
-            : adjustLabel === 'Adjust' ? '' : adjustLabel}
-        </p>
-        {voiceGuide.errorMessage && <p className="hv-voice-error">{voiceGuide.errorMessage}</p>}
+        <div className={`hv-fog${phase === 'listening' || phase === 'thinking' ? ' is-on' : ''}`} aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="hv-fog__mascot" src="/assets/mascot-gradient.png" alt="" draggable={false} />
+          <p className="hv-fog__heard" key={heard}>{heard ? `“${heard}”` : ''}</p>
+        </div>
 
-        <p className="hv-wave">Wave to start</p>
+        <p className="hv-sr-only" role="status" aria-live="polite">{phase === 'idle' ? '' : adjustLabel}</p>
 
       </div>
-      <p className="hv-caption">Grandkid home view, 640 × 640 for the 5.73 in display.</p>
+      {embedded ? overlay : <p className="hv-caption">Grandkid home view, 640 × 640 for the 5.73 in display.</p>}
     </div>
   )
 }

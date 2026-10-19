@@ -1,129 +1,56 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { GrandkidsAnswer } from '@/app/api/grandkids/ask/route'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 import { HomeViewBoard } from './HomeView'
 
-const voice = vi.hoisted(() => ({
-  status: 'idle' as 'idle' | 'requesting' | 'listening' | 'thinking' | 'speaking' | 'error',
-  answer: null as string | null,
-  target: null as GrandkidsAnswer | null,
-  errorMessage: null as string | null,
-  start: vi.fn(),
-  cancel: vi.fn(),
-  onTarget: null as ((answer: GrandkidsAnswer) => void) | null,
-}))
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
-vi.mock('@/grandkids/useGrandkidsVoiceGuide', () => ({
-  useGrandkidsVoiceGuide: (options: { onTarget: (answer: GrandkidsAnswer) => void }) => {
-    voice.onTarget = options.onTarget
-    return voice
-  },
-}))
+const adjust = () => screen.getByRole('button', { name: 'Adjust recipe by voice' })
+const advance = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
+const amountOf = (name: string) => screen.getByText(name).closest('li')?.querySelector('.hv-amt')
 
-afterEach(cleanup)
+describe('HomeViewBoard scripted Adjust flow', () => {
+  beforeEach(() => vi.useFakeTimers())
 
-describe('HomeViewBoard AI voice guide', () => {
-  beforeEach(() => {
-    voice.status = 'idle'
-    voice.answer = null
-    voice.target = null
-    voice.errorMessage = null
-    voice.start.mockReset()
-    voice.cancel.mockReset()
-    voice.onTarget = null
-  })
-
-  it('starts Adjust and shows sparse listening and thinking states without a transcript', () => {
-    const { rerender } = render(<HomeViewBoard />)
-    fireEvent.click(screen.getByRole('button', { name: 'Adjust recipe by voice' }))
-    expect(voice.start).toHaveBeenCalledOnce()
-
-    voice.status = 'listening'
-    rerender(<HomeViewBoard />)
-    expect(screen.getByRole('button', { name: 'Adjust recipe by voice' })).toHaveTextContent('Listening…')
-    voice.status = 'thinking'
-    rerender(<HomeViewBoard />)
-    expect(screen.getByRole('button', { name: 'Adjust recipe by voice' })).toHaveTextContent('Thinking…')
-    expect(screen.queryByText('how much coconut')).not.toBeInTheDocument()
-  })
-
-  it('targets an ingredient and moves the pencil beside its row', () => {
+  it('listens for five seconds without a microphone, then halves the servings with the pencil', () => {
     render(<HomeViewBoard />)
+    expect(screen.getByText('Serves', { exact: false })).toHaveTextContent('Serves 4')
 
-    act(() => voice.onTarget?.({ answer: 'Oma says segenggam—one handful.', target: 'ingredients', ingredient: 'coconut' }))
+    fireEvent.click(adjust())
+    expect(adjust()).toHaveTextContent('Listening…')
+    advance(1500)
+    expect(screen.getByText('“Actually, I just want two servings.”')).toBeInTheDocument()
+    expect(document.querySelector('.hv-fog')).toHaveClass('is-on')
+    advance(3600)
+    expect(adjust()).toHaveTextContent('Thinking…')
 
-    const row = screen.getByText('Coconut').closest('li') as HTMLElement
-    expect(row).toHaveClass('is-voice-target')
-    expect(screen.getByRole('img', { name: 'Moldable mascot showing Coconut' })).toBeInTheDocument()
+    advance(800)
+    expect(adjust()).toHaveTextContent('Writing…')
+    expect(document.querySelector('.hv-fog')).not.toHaveClass('is-on')
+    expect(screen.getByRole('img', { name: 'Moldable mascot writing in the ingredient list' })).toBeInTheDocument()
+    expect(screen.getByText('Serves', { exact: false })).toHaveTextContent('Serves 2')
+
+    advance(6000)
+    expect(adjust()).toHaveTextContent('Adjust')
+    expect(screen.queryByRole('img', { name: /Moldable mascot writing/ })).not.toBeInTheDocument()
+    expect(amountOf('Pork')).toHaveTextContent('250 g')
+    expect(amountOf('Coconut')).toHaveTextContent('40 g')
   })
 
-  it('opens and marks a returned recipe step', () => {
+  it('swaps kencur for ginger and lime zest on the second Adjust', () => {
     render(<HomeViewBoard />)
+    fireEvent.click(adjust())
+    advance(5800 + 6000)
+    fireEvent.click(adjust())
+    advance(1500)
+    expect(screen.getByText('“What can I use instead of kencur?”')).toBeInTheDocument()
 
-    act(() => voice.onTarget?.({ answer: 'Toast the coconut first.', target: 'step', step: 1 }))
-
-    expect(screen.getByRole('button', { name: 'Show the overview' })).toBeInTheDocument()
-    const step = screen.getByText('Toast the coconut in a dry pan until golden').closest('li') as HTMLElement
-    expect(step).toHaveClass('is-voice-target')
-  })
-
-  it('selects tools, time, and overview targets', () => {
-    render(<HomeViewBoard />)
-    const swap = screen.getByRole('button', { name: /Cooking time|Tools:/ })
-
-    act(() => voice.onTarget?.({ answer: 'Use the dry pan.', target: 'tools' }))
-    expect(swap).toHaveTextContent('Dry pan')
-    act(() => voice.onTarget?.({ answer: 'It takes 40 minutes.', target: 'time' }))
-    expect(swap).toHaveTextContent('40')
-    act(() => voice.onTarget?.({ answer: 'Here is the overview.', target: 'overview' }))
-    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
-  })
-
-  it('keeps the spoken answer in the live region without adding visible answer chrome', () => {
-    voice.status = 'speaking'
-    voice.answer = 'Oma says 2 ruas.'
-    voice.target = { answer: voice.answer, target: 'ingredients', ingredient: 'kencur' }
-    render(<HomeViewBoard />)
-
-    expect(screen.getByRole('status')).toHaveTextContent('Oma says 2 ruas. Ingredients: Kencur.')
-    expect(screen.getByRole('button', { name: 'Adjust recipe by voice' })).toHaveTextContent('Speaking…')
-    expect(screen.queryByText('Oma says 2 ruas.', { selector: ':not(.hv-sr-only)' })).not.toBeInTheDocument()
-  })
-
-  it('clears transient pencil emphasis after speech finishes', () => {
-    voice.status = 'speaking'
-    voice.answer = 'Oma says segenggam.'
-    voice.target = { answer: voice.answer, target: 'ingredients', ingredient: 'coconut' }
-    const { rerender } = render(<HomeViewBoard />)
-    act(() => voice.onTarget?.(voice.target as GrandkidsAnswer))
-    expect(screen.getByText('Coconut').closest('li')).toHaveClass('is-voice-target')
-
-    voice.status = 'idle'
-    rerender(<HomeViewBoard />)
-
-    expect(screen.getByText('Coconut').closest('li')).not.toHaveClass('is-voice-target')
-  })
-
-  it('cancels an active session before Adjust starts another', () => {
-    voice.status = 'listening'
-    render(<HomeViewBoard />)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Adjust recipe by voice' }))
-
-    expect(voice.cancel).toHaveBeenCalledOnce()
-    expect(voice.start).toHaveBeenCalledOnce()
-    expect(voice.cancel.mock.invocationCallOrder[0]).toBeLessThan(voice.start.mock.invocationCallOrder[0])
-  })
-
-  it('keeps microphone errors inside the square and leaves Adjust usable', () => {
-    voice.status = 'error'
-    voice.errorMessage = 'I can’t use the microphone. Try again or check permission.'
-    render(<HomeViewBoard />)
-
-    const square = screen.getByTestId('grandkids-square')
-    expect(within(square).getByText(voice.errorMessage)).toBeInTheDocument()
-    expect(within(square).getByRole('button', { name: 'Adjust recipe by voice' })).toBeEnabled()
+    advance(4300 + 5000)
+    expect(screen.getByText('Ginger + lime zest')).toBeInTheDocument()
+    expect(screen.queryByText('Kencur')).not.toBeInTheDocument()
   })
 
   it('keeps visible family ingredient wording aligned with the grounding context', () => {

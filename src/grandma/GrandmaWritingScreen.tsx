@@ -91,7 +91,7 @@ export function GrandmaWritingScreen({ title, transcript }: { title: string; tra
             {story.slice(splitAt).map((paragraph, index) => <WrittenLine text={paragraph} index={index + splitAt + 1} writingTime={writingTime} key={paragraph} />)}
           </div>
         </div>
-        <img className="story-book__traveler" src="/assets/grandma-writer.png" alt="Moldable character writing with a silver pencil" width="1100" height="950" />
+        <img className="story-book__traveler" src="/assets/mascot-writer-blue.png" alt="Moldable character writing with a silver pencil" width="1100" height="950" />
       </section>
       {copyState === 'error' ? <p className="story-book__status" role="status">Couldn’t copy the link. Try again.</p> : null}
     </article>

@@ -1,5 +1,8 @@
 :root {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-stretch: 94%;
+  font-weight: 300;
+  letter-spacing: -0.012em;
   color: #171817;
   background: #fff;
   font-synthesis: none;
@@ -74,11 +77,48 @@ button {
 .project-bar__brand {
   position: absolute;
   left: 22px;
-  display: block;
   width: 104px;
   height: 34px;
-  object-fit: contain;
 }
+
+.moldable-wordmark {
+  display: inline-flex;
+  align-items: center;
+  color: #050505;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.moldable-wordmark__name {
+  display: inline-flex;
+  font-family: var(--font-display);
+  font-size: 1em;
+  font-stretch: 100%;
+  font-weight: 300;
+  letter-spacing: -.075em;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.moldable-wordmark__join {
+  position: relative;
+  display: inline-flex;
+  margin-left: -.025em;
+  letter-spacing: -.115em;
+}
+
+.moldable-wordmark__join::after {
+  position: absolute;
+  top: .55em;
+  left: .48em;
+  width: .22em;
+  border-top: .055em solid currentColor;
+  border-radius: 50%;
+  content: '';
+  transform: rotate(-7deg);
+  transform-origin: left center;
+}
+
+.project-bar__brand { font-size: 29px; }
 
 .project-pill,
 .project-pill__actions {
@@ -228,7 +268,7 @@ button {
     inset 0 1px 0 #fff;
   color: #000;
   font-size: 17px;
-  font-weight: 500;
+  font-weight: 300;
   letter-spacing: -0.02em;
   cursor: pointer;
   transition: box-shadow 180ms ease, transform 180ms ease;
@@ -291,7 +331,7 @@ button {
   width: min(680px, calc(100vw - 48px));
   margin: 52px auto 80px;
   color: #171817;
-  font-family: Baskerville, 'Iowan Old Style', 'Palatino Linotype', serif;
+  font-family: var(--font-sans);
   background: #fff;
   animation: article-arrives 420ms cubic-bezier(.2,.8,.2,1) both;
 }
@@ -304,7 +344,7 @@ button {
 
 .recipe-article__eyebrow {
   color: #676964;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   font-size: 10px;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -313,7 +353,7 @@ button {
 .recipe-article h1 {
   margin: 10px 0 14px;
   font-size: clamp(48px, 8vw, 78px);
-  font-weight: 400;
+  font-weight: 300;
   line-height: .94;
   letter-spacing: -.055em;
 }
@@ -321,7 +361,7 @@ button {
 .recipe-article h2 {
   margin: 0 0 18px;
   font-size: 23px;
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .recipe-article__dek {
@@ -399,7 +439,7 @@ button {
   background: transparent;
   color: #1f201e;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 300;
   letter-spacing: -.01em;
   cursor: pointer;
   transition: background-color 120ms ease-out, color 120ms ease-out, transform 100ms ease-out;
@@ -458,7 +498,7 @@ button {
   margin: 0;
   color: #6d716c;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 300;
   letter-spacing: .15em;
   text-transform: uppercase;
 }
@@ -497,7 +537,7 @@ button {
     repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(55, 57, 51, .055) 32px),
     var(--paper);
   background-position: 0 122px;
-  font-family: Baskerville, 'Iowan Old Style', 'Palatino Linotype', serif;
+  font-family: var(--font-sans);
 }
 
 .story-book__header {
@@ -510,9 +550,9 @@ button {
 
 .story-book__header span {
   color: var(--muted-ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 300;
   letter-spacing: .14em;
   text-transform: uppercase;
 }
@@ -520,7 +560,7 @@ button {
 .story-book__header h1 {
   margin: 10px 0 12px;
   font-size: clamp(52px, 6vw, 84px);
-  font-weight: 400;
+  font-weight: 300;
   line-height: .9;
   letter-spacing: -.055em;
   text-wrap: balance;
@@ -566,13 +606,13 @@ button {
 .story-book__writing h2 {
   margin-bottom: 16px;
   font-size: 21px;
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .story-book__footer-note {
   margin: 30px 0 0;
   color: var(--muted-ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
   font-size: 11px;
   letter-spacing: .02em;
 }
@@ -646,7 +686,7 @@ button {
   padding: 0;
   border-radius: 0;
   background: transparent;
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .story-book__action:hover {
@@ -704,7 +744,7 @@ button {
   margin: 16% 10% 0;
   grid-template-rows: repeat(2, minmax(0, 1fr));
   align-items: center;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .story-book__written-line {
@@ -712,7 +752,7 @@ button {
   margin: 0;
   color: #282926;
   font-size: clamp(14px, 1.25vw, 18px);
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.55;
   letter-spacing: -.012em;
   text-wrap: pretty;
@@ -732,7 +772,7 @@ button {
 
 .story-book__written-page h2 {
   font-size: clamp(17px, 1.55vw, 22px);
-  font-weight: 600;
+  font-weight: 300;
 }
 
 .story-book__tidy-page {
@@ -741,7 +781,7 @@ button {
   height: 100%;
   flex-direction: column;
   padding: 14% 10% 8%;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .story-book__tidy-page--right {
@@ -756,7 +796,7 @@ button {
   max-width: 22ch;
   margin-bottom: 12px;
   font-size: clamp(22px, 2.1vw, 30px);
-  font-weight: 600;
+  font-weight: 300;
   line-height: 1.08;
   letter-spacing: -.035em;
 }
@@ -772,7 +812,7 @@ button {
   margin: 0 0 18px;
   color: #777872;
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 300;
   letter-spacing: .14em;
   text-transform: uppercase;
 }
@@ -801,7 +841,7 @@ button {
   position: absolute;
   top: .1em;
   left: 0;
-  content: '–';
+  content: '·';
 }
 
 .story-book__method {
@@ -822,7 +862,7 @@ button {
   padding: 2px 0 2px 16px;
   border-left: 1px solid #9b9c96;
   color: #555650;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-sans);
   font-size: clamp(13px, 1vw, 15px);
   font-style: italic;
   line-height: 1.5;

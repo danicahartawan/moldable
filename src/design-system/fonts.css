@@ -16,3 +16,13 @@
   font-style: italic;
   font-display: swap;
 }
+
+/* Inter Tight variable (wght 100–900), SIL Open Font License — see /fonts/InterTight-OFL.txt.
+   Free stand-in for the tight neo-grotesk look of NB International / PP Neue Montreal. */
+@font-face {
+  font-family: "Inter Tight";
+  src: url("/fonts/InterTight-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

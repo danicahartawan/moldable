@@ -51,3 +51,13 @@ export function DotSpinner() {
     </svg>
   )
 }
+
+// Record glyph: outlined ring with a solid coral core.
+export function RecordIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg className="md-icon md-icon--record" width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="10" cy="10" r="4.6" fill="#df7774" />
+    </svg>
+  )
+}

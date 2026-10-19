@@ -43,7 +43,7 @@ function rrShape(w: number, h: number, r: number) {
 }
 
 /** Builds the scene into `canvas`, keeps `screen` fitted to the device glass every frame, and returns a cleanup. */
-export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement) {
+export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPerspective: () => 'grandma' | 'grandkids' = () => 'grandkids') {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
   renderer.shadowMap.enabled = true
@@ -107,6 +107,31 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement) {
     g.fillStyle = 'rgba(25,16,10,.55)'; g.fillRect(0, hh * 0.78, w, hh * 0.22)
   }, undefined, true)
 
+  // Grandma's kitchen: teak, woven bamboo, hand-painted tile and morning light.
+  const grandmaRoomTex = canvasTex(256, 128, (g, w, hh) => {
+    const plaster = g.createLinearGradient(0, 0, w, hh)
+    plaster.addColorStop(0, '#8c5b35'); plaster.addColorStop(0.5, '#bd8755'); plaster.addColorStop(1, '#704328')
+    g.fillStyle = plaster; g.fillRect(0, 0, w, hh)
+    g.fillStyle = '#cda66d'; g.fillRect(0, 0, 76, 88)
+    g.strokeStyle = 'rgba(91,54,26,.22)'; g.lineWidth = 1
+    for (let x = -90; x < 160; x += 6) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 90, 90); g.stroke() }
+    for (let x = 0; x < 250; x += 6) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x - 90, 90); g.stroke() }
+    g.fillStyle = '#4f2d1d'; g.fillRect(184, 6, 72, 83); g.fillRect(84, 18, 82, 7)
+    g.fillStyle = '#2d1b14'; g.fillRect(88, 22, 74, 3)
+    ;[[98, 13, '#b86d37'], [119, 12, '#d0a35d'], [143, 14, '#734732']].forEach(([x, r, color]) => {
+      g.fillStyle = color as string; g.beginPath(); g.ellipse(x as number, 19, (r as number) * .45, (r as number) * .34, 0, Math.PI, 0); g.fill()
+    })
+    g.fillStyle = '#ded2ad'; g.fillRect(0, 88, w, 26)
+    for (let x = 0; x < w; x += 16) {
+      g.strokeStyle = '#765a4a'; g.strokeRect(x + 1, 89, 14, 14)
+      g.fillStyle = x % 32 ? '#77907a' : '#a85f47'; g.beginPath(); g.arc(x + 8, 96, 3, 0, 7); g.fill()
+    }
+    g.fillStyle = 'rgba(35,18,10,.58)'; g.fillRect(0, 114, w, 14)
+    const light = g.createRadialGradient(43, 25, 2, 43, 25, 95)
+    light.addColorStop(0, 'rgba(255,236,183,.76)'); light.addColorStop(1, 'rgba(255,224,172,0)')
+    g.fillStyle = light; g.fillRect(0, 0, w, hh)
+  }, undefined, true)
+
   const meshTex = canvasTex(512, 256, (g, w, hh) => {
     g.fillStyle = '#b9b6b0'; g.fillRect(0, 0, w, hh)
     g.fillStyle = '#3c3a37'
@@ -133,9 +158,13 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement) {
   table.position.set(0, -2, -40)
   table.receiveShadow = true
   scene.add(table)
-  const room = new THREE.Mesh(new THREE.PlaneGeometry(900, 450), new THREE.MeshBasicMaterial({ map: roomTex, toneMapped: false }))
+  const roomMaterial = new THREE.MeshBasicMaterial({ map: roomTex, toneMapped: false, transparent: true })
+  const grandmaRoomMaterial = new THREE.MeshBasicMaterial({ map: grandmaRoomTex, toneMapped: false, transparent: true, opacity: 0 })
+  const room = new THREE.Mesh(new THREE.PlaneGeometry(900, 450), roomMaterial)
+  const grandmaRoom = new THREE.Mesh(new THREE.PlaneGeometry(900, 450), grandmaRoomMaterial)
   room.position.set(60, 120, -420)
-  scene.add(room)
+  grandmaRoom.position.set(60, 120, -419)
+  scene.add(room, grandmaRoom)
 
   // Things on the table
   const plateMat = std({ color: '#2b2c2e', roughness: 0.35 })
@@ -272,6 +301,7 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement) {
 
   let raf = 0
   let last = performance.now()
+  let grandmaMix = getPerspective() === 'grandma' ? 1 : 0
   const frame = (now: number) => {
     const dt = Math.min(0.05, (now - last) / 1000)
     last = now
@@ -279,6 +309,10 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement) {
     const amt = reduce ? 0 : 1
     mouse.sx += (mouse.x - mouse.sx) * Math.min(1, dt * 3)
     mouse.sy += (mouse.y - mouse.sy) * Math.min(1, dt * 3)
+    const roomTarget = getPerspective() === 'grandma' ? 1 : 0
+    grandmaMix += (roomTarget - grandmaMix) * Math.min(1, dt * (reduce ? 100 : 2.8))
+    grandmaRoomMaterial.opacity = grandmaMix
+    roomMaterial.opacity = 1 - grandmaMix
     camera.position.set(target.x + mouse.sx * 2.6 * amt, target.y + 4.5 - mouse.sy * 1.4 * amt, target.z + d)
     camera.lookAt(target)
     ;(bokeh.uniforms as Record<string, THREE.IUniform>).focus.value = camera.position.distanceTo(target) + 1

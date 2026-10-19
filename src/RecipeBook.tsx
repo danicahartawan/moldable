@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import { Check, LinkSimple, MagicWand } from '@phosphor-icons/react'
 
 const fullStory = [
-  'First, toast the coconut until properly golden. It should smell warm and nutty, like the edge of a coconut biscuit. While it cools, pound half the onions and garlic with sambal trassi, kencur, pepper and kaffir lime leaves. The paste should smell sharp, citrusy and a little funky — that means it has enough life.',
+  'First, toast the coconut until properly golden. It should smell warm and nutty, like the edge of a coconut biscuit. While it cools, pound half the onions and garlic with sambal trassi, kencur, pepper and kaffir lime leaves. The paste should smell sharp, citrusy and a little funky, which means it has enough life.',
   'Warm a little oil and fry the remaining onions and garlic, then add the spice paste. When the raw smell turns sweet and the lime leaf perfume reaches you, it is ready. I used to cook this while Nev sat nearby. One day he arrived very quiet after shaving off one eyebrow. He thought I would not notice. A grandmother always notices; I nearly burned the onions laughing.',
-  'Then in goes the pork — all 500 grams — with the toasted coconut. Break it apart so every crumb catches the spices. The pan will smell rich, smoky and bright. Cook until no pink remains and the edges begin to brown. Taste it: the pork should be juicy and savoury, with warm spice, gentle chilli and crisp little flecks of coconut.',
-  'Turn off the heat before stirring through lime juice and chopped chives. The lime should wake everything up, while the chives taste fresh against the rich pork. Add salt and pepper until you immediately want another bite. Spoon it over hot white pandan rice. To me, lelawar tastes fragrant, bright and a little fiery — a noisy family kitchen in one bowl.',
+  'Then in goes the pork, all 500 grams, with the toasted coconut. Break it apart so every crumb catches the spices. The pan will smell rich, smoky and bright. Cook until no pink remains and the edges begin to brown. Taste it: the pork should be juicy and savoury, with warm spice, gentle chilli and crisp little flecks of coconut.',
+  'Turn off the heat before stirring through lime juice and chopped chives. The lime should wake everything up, while the chives taste fresh against the rich pork. Add salt and pepper until you immediately want another bite. Spoon it over hot white pandan rice. To me, lelawar tastes fragrant, bright and a little fiery, a noisy family kitchen in one bowl.',
 ]
 
 const tidyIngredients = [
@@ -85,7 +85,7 @@ function TidyRecipe({ writingTime }: { writingTime: number }) {
             </ul>
           </section>
           <WrittenLine
-            text="“Toast the coconut until it smells like the edge of a biscuit.” — Grandma"
+            text="“Toast the coconut until it smells like the edge of a biscuit.” Grandma"
             lineIndex={1}
             writingTime={writingTime}
             as="blockquote"
@@ -104,7 +104,7 @@ function TidyRecipe({ writingTime }: { writingTime: number }) {
             </ol>
           </section>
           <WrittenLine
-            text="“Nev once shaved off one eyebrow while I made this. He thought I would not notice. A grandmother always notices.” — Grandma"
+            text="“Nev once shaved off one eyebrow while I made this. He thought I would not notice. A grandmother always notices.” Grandma"
             lineIndex={3}
             writingTime={writingTime}
             as="blockquote"
@@ -193,7 +193,7 @@ export function RecipeBook() {
         </div></>}
         <img
           className="story-book__traveler"
-          src="/assets/grandma-writer.png"
+          src="/assets/mascot-writer-blue.png"
           alt="Moldable character writing with a silver pencil"
           width="1100"
           height="950"

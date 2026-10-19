@@ -58,10 +58,10 @@ export function RecordBoard() {
             )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <p className="b-muted" style={{ margin: 0, fontSize: 11, lineHeight: '14px', fontWeight: 500 }}>{live ? 'New recipe, listening' : 'New recipe, paused'}</p>
-            <p style={{ margin: 0, fontSize: 24, lineHeight: '28px', fontWeight: 600, letterSpacing: '-0.01em' }}>
+            <p className="b-muted" style={{ margin: 0, fontSize: 11, lineHeight: '14px', fontWeight: 300 }}>{live ? 'New recipe, listening' : 'New recipe, paused'}</p>
+            <p style={{ margin: 0, fontSize: 24, lineHeight: '28px', fontWeight: 300, letterSpacing: '-0.01em' }}>
               {live ? 'Oma Lien is talking' : 'Saved as a draft'}{' '}
-              <span className="b-muted b-tabular" style={{ fontWeight: 400 }}>{mm}:{ss < 10 ? '0' : ''}{ss}</span>
+              <span className="b-muted b-tabular" style={{ fontWeight: 300 }}>{mm}:{ss < 10 ? '0' : ''}{ss}</span>
             </p>
           </div>
           <div role="img" aria-label="Voice level" style={{ display: 'flex', alignItems: 'center', gap: 3, height: 40, width: 70 }}>
@@ -99,7 +99,7 @@ export function RecordBoard() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button type="button" className="b-press" aria-expanded={think} onClick={() => setThink((t) => !t)}
-              style={{ alignSelf: 'flex-start', height: 30, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 10px', border: 0, borderRadius: 'var(--radius-sm)', background: 'var(--magenta-soft)', color: 'var(--magenta-ink)', fontSize: 14, fontWeight: 500 }}>
+              style={{ alignSelf: 'flex-start', height: 30, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 10px', border: 0, borderRadius: 'var(--radius-sm)', background: 'var(--magenta-soft)', color: 'var(--magenta-ink)', fontSize: 14, fontWeight: 300 }}>
               Understanding
               <BoardIcon name="chevUp" size={14} stroke={2} style={{ transform: `rotate(${think ? 0 : 180}deg)`, transition: 'transform 240ms cubic-bezier(0.3, 1.4, 0.5, 1)' }} />
             </button>
@@ -133,7 +133,7 @@ export function RecordBoard() {
           {HEARD.slice(0, shown).map((c) => (
             <article key={c.title} className="b-blurin b-card" style={{ background: 'var(--flour)', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                <p style={{ margin: 0, fontSize: 18, lineHeight: '24px', fontWeight: 600 }}>{c.title}</p>
+                <p style={{ margin: 0, fontSize: 18, lineHeight: '24px', fontWeight: 300 }}>{c.title}</p>
                 {c.ask ? (
                   <span className="b-blurin b-pillbadge" style={{ background: 'var(--yolk-soft)', color: 'var(--yolk-ink)' }}>Needs a look: {c.ask}</span>
                 ) : (
@@ -148,7 +148,7 @@ export function RecordBoard() {
           ))}
           {live && (
             <article className="b-dashed" style={{ border: '1.5px dashed var(--ink-faint)', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <p className="b-muted" style={{ margin: 0, fontSize: 18, lineHeight: '24px', fontWeight: 600 }}>Step {shown + 3}, listening…</p>
+              <p className="b-muted" style={{ margin: 0, fontSize: 18, lineHeight: '24px', fontWeight: 300 }}>Step {shown + 3}, listening…</p>
               <div style={{ height: 10, width: `${typing}%`, borderRadius: 4, background: 'var(--line)', transition: 'width 300ms ease' }} />
             </article>
           )}

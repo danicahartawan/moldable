@@ -70,7 +70,7 @@ function CardFace({ r }: { r: Recipe }) {
           <span aria-hidden="true" className="ex-shade" />
         </>
       )}
-      <span className="ex-meta" style={{ color: r.ink }}>{r.mins} mins<br /><span style={{ fontWeight: 400 }}>{r.level}</span></span>
+      <span className="ex-meta" style={{ color: r.ink }}>{r.mins} mins<br /><span style={{ fontWeight: 300 }}>{r.level}</span></span>
       <span className="ex-name" style={{ color: r.ink }}>{r.name}</span>
     </>
   )
@@ -217,7 +217,7 @@ export function ExploreBoard() {
         </div>
         <div aria-hidden="true" className="ex-dots">
           {BOOKS.map((b, i) => (
-            <span key={b.label} style={{ width: i === book ? 18 : 6, background: i === book ? 'var(--ink)' : 'var(--line)' }} />
+            <span key={b.label} style={{ width: i === book ? 18 : 6, background: i === book ? '#fff' : 'rgba(255, 255, 255, .45)' }} />
           ))}
         </div>
 
@@ -253,7 +253,7 @@ export function ExploreBoard() {
                     <span aria-hidden="true" className="ex-shade" />
                   </>
                 )}
-                <p className="ex-pick__meta" style={{ color: picked.ink }}>{picked.mins} mins<br /><span style={{ fontWeight: 400 }}>{picked.level}</span></p>
+                <p className="ex-pick__meta" style={{ color: picked.ink }}>{picked.mins} mins<br /><span style={{ fontWeight: 300 }}>{picked.level}</span></p>
                 <p className="ex-pick__name" style={{ color: picked.ink }}>{picked.name}</p>
               </div>
               <p className="hv-voice__small">{BOOKS[book].from}</p>

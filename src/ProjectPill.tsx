@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, type CSSProperties, type ReactNode, typ
 import { DotSpinner, Icon, type IconName } from './Icon'
 import { useVoiceRecorder } from './useVoiceRecorder'
 import { RecipeBook } from './RecipeBook'
+import { MoldableWordmark } from './MoldableWordmark'
 
 type Project = {
   label: string
@@ -49,7 +50,7 @@ const projects: Project[] = [
         </defs>
         <rect x="2" y="4" width="36" height="25" rx="4" fill="url(#tolan-gradient)" />
         <circle cx="28" cy="12" r="7" fill="#7665e8" opacity=".9" />
-        <text x="6" y="22" fontSize="10" fontWeight="800" fill="#222">To</text>
+        <text x="6" y="22" fontSize="10" fontWeight="300" fill="#222">To</text>
       </svg>
     ),
   },
@@ -69,7 +70,7 @@ const projects: Project[] = [
     label: 'Groth',
     artwork: (
       <svg viewBox="0 0 48 28" aria-hidden="true">
-        <text x="1" y="19" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="800" fill="#111">Groth</text>
+        <text x="1" y="19" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="300" fill="#111">Groth</text>
       </svg>
     ),
   },
@@ -195,7 +196,7 @@ export function ProjectPill() {
   return (
     <div className="project-bar-stack">
       <div className="project-bar">
-        <img className="project-bar__brand" src="/assets/moldable-logo.png" alt="Moldable" />
+        <MoldableWordmark className="project-bar__brand" />
         <div
           className="project-pill"
           role="group"

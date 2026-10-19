@@ -24,6 +24,7 @@ export function GuidingQuestionRail({ activeIndex }: { activeIndex: number }) {
           <p
             className="grandma-question-rail__question"
             data-offset={offset}
+            data-state={isActive ? 'active' : offset < 0 ? 'leaving' : 'waiting'}
             aria-hidden={isActive ? undefined : true}
             aria-live={isActive ? 'polite' : undefined}
             key={question}
