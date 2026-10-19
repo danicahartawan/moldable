@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { KitchenMockup } from './KitchenMockup'
 
@@ -48,8 +48,8 @@ describe('KitchenMockup perspectives', () => {
     expect(within(instruction).getByText('Step 1')).toBeInTheDocument()
     expect(within(instruction).getByRole('img', { name: 'Moldable mascot' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Step 1' })).not.toBeInTheDocument()
-    expect(within(instruction).getByText('Blender')).toHaveClass('instruction-chip')
-    expect(within(instruction).getByText('Blend half the onions, garlic, sambal, kencur, pepper, and lime leaves into a fine paste.')).toBeInTheDocument()
+    expect(within(instruction).getByText('Blend')).toHaveClass('instruction-chip')
+    expect(within(instruction).getByText('half the onions, garlic, sambal, kencur, pepper, and lime leaves into a fine paste.')).toBeInTheDocument()
     expect(within(instruction).queryByRole('button', { name: 'Back to recipe' })).not.toBeInTheDocument()
   })
 
@@ -92,17 +92,17 @@ describe('KitchenMockup perspectives', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
 
     let instruction = screen.getByRole('region', { name: 'Recipe instruction step 1' })
-    expect(within(instruction).getByText('Blender')).toHaveClass('instruction-chip')
+    expect(within(instruction).getByText('Blend')).toHaveClass('instruction-chip')
     expect(instruction).toHaveTextContent('Blend half the onions')
 
     fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
     instruction = screen.getByRole('region', { name: 'Recipe instruction step 2' })
-    expect(within(instruction).getByText('Dry pan')).toHaveClass('instruction-chip')
+    expect(within(instruction).getByText('Toast')).toHaveClass('instruction-chip')
     expect(instruction).toHaveTextContent('Toast the coconut flour')
 
     fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
     instruction = screen.getByRole('region', { name: 'Recipe instruction step 3' })
-    expect(within(instruction).getByText('Sauté pan')).toHaveClass('instruction-chip')
+    expect(within(instruction).getByText('Sauté')).toHaveClass('instruction-chip')
     expect(instruction).toHaveTextContent('Sauté the remaining onions')
 
     fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
@@ -110,5 +110,27 @@ describe('KitchenMockup perspectives', () => {
     expect(instruction.querySelector('.instruction-chip')).not.toBeInTheDocument()
     expect(within(instruction).queryByText('Rice pot')).not.toBeInTheDocument()
     expect(instruction).toHaveTextContent('Serve over white pandan rice.')
+  })
+
+  it('starts Grandma talking on each slide, with the finger story on step two', async () => {
+    vi.useFakeTimers()
+    render(<KitchenMockup />)
+    fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
+    const reply = () => document.querySelector('.instruction-reply')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(6_000) })
+    expect(reply()).toHaveTextContent('Blend the aromatics first')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
+    await act(async () => { await vi.advanceTimersByTimeAsync(6_000) })
+    expect(reply()).toHaveTextContent('Keep the coconut moving')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(6_000) })
+    expect(reply()).toHaveTextContent('No, you didn’t!')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(9_000) })
+    expect(reply()).toHaveTextContent('so eager to cut the onions')
+    vi.useRealTimers()
   })
 })

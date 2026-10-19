@@ -39,28 +39,6 @@ const demoStorySegments = [
   'This one is ours.',
 ] as const
 
-const DEMO_REPLY_DELAY = 10_000
-const DEMO_REPLY_GAP = 3_200
-const DEMO_REPLY_FIRST = 'No, you didn’t.'
-const DEMO_REPLY_SECOND = 'No, you didn’t! You were just so eager to cut the onions. Grandma said, “Slow down, little one. The knife has more patience than you do.”'
-
-async function speakReply(text: string) {
-  if (typeof Audio === 'undefined' || typeof fetch === 'undefined') return
-  try {
-    const response = await fetch('/api/grandkids/speak', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    })
-    if (!response.ok) return
-    const audio = new Audio(URL.createObjectURL(await response.blob()))
-    audio.onended = () => URL.revokeObjectURL(audio.src)
-    await audio.play()
-  } catch {
-    // The typed reply still shows when the voice is unavailable.
-  }
-}
-
 const toolLabels: Record<ToolId, string> = {
   blend: 'Blend',
   microwave: 'Microwave',
@@ -108,7 +86,7 @@ export function GrandmaPage() {
     }
     if (!clock.started) {
       clock.started = true
-      // Grandma gives one sentence, then goes quiet so the cook can ask about the finger.
+      // Grandma gives one sentence, then goes quiet; the finger story continues on the Grandkids side.
       setDemoTranscript(demoStorySegments[0])
     }
     if (isPaused) return
@@ -119,12 +97,6 @@ export function GrandmaPage() {
       const delay = Math.max(0, at - (clock.elapsed + Date.now() - begin))
       timers.push(window.setTimeout(fn, delay))
     }
-    const reply = (text: string) => {
-      setDemoTranscript((current) => `${current} ${text}`)
-      void speakReply(text)
-    }
-    if (clock.replies < 1) after(DEMO_REPLY_DELAY, () => { clock.replies = 1; reply(DEMO_REPLY_FIRST) })
-    if (clock.replies < 2) after(DEMO_REPLY_DELAY + DEMO_REPLY_GAP, () => { clock.replies = 2; reply(DEMO_REPLY_SECOND) })
     const scheduleQuestion = () => {
       const index = clock.questions
       after(2_000 + index * 10_000, () => {

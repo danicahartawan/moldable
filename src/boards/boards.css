@@ -350,7 +350,7 @@
 .hv-amt { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
 
 
-.hv-wave { align-self: flex-start; padding: 6px 14px; border-radius: 9px; background: #fff; color: #0f8f94; font-size: 16px; line-height: 20px; font-weight: 300; animation: hv-wave-glow 2.4s ease-in-out infinite; }
+.hv-wave { align-self: flex-start; padding: 6px 14px; border-radius: 0; background: #fff; color: #0f8f94; font-size: 16px; line-height: 20px; font-weight: 300; animation: hv-wave-glow 2.4s ease-in-out infinite; }
 
 .hv-adjust { position: absolute; z-index: 5; right: 20px; bottom: 20px; display: inline-flex; height: 34px; align-items: center; gap: 8px; padding: 0 14px 0 10px; border: 0; border-radius: 0; background: #fff; color: #000; font-size: 14px; line-height: 18px; font-weight: 300; box-shadow: 0 1px 2px rgba(40, 70, 110, .1); }
 .hv-adjust:focus-visible { outline: 0; }

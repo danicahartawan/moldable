@@ -484,6 +484,8 @@
 }
 
 .grandma-transcript-screen > * { position: relative; z-index: 1; }
+/* The Tidy loading fog overlays the screen instead of taking a grid row. */
+.grandma-transcript-screen > .hv-fog { position: absolute; z-index: 20; }
 
 .grandma-transcript-screen__widget {
   position: relative;

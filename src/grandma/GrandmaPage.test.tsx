@@ -98,7 +98,7 @@ describe('GrandmaPage', () => {
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 
-  it('says one sentence, pauses, then answers the finger question in Grandma’s voice', async () => {
+  it('says one sentence, then goes quiet', async () => {
     vi.useFakeTimers()
     render(<GrandmaPage />)
     fireEvent.click(screen.getByRole('button', { name: 'Record' }))
@@ -106,16 +106,9 @@ describe('GrandmaPage', () => {
 
     const transcript = () => screen.getByRole('region', { name: 'Live transcript' })
     expect(transcript()).toHaveTextContent('Take half an onion, garlic, chili, kencur, pepper, and lime leaves.')
-    act(() => { vi.advanceTimersByTime(9_000) })
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000) })
     expect(transcript()).not.toHaveTextContent('No, you didn’t.')
     expect(transcript()).not.toHaveTextContent('Don’t make it completely watery')
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(2_000) })
-    expect(transcript()).toHaveTextContent('No, you didn’t.')
-    expect(transcript()).not.toHaveTextContent('so eager to cut the onions')
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(10_000) })
-    expect(transcript()).toHaveTextContent('You were just so eager to cut the onions.')
     expect(document.querySelectorAll('.grandma-transcript-tool-chip[data-tool="blend"]')).toHaveLength(1)
   })
 

@@ -5,20 +5,23 @@ import { useEffect, useRef, useState } from 'react'
 import { ExploreBoard } from '@/boards/Explore'
 import { HomeViewBoard } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
+import { GrandmaReply } from './GrandmaReply'
 
 type Perspective = 'grandma' | 'grandkids' | 'explore'
 
 type Instruction = {
   step: number
   tool?: 'Blender' | 'Dry pan' | 'Sauté pan'
+  // The cooking verb is shown as the chip, so the sentence continues without repeating it.
+  verb?: string
   text: string
   ingredients: string[]
 }
 
 const INSTRUCTIONS: Instruction[] = [
-  { step: 1, tool: 'Blender', text: 'Blend half the onions, garlic, sambal, kencur, pepper, and lime leaves into a fine paste.', ingredients: ['Onion', 'Garlic', 'Sambal', 'Pepper', 'Lime leaves'] },
-  { step: 2, tool: 'Dry pan', text: 'Toast the coconut flour in a dry pan until golden brown.', ingredients: ['Coconut flour'] },
-  { step: 3, tool: 'Sauté pan', text: 'Sauté the remaining onions, garlic, and the spice paste in a little oil until fragrant. Add the ground pork and roasted coconut, cooking thoroughly until the meat is done. Stir in lime juice and fresh chives.', ingredients: ['Onion', 'Garlic', 'Spice paste', 'Oil', 'Pork', 'Coconut', 'Lime', 'Chives'] },
+  { step: 1, tool: 'Blender', verb: 'Blend', text: 'half the onions, garlic, sambal, kencur, pepper, and lime leaves into a fine paste.', ingredients: ['Onion', 'Garlic', 'Sambal', 'Pepper', 'Lime leaves'] },
+  { step: 2, tool: 'Dry pan', verb: 'Toast', text: 'the coconut flour in a dry pan until golden brown.', ingredients: ['Coconut flour'] },
+  { step: 3, tool: 'Sauté pan', verb: 'Sauté', text: 'the remaining onions, garlic, and the spice paste in a little oil until fragrant. Add the ground pork and roasted coconut, cooking thoroughly until the meat is done. Stir in lime juice and fresh chives.', ingredients: ['Onion', 'Garlic', 'Spice paste', 'Oil', 'Pork', 'Coconut', 'Lime', 'Chives'] },
   { step: 4, text: 'Serve over white pandan rice.', ingredients: ['Pandan rice'] },
 ]
 
@@ -44,7 +47,19 @@ const INGREDIENT_DETAILS: Record<string, { Icon: PhosphorIcon; amount: string }>
   'Pandan rice': { Icon: BowlFood, amount: '2 cups' },
 }
 
-function InstructionCard({ instruction }: { instruction: Instruction }) {
+// Grandma talks on every slide as soon as it arrives. Step two also holds the pause for "do you remember when I cut my finger?".
+const GRANDMA_LINES: Record<number, readonly { text: string; at: number }[]> = {
+  1: [{ text: 'Blend the aromatics first, little one. Don’t make it watery; you should still see a little texture.', at: 800 }],
+  2: [
+    { text: 'Keep the coconut moving. It burns very quickly, so trust the color more than the clock.', at: 800 },
+    { text: 'No, you didn’t!', at: 11_000 },
+    { text: 'No, you didn’t! You were just so eager to cut the onions. Grandma said, “Slow down, little one. The knife has more patience than you do.”', at: 14_000 },
+  ],
+  3: [{ text: 'Listen to the pan. When the sound turns sharp and the oil begins to separate, the spices are cooked.', at: 800 }],
+  4: [{ text: 'Serve it while it is still warm. Put everything in the middle of the table and let everyone take what they want.', at: 800 }],
+}
+
+function InstructionCard({ instruction, live = false }: { instruction: Instruction; live?: boolean }) {
   const [ingredientsOpen, setIngredientsOpen] = useState(false)
 
   return (
@@ -53,13 +68,16 @@ function InstructionCard({ instruction }: { instruction: Instruction }) {
         <p className="instruction-card__label">Step {instruction.step}</p>
         <div className={`instruction-card__copy${instruction.step === 3 ? ' is-long' : ''}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="instruction-card__mascot" src="/assets/mascot-gradient.png" alt="Moldable mascot" />
+          <div className="instruction-card__mascot-row">
+            <img className="instruction-card__mascot" src="/assets/mascot-gradient.png" alt="Moldable mascot" />
+            {live && <GrandmaReply lines={GRANDMA_LINES[instruction.step]} />}
+          </div>
           <p>
             {instruction.tool && <><span className="instruction-chip" data-tool={instruction.tool}>
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
                 <ToolIcon tool={instruction.tool} />
               </svg>
-              {instruction.tool}
+              {instruction.verb ?? instruction.tool}
             </span>{' '}</>}
             <span>{instruction.text}</span>
           </p>
@@ -190,7 +208,7 @@ export function KitchenMockup() {
             )}
             {instructionStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--in${slideBack ? ' is-back' : ''}`} key={instructionStep}>
-                <InstructionCard instruction={INSTRUCTIONS[instructionStep - 1]} />
+                <InstructionCard instruction={INSTRUCTIONS[instructionStep - 1]} live />
               </div>
             )}
             {instructionStep !== null && (
