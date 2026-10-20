@@ -76,7 +76,7 @@ export function StoryBoard() {
         <header className="st-header">
           <div style={{ minWidth: 0 }}>
             <h1 className="st-title">Oma’s story</h1>
-            <p className="st-sub">Lelawar Bali, told by Oma Lien</p>
+            <p className="st-sub">Lawar Bali, told by Oma Lien</p>
           </div>
           <div className="st-tabs" role="tablist" aria-label="Story views">
             {TABS.map(([key, label]) => (

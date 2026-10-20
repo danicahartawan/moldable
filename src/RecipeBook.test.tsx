@@ -52,7 +52,7 @@ describe('RecipeBook writing screen', () => {
     fireEvent.click(within(view.container).getByRole('button', { name: 'Tidy story' }))
 
     expect(within(view.container).getByRole('button', { name: 'Restore full story' })).toBeInTheDocument()
-    expect(within(view.container).getByRole('heading', { name: 'Balinese Minced Pork (Lelawar Bali)' })).toBeInTheDocument()
+    expect(within(view.container).getByRole('heading', { name: 'Balinese Minced Pork (Lawar Bali)' })).toBeInTheDocument()
     expect(within(view.container).getByRole('heading', { name: 'Ingredients' })).toBeInTheDocument()
     expect(within(view.container).getByRole('heading', { name: 'Method' })).toBeInTheDocument()
     expect(within(view.container).getAllByRole('listitem')).toHaveLength(12)

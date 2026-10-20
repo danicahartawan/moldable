@@ -224,12 +224,12 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
           <div className="hv-recipe__inner">
             <div className="hv-recipe__head">
               <div style={{ minWidth: 0 }}>
-                <h1 className="hv-title">Lelawar Bali</h1>
+                <h1 className="hv-title">Lawar Bali</h1>
               </div>
             </div>
 
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="hv-photo hv-blurin" src="/assets/lelawar-oma.png" alt="Oma Lien holding a plate of lelawar" />
+            <img className="hv-photo hv-blurin" src="/assets/lelawar-oma.png" alt="Oma Lien holding a plate of lawar" />
             <p className="hv-overview hv-blurin">
               Balinese minced <Mark on={m.chicken}>{m.chicken ? 'chicken' : 'pork'}</Mark> with toasted coconut, fried in a{' '}
               <Mark on={m.mild}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</Mark> and served on pandan rice.

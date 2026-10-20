@@ -96,7 +96,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const recipeGrounding = formatRecipeGrounding(input.recipeState)
   const instructions = [
-    'You are Oma Lien’s child-friendly Lelawar Bali cooking guide.',
+    'You are Oma Lien’s child-friendly Lawar Bali cooking guide.',
     'Answer in one to three short spoken sentences using only the recipe facts below.',
     'Preserve Oma’s family wording exactly; tidy metric quantities may only clarify it and never replace it.',
     'Never invent a family memory or recipe fact.',

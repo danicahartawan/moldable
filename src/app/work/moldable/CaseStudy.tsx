@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { FeatureTour } from './FeatureTour'
+import { MoldableBlobHero } from './MoldableBlobHero'
 
 const sections = [
   ['cookbook', 'What is Moldable?'],
@@ -21,139 +23,6 @@ function Figure({ src, alt, caption, className = '' }: { src: string; alt: strin
       <img src={src} alt={alt} />
       {caption ? <figcaption>{caption}</figcaption> : null}
     </figure>
-  )
-}
-
-type HairPoint = { x: number; y: number }
-
-const initialHair: HairPoint[] = [
-  { x: 111, y: 283 }, { x: 82, y: 240 }, { x: 75, y: 180 }, { x: 88, y: 126 },
-  { x: 123, y: 85 }, { x: 178, y: 63 }, { x: 240, y: 58 }, { x: 302, y: 61 },
-  { x: 354, y: 79 }, { x: 392, y: 115 }, { x: 410, y: 168 }, { x: 406, y: 226 },
-  { x: 393, y: 281 }, { x: 371, y: 329 }, { x: 341, y: 340 }, { x: 316, y: 301 },
-  { x: 301, y: 248 }, { x: 269, y: 226 }, { x: 224, y: 224 }, { x: 181, y: 239 },
-  { x: 166, y: 296 }, { x: 141, y: 339 },
-]
-
-const initialFringe: HairPoint[] = [
-  { x: 111, y: 211 }, { x: 149, y: 188 }, { x: 190, y: 190 }, { x: 220, y: 205 },
-  { x: 258, y: 224 }, { x: 303, y: 187 }, { x: 358, y: 205 }, { x: 389, y: 235 },
-  { x: 389, y: 265 }, { x: 380, y: 310 }, { x: 344, y: 337 }, { x: 315, y: 330 },
-  { x: 304, y: 242 }, { x: 267, y: 253 }, { x: 224, y: 250 }, { x: 187, y: 238 },
-  { x: 190, y: 300 }, { x: 153, y: 337 }, { x: 122, y: 330 }, { x: 108, y: 280 },
-]
-
-function closedCurve(points: HairPoint[]) {
-  const curves = points.map((point, index) => {
-    const previous = points[(index - 1 + points.length) % points.length]
-    const next = points[(index + 1) % points.length]
-    const after = points[(index + 2) % points.length]
-    return `C ${point.x + (next.x - previous.x) / 6} ${point.y + (next.y - previous.y) / 6}, ${next.x - (after.x - point.x) / 6} ${next.y - (after.y - point.y) / 6}, ${next.x} ${next.y}`
-  })
-  return `M ${points[0].x} ${points[0].y} ${curves.join(' ')} Z`
-}
-
-function ClayCharacter() {
-  const [hair, setHair] = useState(initialHair)
-  const drag = useRef<{ index: number; x: number; y: number; points: HairPoint[] } | null>(null)
-  const hairPath = useMemo(() => closedCurve(hair), [hair])
-  const fringePath = useMemo(() => closedCurve(initialFringe.map((point) => {
-    const movement = hair.reduce<{ x: number; y: number; weight: number }>((total, hairPoint, index) => {
-      const distance = Math.hypot(point.x - initialHair[index].x, point.y - initialHair[index].y)
-      const influence = Math.exp(-(distance * distance) / 18000)
-      return {
-        x: total.x + (hairPoint.x - initialHair[index].x) * influence,
-        y: total.y + (hairPoint.y - initialHair[index].y) * influence,
-        weight: total.weight + influence,
-      }
-    }, { x: 0, y: 0, weight: 0 })
-    return {
-      x: point.x + movement.x / movement.weight * .32,
-      y: point.y + movement.y / movement.weight * .32,
-    }
-  })), [hair])
-
-  const toSvgPoint = (event: PointerEvent<SVGPathElement>) => {
-    const bounds = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
-    return {
-      x: bounds?.width ? (event.clientX - bounds.left) * 500 / bounds.width : event.clientX,
-      y: bounds?.height ? (event.clientY - bounds.top) * 430 / bounds.height : event.clientY,
-    }
-  }
-
-  const startMolding = (event: PointerEvent<SVGPathElement>) => {
-    const point = toSvgPoint(event)
-    const index = hair.reduce((nearest, candidate, candidateIndex) => {
-      const oldDistance = Math.hypot(hair[nearest].x - point.x, hair[nearest].y - point.y)
-      const newDistance = Math.hypot(candidate.x - point.x, candidate.y - point.y)
-      return newDistance < oldDistance ? candidateIndex : nearest
-    }, 0)
-    drag.current = { index, x: point.x, y: point.y, points: hair.map((item) => ({ ...item })) }
-    event.currentTarget.setPointerCapture?.(event.pointerId)
-  }
-
-  const moldHair = (event: PointerEvent<SVGPathElement>) => {
-    if (!drag.current) return
-    const point = toSvgPoint(event)
-    const rawDeltaX = point.x - drag.current.x
-    const rawDeltaY = point.y - drag.current.y
-    const distanceDragged = Math.hypot(rawDeltaX, rawDeltaY)
-    const dragScale = distanceDragged > 84 ? 84 / distanceDragged : 1
-    const deltaX = rawDeltaX * dragScale
-    const deltaY = rawDeltaY * dragScale
-    setHair(drag.current.points.map((item, index) => {
-      const directDistance = Math.abs(index - drag.current!.index)
-      const distance = Math.min(directDistance, initialHair.length - directDistance)
-      const influence = Math.exp(-(distance * distance) / 12)
-      return {
-        x: Math.max(38, Math.min(462, item.x + deltaX * influence)),
-        y: Math.max(28, Math.min(388, item.y + deltaY * influence)),
-      }
-    }))
-  }
-
-  const nudgeHair = (event: KeyboardEvent<SVGPathElement>) => {
-    const movement: Record<string, HairPoint> = {
-      ArrowLeft: { x: -8, y: 0 }, ArrowRight: { x: 8, y: 0 },
-      ArrowUp: { x: 0, y: -8 }, ArrowDown: { x: 0, y: 8 },
-    }
-    if (event.key === 'Escape') {
-      setHair(initialHair)
-      return
-    }
-    const move = movement[event.key]
-    if (!move) return
-    event.preventDefault()
-    setHair((current) => current.map((point, index) => index === 6 ? { x: point.x + move.x, y: point.y + move.y } : point))
-  }
-
-  return (
-    <div className="cs-clay-stage">
-      <p className="cs-clay-hint">Pull the hair to mold it</p>
-      <svg className="cs-clay-character" role="img" aria-label="Moldable clay character" viewBox="0 0 500 430">
-        <defs>
-          <linearGradient id="hair-clay" gradientUnits="userSpaceOnUse" x1="70" y1="50" x2="410" y2="340"><stop stopColor="#ff7448" /><stop offset="1" stopColor="#ef4f2f" /></linearGradient>
-          <linearGradient id="face-clay" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#f2d2bd" /><stop offset="1" stopColor="#d9a989" /></linearGradient>
-          <filter id="clay-texture"><feTurbulence baseFrequency=".62" numOctaves="2" seed="8" type="fractalNoise" result="noise" /><feComponentTransfer in="noise" result="softNoise"><feFuncR type="linear" slope=".12" intercept=".88" /><feFuncG type="linear" slope=".12" intercept=".88" /><feFuncB type="linear" slope=".12" intercept=".88" /></feComponentTransfer><feComposite in="softNoise" in2="SourceGraphic" operator="in" result="texture" /><feBlend in="SourceGraphic" in2="texture" mode="multiply" /></filter>
-          <filter id="clay-shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="12" stdDeviation="11" floodColor="#685b52" floodOpacity=".22" /></filter>
-        </defs>
-        <ellipse className="cs-clay-floor" cx="250" cy="374" rx="168" ry="24" />
-        <g filter="url(#clay-shadow)">
-          <path className="cs-clay-hair" role="button" aria-label="Mold the clay hair" tabIndex={0} d={hairPath} onPointerDown={startMolding} onPointerMove={moldHair} onPointerUp={() => { drag.current = null }} onPointerCancel={() => { drag.current = null }} onKeyDown={nudgeHair} />
-          <rect className="cs-clay-face" x="137" y="245" width="226" height="151" rx="76" />
-          <path className="cs-clay-fringe" data-testid="clay-hair-fringe" d={fringePath} />
-          <circle className="cs-clay-eye-white" cx="218" cy="284" r="12" /><circle className="cs-clay-eye" cx="215" cy="284" r="8" />
-          <circle className="cs-clay-eye-white" cx="291" cy="284" r="12" /><circle className="cs-clay-eye" cx="288" cy="284" r="8" />
-          <ellipse className="cs-clay-mouth" cx="254" cy="329" rx="9" ry="6" />
-          {[176, 188, 199, 312, 323, 334].map((x, index) => <circle key={x} className="cs-clay-freckle" cx={x} cy={318 + (index % 3) * 5} r="1.25" />)}
-          <g className="cs-clay-stars" aria-hidden="true">
-            <path transform="translate(102 145) scale(.62)" d="M0-24 8-9 24 0 9 8 0 25-8 9-24 0-9-8Z" />
-            <path transform="translate(354 116) scale(.48)" d="M0-24 8-9 24 0 9 8 0 25-8 9-24 0-9-8Z" />
-            <path transform="translate(392 220) scale(.36)" d="M0-24 8-9 24 0 9 8 0 25-8 9-24 0-9-8Z" />
-          </g>
-        </g>
-      </svg>
-    </div>
   )
 }
 
@@ -182,7 +51,10 @@ export function CaseStudy() {
       </aside>
 
       <main className="cs-main">
-        <ClayCharacter />
+        <div className="ft-top">
+          <FeatureTour />
+        </div>
+        <MoldableBlobHero />
         <p className="cs-eyebrow">Moldable · Family cookbook · 2026</p>
         <h1>Recipes that carry the people who made them</h1>
         <p className="cs-deck">A cookbook that remembers how Grandma explained it—and keeps growing when the next generation cooks.</p>

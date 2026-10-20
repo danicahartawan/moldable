@@ -7,7 +7,7 @@ import './fridge.css'
 const BOUNDS = { x: 108, yUp: 170, yDown: 160 }
 
 // The first Grandkids screen: it opens on the whole fridge, then zooms into its door where the note hangs.
-// Popo's Lelawar Bali recipe, a small aged note hung on a fridge by a bunch of chilies on a magnet.
+// Popo's Lawar Bali recipe, a small aged note hung on a fridge by a bunch of chilies on a magnet.
 // The note can be dragged around the door, and the chilies swing as it moves.
 export function FridgeScreen({ onOpen }: { onOpen: () => void }) {
   const drag = useRef<HTMLDivElement>(null)
@@ -104,14 +104,14 @@ export function FridgeScreen({ onOpen }: { onOpen: () => void }) {
       </div>
 
       <div ref={drag} className="fr-drag" onPointerDown={beginDrag}>
-        <button type="button" className="fr-card" aria-label="Open Popo’s Lelawar Bali recipe" onClick={open}>
+        <button type="button" className="fr-card" aria-label="Open Popo’s Lawar Bali recipe" onClick={open}>
           <span className="fr-paper">
             <span className="fr-paper__band" aria-hidden="true">
               <span className="fr-paper__hole" />
               <span className="fr-paper__hole" />
             </span>
             <span className="fr-paper__title">
-              Lelawar Bali <span className="fr-paper__time">40 mins</span>
+              Lawar Bali <span className="fr-paper__time">40 mins</span>
             </span>
             <span className="fr-paper__sub">Popo’s recipe</span>
             <span className="fr-paper__footer">

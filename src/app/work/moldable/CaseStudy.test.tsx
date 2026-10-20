@@ -32,26 +32,30 @@ describe('Moldable case study', () => {
     expect(screen.queryByLabelText('Image placeholder')).not.toBeInTheDocument()
   })
 
-  it('lets the clay character hair be molded with a pointer', () => {
+  it('shows two orange blob panels in the portfolio hero', () => {
     render(<CaseStudy />)
 
-    expect(screen.getByRole('img', { name: 'Moldable clay character' })).toBeVisible()
-    const hair = screen.getByRole('button', { name: 'Mold the clay hair' })
-    const fringe = screen.getByTestId('clay-hair-fringe')
-    const originalShape = hair.getAttribute('d')
-    const originalFringe = fringe.getAttribute('d')
+    expect(screen.getByRole('img', { name: 'Orange moldable blob one' })).toBeVisible()
+    expect(screen.getByRole('img', { name: 'Orange moldable blob two' })).toBeVisible()
+    expect(screen.getAllByRole('button', { name: /Mold orange blob/ })).toHaveLength(2)
+  })
 
-    fireEvent.pointerDown(hair, { pointerId: 1, clientX: 220, clientY: 84 })
-    fireEvent.pointerMove(hair, { pointerId: 1, clientX: 260, clientY: 48 })
-    fireEvent.pointerUp(hair, { pointerId: 1 })
+  it('lets each orange blob be molded directly while keeping its geometry bounded', () => {
+    render(<CaseStudy />)
 
-    expect(hair.getAttribute('d')).not.toBe(originalShape)
-    expect(fringe.getAttribute('d')).not.toBe(originalFringe)
+    const blob = screen.getByRole('button', { name: 'Mold orange blob one' })
+    const originalShape = blob.getAttribute('d')
 
-    fireEvent.pointerDown(hair, { pointerId: 2, clientX: 220, clientY: 84 })
-    fireEvent.pointerMove(hair, { pointerId: 2, clientX: 1200, clientY: -800 })
-    fireEvent.pointerUp(hair, { pointerId: 2 })
-    const pathNumbers = hair.getAttribute('d')!.match(/-?\d+(?:\.\d+)?/g)!.map(Number)
-    expect(Math.max(...pathNumbers.map(Math.abs))).toBeLessThan(600)
+    fireEvent.pointerDown(blob, { pointerId: 1, clientX: 230, clientY: 90 })
+    fireEvent.pointerMove(blob, { pointerId: 1, clientX: 270, clientY: 54 })
+    fireEvent.pointerUp(blob, { pointerId: 1 })
+
+    expect(blob.getAttribute('d')).not.toBe(originalShape)
+
+    fireEvent.pointerDown(blob, { pointerId: 2, clientX: 230, clientY: 90 })
+    fireEvent.pointerMove(blob, { pointerId: 2, clientX: 1400, clientY: -900 })
+    fireEvent.pointerUp(blob, { pointerId: 2 })
+    const pathNumbers = blob.getAttribute('d')!.match(/-?\d+(?:\.\d+)?/g)!.map(Number)
+    expect(Math.max(...pathNumbers.map(Math.abs))).toBeLessThan(520)
   })
 })

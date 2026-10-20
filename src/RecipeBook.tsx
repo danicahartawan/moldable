@@ -7,7 +7,7 @@ const fullStory = [
   'First, toast the coconut until properly golden. It should smell warm and nutty, like the edge of a coconut biscuit. While it cools, pound half the onions and garlic with sambal trassi, kencur, pepper and kaffir lime leaves. The paste should smell sharp, citrusy and a little funky, which means it has enough life.',
   'Warm a little oil and fry the remaining onions and garlic, then add the spice paste. When the raw smell turns sweet and the lime leaf perfume reaches you, it is ready. I used to cook this while Nev sat nearby. One day he arrived very quiet after shaving off one eyebrow. He thought I would not notice. A grandmother always notices; I nearly burned the onions laughing.',
   'Then in goes the pork, all 500 grams, with the toasted coconut. Break it apart so every crumb catches the spices. The pan will smell rich, smoky and bright. Cook until no pink remains and the edges begin to brown. Taste it: the pork should be juicy and savoury, with warm spice, gentle chilli and crisp little flecks of coconut.',
-  'Turn off the heat before stirring through lime juice and chopped chives. The lime should wake everything up, while the chives taste fresh against the rich pork. Add salt and pepper until you immediately want another bite. Spoon it over hot white pandan rice. To me, lelawar tastes fragrant, bright and a little fiery, a noisy family kitchen in one bowl.',
+  'Turn off the heat before stirring through lime juice and chopped chives. The lime should wake everything up, while the chives taste fresh against the rich pork. Add salt and pepper until you immediately want another bite. Spoon it over hot white pandan rice. To me, lawar tastes fragrant, bright and a little fiery, a noisy family kitchen in one bowl.',
 ]
 
 const tidyIngredients = [
@@ -68,7 +68,7 @@ function TidyRecipe({ writingTime }: { writingTime: number }) {
       <div className="story-book__panel story-book__panel--character" aria-label="Character panel">
         <div className="story-book__tidy-page story-book__tidy-page--left">
           <header className="story-book__tidy-intro">
-            <WrittenLine text="Balinese Minced Pork (Lelawar Bali)" lineIndex={0} writingTime={writingTime} heading className="story-book__tidy-title" />
+            <WrittenLine text="Balinese Minced Pork (Lawar Bali)" lineIndex={0} writingTime={writingTime} heading className="story-book__tidy-title" />
             <WrittenLine
               text="A traditional Balinese dish of warmly spiced pork, toasted coconut and fragrant local herbs."
               lineIndex={0}

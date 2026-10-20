@@ -6,7 +6,7 @@ export type GrandkidsRecipeState = {
 }
 
 export const GRANDKIDS_RECIPE_CONTEXT = {
-  title: 'Lelawar Bali',
+  title: 'Lawar Bali',
   attribution: "Oma Lien's recipe",
   cookingTimeMinutes: 40,
   tools: ['Bowl', 'Dry pan', 'Blender', 'Spatula', 'Rice pot'],

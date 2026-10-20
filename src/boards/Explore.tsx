@@ -8,10 +8,10 @@ const W = '#ffffff'
 type Recipe = { name: string; mins: number; level: string; bg: string; ink: string; photo?: boolean }
 type Book = { label: string; from: string; R: Recipe[] }
 
-// Cookbooks other than Oma Lien's Lelawar Bali are placeholders.
+// Cookbooks other than Oma Lien's Lawar Bali are placeholders.
 const BOOKS: Book[] = [
   { label: 'Oma Lien’s cookbook', from: 'From Oma Lien’s cards', R: [
-    { name: 'Lelawar Bali', mins: 30, level: 'hard', bg: '#2a2622', ink: W, photo: true },
+    { name: 'Lawar Bali', mins: 30, level: 'hard', bg: '#2a2622', ink: W, photo: true },
     { name: 'Soto ayam', mins: 60, level: 'medium', bg: '#f5d653', ink: D },
     { name: 'Rendang', mins: 180, level: 'hard', bg: '#6e2e1f', ink: W },
     { name: 'Nasi kuning', mins: 50, level: 'medium', bg: '#f2c14e', ink: D },
@@ -249,7 +249,7 @@ export function ExploreBoard({ onOpenRecipe }: { onOpenRecipe?: (name: string) =
                 {picked.photo && (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="ex-photo" src="/assets/lelawar-photo.png" alt="Lelawar in a dark bowl on a banana leaf" />
+                    <img className="ex-photo" src="/assets/lelawar-photo.png" alt="Lawar in a dark bowl on a banana leaf" />
                     <span aria-hidden="true" className="ex-shade" />
                   </>
                 )}
