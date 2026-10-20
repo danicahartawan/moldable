@@ -1,5 +1,6 @@
 'use client'
 
+import { ClayBlob, ClayMix } from '@/kitchen/ClayMix'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 
@@ -41,7 +42,8 @@ function Icon({ d, size = 18 }: { d: string; size?: number }) {
   )
 }
 
-export function HomeViewBoard({ embedded = false, overlay = null }: { embedded?: boolean; overlay?: ReactNode } = {}) {
+// `clay` swaps the mascot for orange clay: a blob inside the Adjust chip, and teal mixed into the clay while the screen is fogged.
+export function HomeViewBoard({ embedded = false, overlay = null, clay = false }: { embedded?: boolean; overlay?: ReactNode; clay?: boolean } = {}) {
   const embedRef = useRef<HTMLDivElement>(null)
   const [embedScale, setEmbedScale] = useState(1)
 
@@ -150,6 +152,7 @@ export function HomeViewBoard({ embedded = false, overlay = null }: { embedded?:
             </p>
           </div>
             <button type="button" className={`hv-tap hv-adjust is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
+              {clay && <ClayBlob />}
               {adjustLabel}
             </button>
         </section>
@@ -214,8 +217,12 @@ export function HomeViewBoard({ embedded = false, overlay = null }: { embedded?:
         </section>
 
         <div className={`hv-fog${phase === 'listening' || phase === 'thinking' ? ' is-on' : ''}`} aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="hv-fog__mascot" src="/assets/mascot-gradient.png" alt="" draggable={false} />
+          {clay ? (
+            phase !== 'idle' && <ClayMix />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="hv-fog__mascot" src="/assets/mascot-gradient.png" alt="" draggable={false} />
+          )}
           <p className="hv-fog__heard" key={heard}>{heard ? `“${heard}”` : ''}</p>
         </div>
 

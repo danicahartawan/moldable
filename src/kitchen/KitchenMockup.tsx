@@ -218,12 +218,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
           </div>
           <div data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragX ? ' is-dragging' : ''}`} style={dragX ? { transform: `translateX(${dragX}px)` } : undefined} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}${fridge ? ' kitchen__grandkids-view--fridge' : ''}`} inert={instructionStep !== null}>
-              {(!fridge || isFridgeOpen) && <HomeViewBoard />}
-              {fridge && isFridgeOpen && (
-                <span className="kitchen__recipe-chili" aria-hidden="true">
-                  <span className="kitchen__recipe-chili__sway"><img src="/assets/chili-magnet.png" alt="" draggable={false} /></span>
-                </span>
-              )}
+              {(!fridge || isFridgeOpen) && <HomeViewBoard clay={fridge} />}
               {fridge && (!isFridgeOpen || isFridgeLeaving) && (
                 <div className={`kitchen__fridge-layer${isFridgeLeaving ? ' is-leaving' : ''}`}>
                   <FridgeScreen onOpen={openFridge} />
