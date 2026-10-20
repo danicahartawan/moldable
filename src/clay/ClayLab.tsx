@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { ClayBody, type ClayHandle } from './ClayBody'
 import { DEFAULT_TUNING, type ClayTuning, type Vec } from './ClaySim'
-import { HomeViewBoard } from '@/boards/HomeView'
+import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import '@/kitchen/fridge.css'
 import '@/kitchen/type-scale.css'
 import './clay-lab.css'
@@ -78,6 +78,8 @@ export function ClayLab() {
   const [oldAt, setOldAt] = useState<Vec>(ISLAND_HOME)
   const row = useRef(-1)
   const readLevel = useMemo(() => () => levelRef.current, [])
+  const home = useRef<HomeViewHandle>(null)
+  const [noSpeech, setNoSpeech] = useState(false)
 
   const jumpIn = () => {
     setStretched(false)
@@ -145,8 +147,13 @@ export function ClayLab() {
 
       <section className="lab__inplace">
         <h2>In place: the recipe screen</h2>
-        <p>Tap the orange orb. Its clay leaps into the notification, is pulled by the voice, kneaded while thinking, then a small lump crawls along the ingredient rows as they’re rewritten.</p>
-        <div className="gm-kitchen"><HomeViewBoard clay /></div>
+        <p>No clay until voice starts. Start it (or tap the screen’s top-left corner): the clay pops into the island, is pulled by the voice, kneaded while thinking, shows “Done”, then hops onto the ingredient rows and fades where it ends. Tap the screen outside the island to cancel.</p>
+        <div className="lab__row-buttons">
+          <button type="button" onClick={() => home.current?.startVoice()}>Talk to Moldable</button>
+          <button type="button" onClick={() => home.current?.cancelVoice()}>Cancel</button>
+          <label className="lab__check"><input type="checkbox" checked={noSpeech} onChange={(e) => setNoSpeech(e.target.checked)} /> No speech (gives up after 6 s)</label>
+        </div>
+        <div className="gm-kitchen"><HomeViewBoard ref={home} clay noSpeech={noSpeech} /></div>
       </section>
     </div>
   )

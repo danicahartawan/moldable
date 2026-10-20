@@ -1,11 +1,12 @@
 'use client'
 
-import { ClayBody, type ClayHandle } from '@/clay/ClayBody'
+import { VoiceClay, type ClayPlace } from '@/clay/VoiceClay'
+import type { Vec } from '@/clay/ClaySim'
 import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
 import { VoiceNotification } from '@/voice/VoiceNotification'
 import { VersionHistory, initialVersions, newVersion, type VersionEntry } from '@/kitchen/VersionHistory'
 import { Eye, HandWaving, ListChecks, X } from '@phosphor-icons/react'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 
 type AdjustPhase = 'idle' | 'listening' | 'thinking' | 'writing'
@@ -17,12 +18,21 @@ const ADJUST_SCRIPT = [
   'Actually, I just want two servings.',
   'What can I use instead of kencur?',
 ] as const
-// The crawling clay on the ingredient rows.
-const CRAWLER_RADIUS = 10
-// A small lump crossing a long way quickly: it stretches less and thins less, so it stays a lump, not a smear.
-const CRAWLER_TUNING = { maxStretch: 1, volume: 0.6 }
-// The Adjust orb's centre, measured from the notification's clay box: the clay leaps from the orb into the card.
-const ORB_IN_NOTIFICATION = { x: 286, y: 20 }
+// How long "Done" shows in the island before the clay hops out to mark the rows.
+const DONE_HOLD_MS = 1200
+// With no speech at all, the session gives up after this long.
+const NO_SPEECH_MS = 6000
+// The clay's resting spot in the island, in screen px, until the island has been measured.
+const ISLAND_SPOT: Vec = { x: 62, y: 62 }
+// On a row the clay is ~10px across its radius; it sits on top of the amount being rewritten.
+const ROW_CLAY_RADIUS = 10
+
+export type HomeViewHandle = {
+  /** Start a voice session (the wake word, in the wireframe). */
+  startVoice: () => void
+  /** Cancel it: the clay leaves at once, with no done step. */
+  cancelVoice: () => void
+}
 
 // What the notification says once each request has been carried out.
 const ADJUST_RESULTS = [
@@ -123,7 +133,15 @@ function GlanceSheet({ checked, onToggle, onClose }: { checked: ReadonlySet<numb
   )
 }
 
-export function HomeViewBoard({ embedded = false, overlay = null, clay = false }: { embedded?: boolean; overlay?: ReactNode; clay?: boolean } = {}) {
+type HomeViewProps = {
+  embedded?: boolean
+  overlay?: ReactNode
+  clay?: boolean
+  /** Wireframe testing: the person never speaks, so the session gives up after ~6 s. */
+  noSpeech?: boolean
+}
+
+export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function HomeViewBoard({ embedded = false, overlay = null, clay = false, noSpeech = false }, ref) {
   const embedRef = useRef<HTMLDivElement>(null)
   const [embedScale, setEmbedScale] = useState(1)
 
@@ -164,10 +182,11 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
   const [versions, setVersions] = useState<VersionEntry[]>(initialVersions)
   const [penRow, setPenRow] = useState<number | null>(null)
   const [penPos, setPenPos] = useState<{ left: number; top: number } | null>(null)
-  // With the clay look, a little lump of clay crawls from row to row instead of the pencil.
-  const crawler = useRef<ClayHandle>(null)
-  const crawlerRow = useRef<number | null>(null)
-  const orb = useRef<ClayHandle>(null)
+  // With the clay look there is one clay, and only during a voice session: where it is comes from the voice state.
+  const [cancelled, setCancelled] = useState(false)
+  const [rowSpot, setRowSpot] = useState<Vec | null>(null)
+  const [islandSpot, setIslandSpot] = useState<Vec>(ISLAND_SPOT)
+  const screenRef = useRef<HTMLDivElement>(null)
   const stage = useRef(0)
   const timers = useRef<number[]>([])
   const listRef = useRef<HTMLUListElement>(null)
@@ -186,25 +205,31 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
     setPenPos({ left: amount.offsetLeft - 88, top: row.offsetTop + row.offsetHeight / 2 - 60 })
   }, [penRow])
 
-  // The crawler sits on top of the amount being rewritten: it leaps in for the first row, then inches along.
+  // The row the clay should sit on, in screen px: on top of the amount being rewritten, clear of the card's right edge.
   useLayoutEffect(() => {
-    const previous = crawlerRow.current
-    crawlerRow.current = penRow
-    if (!clay || penRow === null) return
+    if (!clay || penRow === null) {
+      setRowSpot(null)
+      return
+    }
     const row = listRef.current?.children[penRow] as HTMLElement | undefined
     const amount = row?.querySelector<HTMLElement>('.hv-amt')
-    if (!row || !amount) return
-    // On top of the amount, kept clear of the card's right edge so its leading end doesn't poke out.
     const card = listRef.current?.parentElement
-    const maxX = (card?.clientWidth ?? Infinity) - 22 - CRAWLER_RADIUS * 1.6
-    const spot = { x: Math.min(amount.offsetLeft + amount.offsetWidth / 2, maxX), y: row.offsetTop - CRAWLER_RADIUS + 1 }
-    if (previous === null) {
-      crawler.current?.place({ x: spot.x + 36, y: -40 })
-      crawler.current?.jump(spot)
-    } else {
-      crawler.current?.crawl(spot, { x: 0, y: 1 })
-    }
+    if (!row || !amount || !card) return
+    const maxX = card.clientWidth - 22 - ROW_CLAY_RADIUS * 1.6
+    setRowSpot({
+      x: card.offsetLeft + Math.min(amount.offsetLeft + amount.offsetWidth / 2, maxX),
+      y: card.offsetTop + row.offsetTop - ROW_CLAY_RADIUS + 1,
+    })
   }, [penRow, clay])
+
+  // Where the clay sits in the island: the centre of the notification's clay box, in screen px.
+  useLayoutEffect(() => {
+    if (!clay || phase !== 'listening') return
+    const box = screenRef.current?.querySelector<HTMLElement>('.vn__clay')
+    const card = box?.offsetParent as HTMLElement | null
+    if (!box || !card) return
+    setIslandSpot({ x: card.offsetLeft + box.offsetLeft + box.offsetWidth / 2, y: card.offsetTop + box.offsetTop + box.offsetHeight / 2 })
+  }, [phase, clay])
 
   const runPencilPass = (onRow: (row: number) => void, rowMs: number) => {
     let at = 0
@@ -226,6 +251,7 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
       stage.current = 0
     }
     const next = stage.current + 1
+    setCancelled(false)
     setPhase('listening')
     setGlow('listening')
     setHeard('')
@@ -233,6 +259,12 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
     setBlobTeal(false)
     // No microphone in the wireframe: loudness is a smoothed noise curve while the request is being spoken.
     voiceLevel.current = createSimulatedLevel()
+    if (noSpeech) {
+      // Nobody says anything: give up after a while, as if tapped away.
+      // (the latest cancelVoice, which sees the current phase)
+      later(NO_SPEECH_MS, () => voice.current.cancelVoice())
+      return
+    }
     later(CLAY_MIX_MS, () => setBlobTeal(true))
     later(1400, () => { setHeard(ADJUST_SCRIPT[next - 1]); setGlow('hearing') })
     later(5000, () => { setPhase('thinking'); setGlow('thinking') })
@@ -242,14 +274,45 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
       setGlow('done')
       setResult(ADJUST_RESULTS[next - 1])
       if (clay) setVersions((current) => [newVersion((current[0]?.version ?? 1) + 1, next === 1 ? 'Servings 4 → 2' : 'Kencur swapped out'), ...current])
-      if (next === 1) {
-        setServes2(true)
-        runPencilPass((row) => setRowsDone(row + 1), 450)
-      } else {
-        runPencilPass((row) => { if (row === KENCUR_ROW) setKencurSwap(true) }, 300)
-      }
+      if (next === 1) setServes2(true)
+      // "Done" shows for a moment in the island before the rows are marked.
+      later(DONE_HOLD_MS, () => {
+        if (next === 1) runPencilPass((row) => setRowsDone(row + 1), 450)
+        else runPencilPass((row) => { if (row === KENCUR_ROW) setKencurSwap(true) }, 300)
+      })
     })
   }
+
+  // Cancelled (tapped away, or no speech): everything stops and the clay leaves at once, with no done step.
+  const cancelVoice = () => {
+    if (phase === 'idle' || phase === 'writing') return
+    clearTimers()
+    setCancelled(true)
+    setPhase('idle')
+    setGlow('idle')
+    setHeard('')
+    setBlobTeal(false)
+  }
+  const voice = useRef({ beginAdjust, cancelVoice })
+  voice.current = { beginAdjust, cancelVoice }
+  useImperativeHandle(ref, () => ({ startVoice: () => voice.current.beginAdjust(), cancelVoice: () => voice.current.cancelVoice() }), [])
+
+  // Tapping anywhere outside the island while it's listening or thinking cancels.
+  const tapAway = (event: React.PointerEvent) => {
+    if (phase !== 'listening' && phase !== 'thinking') return
+    if ((event.target as HTMLElement).closest('.vn, .hv-talk')) return
+    cancelVoice()
+  }
+
+  // One source of truth: where the clay is comes from the voice state (and the row being marked).
+  const clayPlace: ClayPlace = useMemo(() => {
+    if (!clay || phase === 'idle') return null
+    if (phase === 'writing' && penRow !== null && rowSpot) return { kind: 'row', at: rowSpot }
+    if (phase === 'writing' && penRow !== null) return null
+    return { kind: 'island', at: islandSpot }
+  }, [clay, phase, penRow, rowSpot, islandSpot])
+  // The island stays open until the clay leaves it: through "Done", closing as the clay hops out to the rows.
+  const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? (penRow === null ? 'done' : 'idle') : glow
 
   const adjustLabel = phase === 'listening'
     ? 'Listening…'
@@ -266,7 +329,7 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
 
   return (
     <div className={embedded ? 'hv-embed' : 'hv-stage'} ref={embedRef}>
-      <div className={`hv-screen${embedded ? ' hv-screen--embedded' : ''}`} data-testid="grandkids-square" data-voice={glow === 'idle' || glow === 'done' ? undefined : 'on'} style={embedded ? { transform: `scale(${embedScale})` } : undefined}>
+      <div ref={screenRef} onPointerDown={tapAway} className={`hv-screen${embedded ? ' hv-screen--embedded' : ''}`} data-testid="grandkids-square" data-voice={glow === 'idle' || glow === 'done' ? undefined : 'on'} style={embedded ? { transform: `scale(${embedScale})` } : undefined}>
 
         {/* The cards, as one layer, so they can ease back together while the voice glow has the focus. */}
         <div className="hv-content">
@@ -371,11 +434,6 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               )
             })}
           </ul>
-          {clay && (
-            <span className={`hv-crawler${penRow === null ? '' : ' is-on'}`} aria-hidden="true">
-              <ClayBody ref={crawler} width={1} height={1} home={{ x: 0, y: 0 }} radius={CRAWLER_RADIUS} tuning={CRAWLER_TUNING} />
-            </span>
-          )}
           {!clay && penRow !== null && penPos && (
             // eslint-disable-next-line @next/next/no-img-element
             <img className="hv-pen" src="/assets/mascot-writer-gradient.png" alt="Moldable mascot writing in the ingredient list"
@@ -387,24 +445,34 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
         {clay && glanceOpen && <GlanceSheet checked={checked} onToggle={toggleChecked} onClose={() => setGlanceOpen(false)} />}
 
         {clay && (
-          <button type="button" className={`hv-tap hv-clay-orb is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={() => { orb.current?.touch({ x: 0, y: 1 }, 0.8); beginAdjust() }}>
-            <ClayBody ref={orb} width={56} height={56} home={{ x: 28, y: 28 }} radius={20} color={blobTeal ? 'teal' : 'orange'} />
-          </button>
+          // The wake word, in the wireframe: an unmarked corner you can tap (or reach with the keyboard).
+          <button type="button" className="hv-talk" aria-label="Talk to Moldable" onClick={beginAdjust} />
         )}
 
         <SpeakingGlow state={glow} level={() => voiceLevel.current()} onDone={() => setGlow('idle')} />
         {/* The notification stays on "Done" with what changed until the pencil has finished writing it in. */}
         <VoiceNotification
-          state={glow !== 'idle' ? glow : phase === 'writing' ? 'done' : 'idle'}
+          state={islandState}
           heard={heard}
           result={result}
           teal={blobTeal}
           level={() => voiceLevel.current()}
-          jumpFrom={clay ? ORB_IN_NOTIFICATION : undefined}
+          ownClay={!clay}
         />
+        {clay && (
+          <VoiceClay
+            place={clayPlace}
+            quickExit={cancelled}
+            level={() => voiceLevel.current()}
+            knead={phase === 'thinking'}
+            color={blobTeal ? 'teal' : 'orange'}
+            width={640}
+            height={640}
+          />
+        )}
 
       </div>
       {embedded ? overlay : <p className="hv-caption">Grandkid home view, 640 × 640 for the 5.73 in display.</p>}
     </div>
   )
-}
+})

@@ -12,6 +12,11 @@ export type ClayHandle = {
   touch: (normal?: Vec, strength?: number) => void
   moveTo: (p: Vec) => void
   place: (p: Vec) => void
+  appear: () => void
+  hide: () => void
+  vanish: (kind?: 'soft' | 'quick') => void
+  setRestSize: (value: number) => void
+  setTuning: (tuning: Partial<ClayTuning>) => void
   readonly sim: ClaySim | null
 }
 
@@ -77,7 +82,11 @@ export const ClayBody = forwardRef<ClayHandle, Props>(function ClayBody(
   const uid = useId().replace(/:/g, '')
   const ids = { path: `clay-path-${uid}`, fill: `clay-fill-${uid}`, teal: `clay-teal-${uid}`, shade: `clay-shade-${uid}`, clip: `clay-clip-${uid}`, grain: `clay-grain-${uid}` }
   const simRef = useRef<ClaySim | null>(null)
-  if (!simRef.current) simRef.current = new ClaySim(home, radius, { tuning })
+  if (!simRef.current) {
+    // Known from the first frame, so a pop-in asked for straight away already respects reduced motion.
+    const reduced = typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
+    simRef.current = new ClaySim(home, radius, { tuning, reduced })
+  }
   const pathRef = useRef<SVGPathElement>(null)
   const fillRef = useRef<SVGRadialGradientElement>(null)
   const tealRef = useRef<SVGRadialGradientElement>(null)
@@ -95,6 +104,11 @@ export const ClayBody = forwardRef<ClayHandle, Props>(function ClayBody(
       touch: (n, s) => sim.touch(n, s),
       moveTo: (p) => sim.moveTo(p),
       place: (p) => sim.place(p),
+      appear: () => sim.appear(),
+      hide: () => sim.hide(),
+      vanish: (kind) => sim.vanish(kind),
+      setRestSize: (value) => sim.setRestSize(value),
+      setTuning: (t) => { Object.assign(sim.tuning, t) },
       get sim() { return simRef.current },
     }
   }, [])

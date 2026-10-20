@@ -8,7 +8,7 @@ import { RecipeBoard } from '@/boards/Recipe'
 import { StepBoard } from '@/boards/Step'
 import { WeighBoard } from '@/boards/Weigh'
 
-const VIEWS: Record<BoardSlug, () => React.JSX.Element> = {
+const VIEWS: Record<BoardSlug, React.ComponentType> = {
   recipe: RecipeBoard,
   step: StepBoard,
   weigh: WeighBoard,

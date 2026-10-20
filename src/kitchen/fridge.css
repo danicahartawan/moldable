@@ -145,15 +145,10 @@
 }
 
 /* Adjust is a clay orb at the top of the screen, like the orb on the smart display. */
-.hv-clay-orb { position: absolute; z-index: 8; top: 26px; left: 50%; display: grid; width: 56px; height: 56px; padding: 0; border: 0; background: none; place-items: center; transform: translateX(-50%); cursor: pointer; }
-.hv-clay-orb:focus-visible { outline: none; }
-/* The orb is a ClayBody: tapping squashes it. While the voice is active its clay has leapt into the notification, so the orb steps away. */
-.hv-clay-orb { transition: opacity 240ms ease; }
-.hv-screen[data-voice='on'] .hv-clay-orb { opacity: 0; pointer-events: none; }
-/* The little clay that crawls from row to row while the ingredients are rewritten. */
-.hv-crawler { position: absolute; top: 0; left: 0; z-index: 9; width: 1px; height: 1px; pointer-events: none; opacity: 0; transition: opacity 260ms ease; }
-.hv-crawler.is-on { opacity: 1; transition-duration: 120ms; }
 /* The clay orb has no rim: just its shading and a soft shadow. */
+/* The wake word, in the wireframe: an unmarked top-left corner you can tap or tab to. There's no clay until voice starts. */
+.hv-talk { position: absolute; z-index: 8; top: 0; left: 0; width: 64px; height: 64px; padding: 0; border: 0; border-radius: 0 0 24px 0; background: transparent; cursor: pointer; }
+.hv-talk:focus-visible { outline: 2px solid #3546a8; outline-offset: -6px; }
 @keyframes hv-clay-orb-bob {
   0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; transform: scale(1, 1); }
   50% { border-radius: 46% 54% 56% 44% / 44% 58% 42% 56%; transform: scale(1.06, .95); }
@@ -186,8 +181,6 @@
 .gm-kitchen .hv-screen .hv-swap .hv-count,
 .gm-kitchen .hv-screen .hv-ingr .hv-count { color: #8a8580; font-size: 13px; line-height: 16px; }
 .gm-kitchen .hv-swap .hv-roll:first-child .hv-wave { display: none; }
-/* The clay orb sits on the seam between the cards at the top, so the card's content starts clear of it. */
-.gm-kitchen .hv-screen .hv-swap .hv-roll { left: 38px; }
 
 /* Cooking time: the heading up top, the big minutes low with "mins" beside them. */
 .gm-kitchen .hv-screen .hv-swap .hv-mins { font-size: 84px; font-weight: 500; line-height: 80px; letter-spacing: -.04em; }

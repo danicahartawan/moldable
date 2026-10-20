@@ -1,0 +1,11 @@
+/* The one clay on the home view, drawn over the whole screen in screen px. Above the listening island (z 40). */
+.voice-clay { position: absolute; inset: 0; z-index: 45; pointer-events: none; opacity: 1; transition: opacity 150ms ease; }
+/* Leaving from an ingredient row: fade out where it is. */
+.voice-clay.is-fade { opacity: 0; transition: opacity 320ms ease; }
+/* Reduced motion: a plain 150 ms fade in and out, no pop or squash. */
+.voice-clay.is-reduced { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .voice-clay { animation: voice-clay-fade-in 150ms ease; }
+  .voice-clay.is-reduced { animation: none; }
+  @keyframes voice-clay-fade-in { from { opacity: 0; } to { opacity: 1; } }
+}

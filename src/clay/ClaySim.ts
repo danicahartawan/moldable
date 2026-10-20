@@ -48,7 +48,7 @@ export const DEFAULT_TUNING: ClayTuning = {
 export const OUTLINE_POINTS = 12
 
 type Particle = { x: number; y: number; vx: number; vy: number }
-type Task = { at: number; run: () => void }
+type Task = { at: number; run: () => void; vanish?: boolean }
 
 const DOWN: Vec = { x: 0, y: 1 }
 const len = (x: number, y: number) => Math.hypot(x, y)
@@ -102,6 +102,14 @@ export class ClaySim {
   private levelSmooth = 0
   private voiceDir: Vec = { x: 1, y: 0 }
   knead = false
+
+  // Size: 1 is full, 0 is gone. It pops in from a dot and shrinks back to one, on its own spring.
+  private size = 1
+  private sizeV = 0
+  private sizeT = 1
+  private restSize = 1
+  private sizeQuick = false
+  private landOnFull = false
 
   private pts: Particle[]
   private targets: Vec[]
@@ -210,6 +218,60 @@ export class ClaySim {
     this.landing = { to: { ...to }, normal: norm(contactNormal), strength: 0.45 }
   }
 
+  /** Pop in from a small dot to full size, landing with a soft squash. If it was shrinking away, it reverses instead. */
+  appear() {
+    this.sizeQuick = false
+    if (this.reduced) {
+      this.size = this.sizeT = this.restSize
+      this.sizeV = 0
+      return
+    }
+    this.tasks = this.tasks.filter((t) => !t.vanish)
+    if (this.size < 0.06) {
+      this.size = 0.05
+      this.sizeV = 0
+      this.landOnFull = true
+    }
+    this.qT = 0
+    this.sizeT = this.restSize
+  }
+
+  /** Shrink back to a dot. `soft` stretches up a touch first (anticipation); `quick` just goes (~250 ms). */
+  vanish(kind: 'soft' | 'quick' = 'soft') {
+    this.landOnFull = false
+    if (this.reduced) {
+      this.sizeT = 0
+      return
+    }
+    if (kind === 'quick') {
+      this.sizeQuick = true
+      this.sizeT = 0
+      return
+    }
+    this.sizeQuick = false
+    this.qn = DOWN
+    this.qT = -0.14
+    const task: Task = { at: this.t + 0.11, run: () => { this.qT = 0; this.sizeT = 0 }, vanish: true }
+    this.tasks.push(task)
+  }
+
+  /** Hidden at once (size 0), ready to pop in with appear(). */
+  hide() {
+    this.size = this.sizeT = 0
+    this.sizeV = 0
+  }
+
+  /** Full size for where it is now (e.g. smaller on an ingredient row). */
+  setRestSize(value: number) {
+    this.restSize = value
+    if (this.sizeT > 0) this.sizeT = value
+  }
+
+  /** True once it has shrunk away to nothing. */
+  get gone() {
+    return this.sizeT === 0 && this.size < 0.04
+  }
+
   /** Move home without any of the theatre (springs still carry it). */
   moveTo(p: Vec) {
     this.home = { ...p }
@@ -299,6 +361,15 @@ export class ClaySim {
     const sl = len(sx, sy)
     if (sl > maxSep) this.tailT = { x: this.head.x - (sx / sl) * maxSep, y: this.head.y - (sy / sl) * maxSep }
 
+    // Size spring: a little overshoot popping in; critically damped (and quicker) when cancelled.
+    const sizeSpring = this.reduced || this.sizeQuick ? { k: 520, c: 2 * Math.sqrt(520) } : { k: 260, c: 20 }
+    this.sizeV += (-sizeSpring.k * (this.size - this.sizeT) - sizeSpring.c * this.sizeV) * dt
+    this.size = Math.max(0, this.size + this.sizeV * dt)
+    if (this.landOnFull && this.size > this.restSize * 0.92) {
+      this.landOnFull = false
+      this.touch(DOWN, 0.6)
+    }
+
     const sp = this.springs()
     springStep(this.head, this.headT, sp.head, dt)
     springStep(this.tail, this.tailT, sp.tail, dt)
@@ -350,7 +421,7 @@ export class ClaySim {
     const restLen = len(this.head.x - this.tail.x, this.head.y - this.tail.y)
     if (this.snapping && !this.scripted && restLen < 0.5 && motion < 2) this.snapping = false
 
-    const still = motion < 0.5 && Math.abs(this.qv) < 0.01 && Math.abs(this.jv) < 0.01 && Math.abs(this.j) < 0.002 && Math.abs(this.q - this.qT) < 0.002 && raw === 0 && !this.knead && !this.tasks.length && !this.landing
+    const still = motion < 0.5 && Math.abs(this.sizeV) < 0.01 && Math.abs(this.size - this.sizeT) < 0.002 && Math.abs(this.qv) < 0.01 && Math.abs(this.jv) < 0.01 && Math.abs(this.j) < 0.002 && Math.abs(this.q - this.qT) < 0.002 && raw === 0 && !this.knead && !this.tasks.length && !this.landing
     this.quiet = still ? this.quiet + 1 : 0
   }
 
@@ -411,6 +482,10 @@ export class ClaySim {
         const perX = rx - qn.x * along, perY = ry - qn.y * along
         x = anchorX + qn.x * along * (1 - q) + perX * (1 + 0.85 * q)
         y = anchorY + qn.y * along * (1 - q) + perY * (1 + 0.85 * q)
+      }
+      if (this.size !== 1) {
+        x = cx + (x - cx) * this.size
+        y = cy + (y - cy) * this.size
       }
       if (wobble > 0) {
         const ox = x - cx, oy = y - cy
