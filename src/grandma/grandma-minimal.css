@@ -3,7 +3,7 @@
 
 .gm-note {
   position: absolute;
-  top: 7%;
+  top: calc(7% + 44px);
   right: 7%;
   bottom: 24%;
   left: 7%;
@@ -150,7 +150,7 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 /* Camera: a gray round button under the pause/stop pill, in the same style. */
 .gm-camera {
   position: absolute;
-  top: calc(6% + 60px);
+  top: calc(6% + 104px);
   right: 5%;
   z-index: 4;
   display: flex;
@@ -175,7 +175,7 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 /* The viewfinder grows out of the camera button into a card on the right. */
 .gm-viewfinder {
   position: absolute;
-  top: calc(6% + 60px);
+  top: calc(6% + 104px);
   right: 5%;
   z-index: 10;
   width: 44%;
@@ -276,7 +276,7 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 /* Pause and stop: a quiet pill in the top-right corner. */
 .gm-controls {
   position: absolute;
-  top: 6%;
+  top: calc(6% + 44px);
   right: 5%;
   z-index: 4;
   display: flex;
@@ -439,9 +439,26 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 .gm-kitchen .hv-title { text-transform: none; }
 
 /* After stopping, the clay sits beside the Recipe change / Tidy pill instead of the bottom corner. */
-.gm-done-bar { position: absolute; top: 6%; right: 5%; z-index: 4; display: flex; align-items: center; gap: 4px; }
+.gm-done-bar { position: absolute; top: calc(6% + 44px); right: 5%; z-index: 4; display: flex; align-items: center; gap: 4px; }
 .gm-done-bar .gm-controls { position: static; }
 .gm-clay.gm-clay--beside { position: static; width: 52px; height: 52px; }
 .gm-clay--beside .gm-clay__lump { width: 34px; height: 34px; box-shadow: inset -4px -6px 8px rgba(140, 38, 0, .4), inset 3px 4px 6px rgba(255, 226, 208, .55), 0 5px 10px rgba(255, 90, 38, .3); }
 .gm-clay--beside .gm-clay__lump { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; animation: none; }
 .gm-clay--beside .gm-clay__voice { transform: none !important; }
+
+/* The note hangs like a sticky note: a slightly darker band across the top, with two punched holes. */
+.gm-sheet::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 44px;
+  background:
+    radial-gradient(circle at 52px 24px, #c9c9c5 0 12px, transparent 12.5px),
+    radial-gradient(circle at calc(100% - 52px) 24px, #c9c9c5 0 12px, transparent 12.5px),
+    linear-gradient(#ecece9, #f2f2f0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .05);
+  content: '';
+  pointer-events: none;
+}

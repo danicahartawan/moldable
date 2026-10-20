@@ -8,106 +8,83 @@
   font-family: var(--font-sans);
 }
 
+.fr-world { position: absolute; inset: 0; transform-origin: 0 0; }
+
+/* A stainless steel fridge wider than the screen, so the zoomed view is all metal. The zoom lands on the lower fridge door; the freezer door and its seam sit above the screen. */
 .fr-door {
   position: absolute;
-  top: 28px;
-  left: 120px;
-  width: 400px;
-  height: 720px;
-  border: 1px solid #dcdcda;
-  border-radius: 34px 34px 0 0;
-  background: linear-gradient(90deg, #ececea 0, #f7f7f6 14%, #f7f7f6 86%, #e8e8e6 100%);
-  box-shadow: 0 22px 40px rgba(0, 0, 0, .08);
+  top: -612px;
+  left: -30px;
+  width: 700px;
+  height: 1650px;
+  border: 1px solid #7f858c;
+  border-radius: 46px 46px 10px 10px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .16) 0 1px, rgba(0, 0, 0, .05) 1px 2px, rgba(255, 255, 255, .06) 2px 4px),
+    linear-gradient(105deg, rgba(255, 255, 255, 0) 16%, rgba(255, 255, 255, .62) 29%, rgba(255, 255, 255, 0) 41%),
+    linear-gradient(255deg, rgba(255, 255, 255, 0) 52%, rgba(255, 255, 255, .38) 65%, rgba(255, 255, 255, 0) 78%),
+    linear-gradient(90deg, #8f959c 0%, #c6cacf 10%, #e4e7ea 38%, #bfc4c9 68%, #9aa0a7 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -2px 0 rgba(0, 0, 0, .15), 0 30px 40px rgba(0, 0, 0, .14);
 }
-/* The freezer seam, a little under a quarter of the way down. */
-.fr-door::before { position: absolute; top: 168px; left: 0; width: 100%; height: 2px; background: #d6d6d3; box-shadow: 0 2px 0 rgba(255, 255, 255, .8); content: ''; }
-.fr-handle { position: absolute; left: 22px; width: 9px; border-radius: 5px; background: linear-gradient(90deg, #cfcfcc, #ececea 50%, #c4c4c1); box-shadow: 0 2px 5px rgba(0, 0, 0, .12); }
-.fr-handle--top { top: 70px; height: 70px; }
-.fr-handle--bottom { top: 196px; height: 130px; }
+/* The gap between the two doors. */
+.fr-door::before { position: absolute; top: 445px; left: 0; width: 100%; height: 6px; background: linear-gradient(#5d6269, #8b9097); box-shadow: 0 2px 0 rgba(255, 255, 255, .55), inset 0 1px 2px rgba(0, 0, 0, .4); content: ''; }
+.fr-handle { position: absolute; left: 44px; width: 18px; border-radius: 9px; background: linear-gradient(90deg, #7d838a, #f6f7f8 42%, #b9bec4 70%, #6c7279); box-shadow: 3px 4px 8px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .8); }
+.fr-handle--top { top: 150px; height: 230px; }
+.fr-handle--bottom { top: 500px; height: 520px; }
+.fr-grille { position: absolute; bottom: 0; left: 0; width: 100%; height: 36px; background: repeating-linear-gradient(90deg, #4d5258 0 6px, #7f858c 6px 8px); border-radius: 0 0 10px 10px; }
+.fr-floor { position: absolute; top: 1010px; left: 10px; width: 620px; height: 70px; border-radius: 50%; background: radial-gradient(ellipse at 50% 40%, rgba(0, 0, 0, .3), transparent 70%); }
 
-.fr-magnet { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff9b78, #ff5a26 55%, #c93d0f); box-shadow: 0 2px 4px rgba(0, 0, 0, .3); }
-.fr-magnet--loose { top: 126px; right: 156px; width: 16px; height: 16px; background: radial-gradient(circle at 35% 30%, #cfd8c2, #8ea07a 55%, #5d6e4b); }
-
-.fr-note {
-  position: absolute;
-  top: 214px;
-  left: 148px;
-  display: flex;
-  width: 74px;
-  height: 74px;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  box-sizing: border-box;
-  background: #fff240;
-  box-shadow: 0 6px 10px rgba(0, 0, 0, .14);
-  color: #000;
-  font-size: 15px;
-  font-weight: 300;
-  line-height: 18px;
-  text-align: center;
-  transform: rotate(-5deg);
+/* It opens on the whole fridge, then zooms in on the door until the metal fills the screen. */
+.kitchen__host--grandkids:not(.is-off) .fr-world { animation: fr-zoom 2300ms cubic-bezier(.65, 0, .25, 1) both; }
+@keyframes fr-zoom {
+  0%, 34% { transform: translate(205px, 243px) scale(.36); }
+  100% { transform: none; }
 }
-.fr-photo {
-  position: absolute;
-  width: 62px;
-  height: 62px;
-  padding: 4px;
-  border-radius: 6px;
-  background: #fff;
-  box-shadow: 0 6px 10px rgba(0, 0, 0, .16);
-  object-fit: cover;
-}
-.fr-photo--one { top: 208px; right: 142px; transform: rotate(7deg); }
-.fr-photo--two { bottom: 54px; left: 160px; transform: rotate(-6deg); }
+@media (prefers-reduced-motion: reduce) { .kitchen__host--grandkids:not(.is-off) .fr-world { animation: none; } }
 
-.fr-card {
+.fr-drag {
+  --fr-x: 0px;
+  --fr-y: 0px;
   position: absolute;
-  top: 244px;
+  top: 238px;
   left: 50%;
-  display: flex;
-  width: 236px;
+  width: 172px;
+  cursor: grab;
+  touch-action: none;
+  transform: translate(calc(-50% + var(--fr-x)), var(--fr-y));
+  user-select: none;
+}
+.fr-drag.is-dragging { cursor: grabbing; }
+.fr-drag.is-dragging .fr-paper {
+  position: relative;
+  display: block;
   box-sizing: border-box;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 16px 14px 14px;
-  border: 0;
-  border-radius: 14px;
+  height: 226px;
+  padding: 40px 14px 14px;
   background: #fff;
-  box-shadow: 0 14px 26px rgba(0, 0, 0, .2), 0 2px 4px rgba(0, 0, 0, .1);
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-  transform: translateX(-50%) rotate(-1.5deg);
-  transform-origin: 50% 0;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, .22), 0 2px 3px rgba(0, 0, 0, .14);
+  font-family: Georgia, 'Times New Roman', serif;
 }
-.fr-card:active { transform: translateX(-50%) rotate(-1.5deg) scale(.98); }
-.fr-card:focus-visible { outline: 2px solid #ff5a26; outline-offset: 4px; }
-.fr-card .fr-magnet { top: -9px; }
-.fr-magnet--left { left: 24px; }
-.fr-magnet--right { right: 24px; }
-.fr-card__photo { width: 100%; height: 168px; margin-bottom: 8px; border-radius: 8px; object-fit: cover; }
-.fr-card__title { font-size: 26px; font-weight: 300; letter-spacing: -.02em; line-height: 30px; }
-.fr-card__sub { color: #6f6a63; font-size: 16px; font-weight: 300; line-height: 20px; }
-.fr-card__hint { align-self: flex-end; margin-top: 4px; padding: 3px 10px; border-radius: 999px; background: rgba(255, 90, 38, .14); color: #e04a17; font-size: 13px; font-weight: 300; }
+.fr-paper__title { display: block; color: #1f1c19; font-size: 18px; font-style: italic; line-height: 24px; }
+.fr-paper__sub { display: block; margin-bottom: 8px; color: #6f6a63; font-size: 12px; font-style: italic; line-height: 16px; }
+.fr-paper__ink { display: block; color: #3a3835; font-size: 10.5px; font-style: italic; line-height: 14px; opacity: .8; }
+.fr-paper__ink span { display: block; white-space: nowrap; }
 
-/* When the fridge appears, the recipe card swings onto the door and its magnets click in. */
-.kitchen__host--grandkids:not(.is-off) .fr-card { animation: fr-pin 900ms cubic-bezier(.2, .9, .25, 1.08) 250ms both; }
-.kitchen__host--grandkids:not(.is-off) .fr-card .fr-magnet { animation: fr-click 420ms ease-out 900ms both; }
-.kitchen__host--grandkids:not(.is-off) .fr-note,
-.kitchen__host--grandkids:not(.is-off) .fr-photo { animation: fr-settle 600ms cubic-bezier(.2, .9, .25, 1.05) 120ms both; }
-@keyframes fr-pin {
-  from { opacity: 0; transform: translateX(-50%) translateY(-90px) rotate(10deg) scale(.9); }
-  55% { opacity: 1; transform: translateX(-50%) translateY(8px) rotate(-3deg); }
-  to { opacity: 1; transform: translateX(-50%) rotate(-1.5deg); }
+/* The magnet is pinned at the note's top right; the chilies hang from it, swinging on their own and when the note is dragged. */
+.fr-dangle { position: absolute; top: -20px; left: 118px; display: block; width: 68px; height: 143px; pointer-events: none; transform-origin: 70% 15%; }
+.fr-dangle__sway { display: block; width: 100%; height: 100%; transform-origin: 70% 15%; animation: fr-sway 3.8s ease-in-out infinite; }
+.fr-bunch { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .28)); }
+@keyframes fr-sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+@media (prefers-reduced-motion: reduce) { .fr-dangle__sway { animation: none; } }
+
+/* Tapping the note turns the fridge over like a page, hinged on its left edge, with the recipe underneath. */
+.kitchen__fridge-layer { position: absolute; inset: 0; z-index: 3; transform-origin: 0 50%; background: #fff; backface-visibility: hidden; }
+.kitchen__fridge-layer.is-leaving { pointer-events: none; animation: fr-turn 720ms cubic-bezier(.55, 0, .3, 1) both; }
+@keyframes fr-turn {
+  from { transform: perspective(1500px) rotateY(0); filter: brightness(1); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+  60% { filter: brightness(.82); box-shadow: 30px 0 60px rgba(0, 0, 0, .28); }
+  to { transform: perspective(1500px) rotateY(-108deg); filter: brightness(.7); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
 }
-@keyframes fr-click { from { transform: scale(1.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes fr-settle { from { opacity: 0; translate: 0 -24px; } to { opacity: 1; translate: 0 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .kitchen__host--grandkids:not(.is-off) .fr-card,
-  .kitchen__host--grandkids:not(.is-off) .fr-card .fr-magnet,
-  .kitchen__host--grandkids:not(.is-off) .fr-note,
-  .kitchen__host--grandkids:not(.is-off) .fr-photo { animation: none; }
-}
+@media (prefers-reduced-motion: reduce) { .kitchen__fridge-layer.is-leaving { animation: none; opacity: 0; } }
+/* From the fridge the recipe is simply there under the turning page, so its cards don't open on their own. */
+.kitchen__grandkids-view--fridge .hv-card { animation: none !important; }

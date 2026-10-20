@@ -120,7 +120,14 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   const [instructionStep, setInstructionStep] = useState<number | null>(null)
   // With `fridge`, Grandkids starts on a fridge door; tapping Popo's recipe card opens the recipe.
   const [isFridgeOpen, setIsFridgeOpen] = useState(false)
+  const [isFridgeLeaving, setIsFridgeLeaving] = useState(false)
   const showFridge = fridge && !isFridgeOpen
+  // Opening the recipe turns the fridge over like a page, with the recipe already underneath.
+  const openFridge = () => {
+    setIsFridgeOpen(true)
+    setIsFridgeLeaving(true)
+    window.setTimeout(() => setIsFridgeLeaving(false), 740)
+  }
   const [leavingStep, setLeavingStep] = useState<number | null>(null)
   const [slideBack, setSlideBack] = useState(false)
   const [dragX, setDragX] = useState(0)
@@ -135,7 +142,10 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   }
 
   const setPerspective = (next: Perspective) => {
-    if (next !== 'grandkids') setIsFridgeOpen(false)
+    if (next !== 'grandkids') {
+      setIsFridgeOpen(false)
+      setIsFridgeLeaving(false)
+    }
     perspectiveRef.current = next
     setPerspectiveState(next)
   }
@@ -207,8 +217,13 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
             {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids') }) : grandmaScreen}
           </div>
           <div data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragX ? ' is-dragging' : ''}`} style={dragX ? { transform: `translateX(${dragX}px)` } : undefined} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
-            <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>
-              {showFridge ? <FridgeScreen onOpen={() => setIsFridgeOpen(true)} /> : <HomeViewBoard />}
+            <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}${fridge ? ' kitchen__grandkids-view--fridge' : ''}`} inert={instructionStep !== null}>
+              {(!fridge || isFridgeOpen) && <HomeViewBoard />}
+              {fridge && (!isFridgeOpen || isFridgeLeaving) && (
+                <div className={`kitchen__fridge-layer${isFridgeLeaving ? ' is-leaving' : ''}`}>
+                  <FridgeScreen onOpen={openFridge} />
+                </div>
+              )}
             </div>
             {leavingStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--out${slideBack ? ' is-back' : ''}`} key={`out-${leavingStep}`} aria-hidden="true">
