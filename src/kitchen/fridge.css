@@ -158,48 +158,6 @@
 .gm-kitchen .hv-ingr li[aria-checked='true'] > :first-child { text-decoration: line-through; }
 
 
-/* Cooking steps in the grandma theme: light Inter Tight on the type scale, soft gray pieces, tinted pill chips, no hard outlines. */
-.gm-kitchen .st-screen { background: #fff; }
-.gm-kitchen .st-title, .gm-kitchen .ck-step { font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 38px; text-transform: none; }
-.gm-kitchen .ck-bubble { padding: 10px 16px; border-radius: 4px 22px 22px 22px; background: rgba(0, 0, 0, .055); font-size: 17px; font-weight: 300; line-height: 24px; letter-spacing: 0; }
-.gm-kitchen .ck-instruction { font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 40px; }
-/* The verb is a tool chip like Blend / Weigh in the story: a tinted pill with a deeper icon and word. */
-.gm-kitchen .ck-verb { height: auto; margin-right: 10px; padding: 0 14px 0 10px; border-radius: 999px; background: #ffe3d8; color: #e04a17; font-size: 1em; font-weight: 300; letter-spacing: -.02em; }
-.gm-kitchen .ck-verb[data-verb='Squeeze'], .gm-kitchen .ck-verb[data-verb='Stir'] { background: #d9ebd3; color: #3c8a34; }
-.gm-kitchen .ck-verb[data-verb='Toast'], .gm-kitchen .ck-verb[data-verb='Serve'] { background: #ffef9e; color: #c28400; }
-.gm-kitchen .ck-verb[data-verb='Fry'], .gm-kitchen .ck-verb[data-verb='Cook'] { background: #f6d8d1; color: #c0472f; }
-.gm-kitchen .ck-verb svg { width: 22px; height: 22px; }
-/* "For this step": a soft gray card with pill-like rows, no dividers. */
-.gm-kitchen .ck-ingredients { border: 0; border-radius: 28px; background: rgba(0, 0, 0, .05); box-shadow: none; padding: 18px 20px; }
-.gm-kitchen .ck-ingredients .st-h2 { margin: 0 0 4px; font-size: 22px; font-weight: 300; letter-spacing: -.02em; line-height: 28px; }
-.gm-kitchen .ck-ingredients ul { column-gap: 10px; row-gap: 8px; }
-.gm-kitchen .ck-ingredients li { padding: 4px 14px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, .7); font-size: 17px; font-weight: 300; line-height: 24px; }
-.gm-kitchen .ck-amt { color: #4f4c47; }
-/* The Ingredients button is the same soft pill as Glance, orange when hovered or open. */
-.gm-kitchen .ck-ing-btn { height: 40px; padding: 0 18px 0 14px; border: 0; background: rgba(0, 0, 0, .06); color: #1f1c19; font-size: 17px; font-weight: 300; }
-.gm-kitchen .ck-ing-btn:hover, .gm-kitchen .ck-ing-btn.is-open { background: rgba(255, 90, 38, .14); color: #e04a17; }
-
-/* The orange clay ball stands in for the mascot; the buttons have no ring, and read at the body size. */
-.gm-kitchen .ck-mascot { display: grid; width: 44px; height: 44px; place-items: center; }
-.gm-kitchen .ck-mascot .hv-adjust__blob { width: 34px; height: 34px; animation: hv-clay-orb-bob 4.5s ease-in-out infinite; }
-.gm-kitchen .st-tap:focus-visible, .gm-kitchen .ck-step:focus-visible { outline: none; }
-.gm-kitchen .ck-ing-btn { font-size: 17px; }
-.gm-kitchen .ck-ing-btn.is-open { box-shadow: none; }
-
-/* One body size on the cooking steps: the sentence, the chip, the cue and the ingredient rows are all 17px, like the story. */
-.gm-kitchen .ck-instruction { font-size: 17px; font-weight: 300; letter-spacing: 0; line-height: 26px; }
-.gm-kitchen .ck-verb { display: inline-flex; height: auto; align-items: center; gap: 5px; margin: 0 4px 0 0; padding: 0 10px 0 8px; font-size: 1em; line-height: inherit; letter-spacing: 0; vertical-align: baseline; }
-.gm-kitchen .ck-verb svg { width: 18px; height: 18px; }
-.gm-kitchen .ck-ingredients .st-h2 { font-size: 17px; font-weight: 400; letter-spacing: 0; line-height: 24px; }
-
-/* Cooking steps: a small "Step n" label and a bigger instruction. */
-.gm-kitchen .st-title, .gm-kitchen .ck-step { font-size: 22px; line-height: 28px; letter-spacing: -.02em; }
-.gm-kitchen .ck-instruction { font-size: 26px; line-height: 34px; letter-spacing: -.02em; }
-.gm-kitchen .ck-verb svg { width: 24px; height: 24px; }
-
-/* Opening "For this step" doesn't blur or fade the rest of the screen. */
-.gm-kitchen .ck-freeze { filter: none !important; opacity: 1 !important; }
-
 /* Board 11 in the kitchen: changed words get the ember underline; round buttons are soft grey. */
 .gm-kitchen .hv-mark { padding: 0; margin: 0; border-radius: 0; background: none; box-shadow: inset 0 -2px 0 var(--thermal-ember); }
 .gm-kitchen .hv-ingr li.is-voice-target { background: none; }
