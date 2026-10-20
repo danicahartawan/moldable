@@ -146,17 +146,18 @@
 
 /* Adjust is a clay orb at the top of the screen, like the orb on the smart display. */
 .hv-clay-orb { position: absolute; z-index: 8; top: 26px; left: 50%; display: grid; width: 56px; height: 56px; padding: 0; border: 0; background: none; place-items: center; transform: translateX(-50%); cursor: pointer; }
-.hv-clay-orb:active { transform: translateX(-50%) scale(.94); }
 .hv-clay-orb:focus-visible { outline: none; }
+/* The orb is a ClayBody: tapping squashes it. While the voice is active its clay has leapt into the notification, so the orb steps away. */
+.hv-clay-orb { transition: opacity 240ms ease; }
+.hv-screen[data-voice='on'] .hv-clay-orb { opacity: 0; pointer-events: none; }
+/* The little clay that crawls from row to row while the ingredients are rewritten. */
+.hv-crawler { position: absolute; top: 0; left: 0; z-index: 9; width: 1px; height: 1px; pointer-events: none; opacity: 0; transition: opacity 260ms ease; }
+.hv-crawler.is-on { opacity: 1; transition-duration: 120ms; }
 /* The clay orb has no rim: just its shading and a soft shadow. */
-.hv-clay-orb .hv-adjust__blob, .hv-clay-orb .hv-adjust__blob::after { box-shadow: inset -5px -7px 9px rgba(120, 30, 0, .32), 0 6px 10px rgba(255, 90, 38, .28); }
-.hv-clay-orb .hv-adjust__blob::after { box-shadow: inset -5px -7px 9px rgba(0, 70, 70, .32), 0 6px 10px rgba(31, 157, 157, .28); }
-.hv-clay-orb .hv-adjust__blob { width: 40px; height: 40px; animation: hv-clay-orb-bob 4.5s ease-in-out infinite; }
 @keyframes hv-clay-orb-bob {
   0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; transform: scale(1, 1); }
   50% { border-radius: 46% 54% 56% 44% / 44% 58% 42% 56%; transform: scale(1.06, .95); }
 }
-@media (prefers-reduced-motion: reduce) { .hv-clay-orb .hv-adjust__blob { animation: none; } }
 
 /* The Grandkids recipe: plain white screen, white cards with a thin warm-gray outline, no glass or glow. */
 .gm-kitchen .hv-screen { background: #fff; }

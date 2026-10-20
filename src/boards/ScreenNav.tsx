@@ -6,6 +6,7 @@ const SCREENS = [
   { href: '/boards/cooking', label: '09 Cooking step' },
   { href: '/boards/story', label: '10 Oma’s story' },
   { href: '/boards/glow', label: 'Speaking glow' },
+  { href: '/boards/clay', label: 'Clay' },
   { href: '/kitchen', label: 'Kitchen mockup' },
 ] as const
 

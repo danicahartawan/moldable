@@ -1,6 +1,6 @@
 'use client'
 
-import { ClayBlob } from '@/kitchen/ClayMix'
+import { ClayBody, type ClayHandle } from '@/clay/ClayBody'
 import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
 import { VoiceNotification } from '@/voice/VoiceNotification'
 import { VersionHistory, initialVersions, newVersion, type VersionEntry } from '@/kitchen/VersionHistory'
@@ -17,6 +17,13 @@ const ADJUST_SCRIPT = [
   'Actually, I just want two servings.',
   'What can I use instead of kencur?',
 ] as const
+// The crawling clay on the ingredient rows.
+const CRAWLER_RADIUS = 10
+// A small lump crossing a long way quickly: it stretches less and thins less, so it stays a lump, not a smear.
+const CRAWLER_TUNING = { maxStretch: 1, volume: 0.6 }
+// The Adjust orb's centre, measured from the notification's clay box: the clay leaps from the orb into the card.
+const ORB_IN_NOTIFICATION = { x: 286, y: 20 }
+
 // What the notification says once each request has been carried out.
 const ADJUST_RESULTS = [
   'Halved everything for 2 servings.',
@@ -141,7 +148,6 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
   const [glow, setGlow] = useState<GlowState>('idle')
   const [result, setResult] = useState('')
   const voiceLevel = useRef<() => number>(() => 0)
-  const noticeRef = useRef<HTMLDivElement>(null)
   // With the clay look, the Adjust chip's blob turns teal once the teal has been mixed all the way through.
   const [blobTeal, setBlobTeal] = useState(false)
   // Glance and Wave to start are two sides of one toggle.
@@ -158,6 +164,10 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
   const [versions, setVersions] = useState<VersionEntry[]>(initialVersions)
   const [penRow, setPenRow] = useState<number | null>(null)
   const [penPos, setPenPos] = useState<{ left: number; top: number } | null>(null)
+  // With the clay look, a little lump of clay crawls from row to row instead of the pencil.
+  const crawler = useRef<ClayHandle>(null)
+  const crawlerRow = useRef<number | null>(null)
+  const orb = useRef<ClayHandle>(null)
   const stage = useRef(0)
   const timers = useRef<number[]>([])
   const listRef = useRef<HTMLUListElement>(null)
@@ -175,6 +185,26 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
     // The pencil tip sits at ~92% across and ~81% down the 96 x 82 mascot image.
     setPenPos({ left: amount.offsetLeft - 88, top: row.offsetTop + row.offsetHeight / 2 - 60 })
   }, [penRow])
+
+  // The crawler sits on top of the amount being rewritten: it leaps in for the first row, then inches along.
+  useLayoutEffect(() => {
+    const previous = crawlerRow.current
+    crawlerRow.current = penRow
+    if (!clay || penRow === null) return
+    const row = listRef.current?.children[penRow] as HTMLElement | undefined
+    const amount = row?.querySelector<HTMLElement>('.hv-amt')
+    if (!row || !amount) return
+    // On top of the amount, kept clear of the card's right edge so its leading end doesn't poke out.
+    const card = listRef.current?.parentElement
+    const maxX = (card?.clientWidth ?? Infinity) - 22 - CRAWLER_RADIUS * 1.6
+    const spot = { x: Math.min(amount.offsetLeft + amount.offsetWidth / 2, maxX), y: row.offsetTop - CRAWLER_RADIUS + 1 }
+    if (previous === null) {
+      crawler.current?.place({ x: spot.x + 36, y: -40 })
+      crawler.current?.jump(spot)
+    } else {
+      crawler.current?.crawl(spot, { x: 0, y: 1 })
+    }
+  }, [penRow, clay])
 
   const runPencilPass = (onRow: (row: number) => void, rowMs: number) => {
     let at = 0
@@ -341,7 +371,12 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               )
             })}
           </ul>
-          {penRow !== null && penPos && (
+          {clay && (
+            <span className={`hv-crawler${penRow === null ? '' : ' is-on'}`} aria-hidden="true">
+              <ClayBody ref={crawler} width={1} height={1} home={{ x: 0, y: 0 }} radius={CRAWLER_RADIUS} tuning={CRAWLER_TUNING} />
+            </span>
+          )}
+          {!clay && penRow !== null && penPos && (
             // eslint-disable-next-line @next/next/no-img-element
             <img className="hv-pen" src="/assets/mascot-writer-gradient.png" alt="Moldable mascot writing in the ingredient list"
               style={{ left: penPos.left, top: penPos.top }} />
@@ -352,14 +387,21 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
         {clay && glanceOpen && <GlanceSheet checked={checked} onToggle={toggleChecked} onClose={() => setGlanceOpen(false)} />}
 
         {clay && (
-          <button type="button" className={`hv-tap hv-clay-orb is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
-            <ClayBlob teal={blobTeal} />
+          <button type="button" className={`hv-tap hv-clay-orb is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={() => { orb.current?.touch({ x: 0, y: 1 }, 0.8); beginAdjust() }}>
+            <ClayBody ref={orb} width={56} height={56} home={{ x: 28, y: 28 }} radius={20} color={blobTeal ? 'teal' : 'orange'} />
           </button>
         )}
 
-        <SpeakingGlow state={glow} level={() => voiceLevel.current()} mirrorTo={noticeRef} onDone={() => setGlow('idle')} />
+        <SpeakingGlow state={glow} level={() => voiceLevel.current()} onDone={() => setGlow('idle')} />
         {/* The notification stays on "Done" with what changed until the pencil has finished writing it in. */}
-        <VoiceNotification ref={noticeRef} state={glow !== 'idle' ? glow : phase === 'writing' ? 'done' : 'idle'} heard={heard} result={result} teal={blobTeal} />
+        <VoiceNotification
+          state={glow !== 'idle' ? glow : phase === 'writing' ? 'done' : 'idle'}
+          heard={heard}
+          result={result}
+          teal={blobTeal}
+          level={() => voiceLevel.current()}
+          jumpFrom={clay ? ORB_IN_NOTIFICATION : undefined}
+        />
 
       </div>
       {embedded ? overlay : <p className="hv-caption">Grandkid home view, 640 × 640 for the 5.73 in display.</p>}

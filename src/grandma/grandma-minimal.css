@@ -16,7 +16,7 @@
 .gm-note__head { display: flex; align-items: center; gap: 16px; max-width: 62%; }
 .gm-note__head .gm-note__title { width: auto; min-width: 4ch; flex: 0 1 auto; field-sizing: content; }
 
-/* Listening: a lump of orange clay in the bottom-right corner, always reshaping, swelling as she speaks. */
+/* Listening: a lump of orange clay in the bottom-right corner (ClayBody), pulled longer as she speaks. */
 .gm-clay {
   position: absolute;
   right: 5%;
@@ -30,30 +30,7 @@
   justify-content: center;
   animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
 }
-/* Voice squashes the outer wrapper; the lump inside keeps getting pulled into new shapes. */
-.gm-clay__voice { display: block; transition: transform 160ms cubic-bezier(.3, .7, .3, 1); }
-.gm-clay__lump {
-  display: block;
-  width: 64px;
-  height: 64px;
-  background: radial-gradient(circle at 34% 28%, #ffc3a3 0, #ff8a5c 24%, #ff5a26 56%, #d9420f 100%);
-  box-shadow:
-    inset -7px -10px 14px rgba(140, 38, 0, .4),
-    inset 5px 6px 10px rgba(255, 226, 208, .55),
-    0 10px 18px rgba(255, 90, 38, .3);
-  animation: gm-clay-morph 4.2s ease-in-out infinite;
-}
-.gm-clay.is-paused .gm-clay__lump { animation-play-state: paused; }
-@keyframes gm-clay-morph {
-  0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; scale: 1 1; rotate: 0deg; }
-  14% { border-radius: 30% 70% 70% 30% / 50% 30% 70% 50%; scale: 1.32 .74; rotate: -8deg; }
-  28% { border-radius: 70% 30% 35% 65% / 30% 65% 35% 70%; scale: .76 1.3; rotate: 10deg; }
-  42% { border-radius: 45% 55% 25% 75% / 70% 25% 75% 30%; scale: 1.18 1.08; rotate: 22deg; }
-  56% { border-radius: 25% 75% 60% 40% / 40% 70% 30% 60%; scale: .88 .82; rotate: -14deg; }
-  70% { border-radius: 65% 35% 70% 30% / 65% 40% 60% 35%; scale: 1.38 .86; rotate: 6deg; }
-  85% { border-radius: 38% 62% 44% 56% / 28% 52% 48% 72%; scale: .82 1.24; rotate: -18deg; }
-}
-@media (prefers-reduced-motion: reduce) { .gm-clay { animation: none; } .gm-clay__lump { animation: none; border-radius: 50%; } .gm-clay__voice { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .gm-clay { animation: none; } }
 
 .gm-note__title {
   width: 100%;
@@ -336,7 +313,6 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 }
 @keyframes gm-fog-in { from { opacity: 0; -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); } to { opacity: 1; } }
 .gm-clay.gm-clay--center { position: static; width: 150px; height: 150px; }
-.gm-clay--center .gm-clay__lump { width: 108px; height: 108px; }
 /* Listening: a Newton's cradle of orange balls; the outer two take turns swinging out and knocking back. */
 .gm-cradle { display: flex; height: 30px; align-items: center; margin: 0; }
 .gm-cradle span { width: 16px; height: 16px; border-radius: 50%; background: #ff5a26; }
@@ -441,9 +417,6 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 .gm-done-bar { position: absolute; top: calc(6% + 44px); right: 5%; z-index: 4; display: flex; align-items: center; gap: 4px; }
 .gm-done-bar .gm-controls { position: static; }
 .gm-clay.gm-clay--beside { position: static; width: 52px; height: 52px; }
-.gm-clay--beside .gm-clay__lump { width: 34px; height: 34px; box-shadow: inset -4px -6px 8px rgba(140, 38, 0, .4), inset 3px 4px 6px rgba(255, 226, 208, .55), 0 5px 10px rgba(255, 90, 38, .3); }
-.gm-clay--beside .gm-clay__lump { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; animation: none; }
-.gm-clay--beside .gm-clay__voice { transform: none !important; }
 
 /* The note hangs like a sticky note: a slightly darker band across the top, with two punched holes. */
 .gm-sheet::before {

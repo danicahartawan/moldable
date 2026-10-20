@@ -3,6 +3,7 @@
 import { BowlFood } from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { DotSpinner } from '../Icon'
+import { ClayBody } from '../clay/ClayBody'
 import { HomeViewFrame } from '../home/HomeViewFrame'
 import { useVoiceRecorder } from '../useVoiceRecorder'
 import { transcribeAudio } from './transcribe'
@@ -59,25 +60,20 @@ function TypedTitle({ text, onDone }: { text: string; onDone: () => void }) {
 const QUESTION_INTERVAL_MS = 30_000
 const QUESTION_TYPING_MS_PER_CHAR = 40
 
-// A lump of orange clay that keeps reshaping itself, squashing and swelling with her voice.
-function ListeningClay({ levelRef, isPaused, className = '' }: { levelRef: RefObject<number | null>; isPaused: boolean; className?: string }) {
-  const [level, setLevel] = useState(0.3)
-
-  useEffect(() => {
-    if (isPaused) return
-    const start = performance.now()
-    const timer = window.setInterval(() => {
-      const live = levelRef.current
-      setLevel(live === null ? simulatedLevel((performance.now() - start) / 1000) : live)
-    }, 120)
-    return () => window.clearInterval(timer)
-  }, [levelRef, isPaused])
+// A lump of orange clay that listens: loud words pull it longer, pauses let it relax back to round.
+function ListeningClay({ levelRef, isPaused, className = '', size = 92 }: { levelRef: RefObject<number | null>; isPaused: boolean; className?: string; size?: number }) {
+  const start = useRef(0)
+  // Read every frame by the clay's own loop: her live level, or a stand-in while there's no microphone.
+  const level = useCallback(() => {
+    const live = levelRef.current
+    if (live !== null) return live
+    if (!start.current) start.current = performance.now()
+    return simulatedLevel((performance.now() - start.current) / 1000)
+  }, [levelRef])
 
   return (
     <span className={`gm-clay${isPaused ? ' is-paused' : ''}${className ? ` ${className}` : ''}`} role="status" aria-label="Listening">
-      <span className="gm-clay__voice" style={{ transform: `scale(${1 + level * 0.3}, ${1 - level * 0.18})` }}>
-        <span className="gm-clay__lump" />
-      </span>
+      <ClayBody width={size} height={size} home={{ x: size / 2, y: size / 2 }} radius={size * 0.35} level={isPaused ? undefined : level} />
     </span>
   )
 }
@@ -116,7 +112,7 @@ function RecipeChangeOverlay({ levelRef, onClose }: { levelRef: RefObject<number
 
   return (
     <div className="gm-fog" role="dialog" aria-label="Recipe change" onClick={hasHeard ? onClose : undefined}>
-      <ListeningClay levelRef={levelRef} isPaused={hasHeard} className="gm-clay--center" />
+      <ListeningClay levelRef={levelRef} isPaused={hasHeard} className="gm-clay--center" size={150} />
       {hasHeard ? (
         <p className="gm-fog__reply" aria-live="polite">
           <span className="gm-question__accessible">{RECIPE_CHANGE_REPLY}</span>
@@ -352,7 +348,7 @@ export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
       ) : null}
       {isDone ? (
         <div className="gm-done-bar">
-          <ListeningClay levelRef={recorder.levelRef} isPaused className="gm-clay--beside" />
+          <ListeningClay levelRef={recorder.levelRef} isPaused className="gm-clay--beside" size={52} />
           <div className="gm-controls gm-controls--done" role="group" aria-label="Story">
             <button type="button" aria-pressed={doneView === 'changes'} onClick={() => { setDoneView('changes'); setIsRecipeListening(true) }}>Recipe change</button>
             <button type="button" aria-pressed={doneView === 'tidy'} onClick={tidy}>Tidy</button>

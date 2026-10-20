@@ -1,0 +1,6 @@
+/* ClayBody: the SVG lump. The drop shadow follows the outline because it's applied to the drawn shape. */
+.clay { display: block; overflow: visible; pointer-events: none; filter: drop-shadow(0 5px 7px rgba(255, 90, 38, .28)); }
+.clay__teal { transition: opacity 600ms ease; }
+/* The grain lightens and darkens the colour underneath, about 15%. */
+.clay__grain { opacity: .16; mix-blend-mode: soft-light; }
+@media (prefers-reduced-motion: reduce) { .clay__teal { transition: opacity 200ms ease; } }
