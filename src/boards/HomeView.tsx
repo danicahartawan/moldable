@@ -2,7 +2,7 @@
 
 import { ClayBlob, ClayMix } from '@/kitchen/ClayMix'
 import { VersionHistory, initialVersions, newVersion, type VersionEntry } from '@/kitchen/VersionHistory'
-import { Eye, HandWaving, ListChecks, Timer, Toolbox, X } from '@phosphor-icons/react'
+import { Eye, HandWaving, ListChecks, X } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 
@@ -262,13 +262,7 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               <span className="hv-h">Cooking time</span>
               <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span className="hv-mins"><Mark on={mins !== 40}>{mins}</Mark></span>
-                <span style={{ fontSize: 22 }}>{clay ? 'minutes' : 'mins'}</span>
-                {clay && (
-                  <>
-                    <span className="hv-mins hv-mins--serves">{serves2 ? 2 : 4}</span>
-                    <span style={{ fontSize: 22 }}>servings</span>
-                  </>
-                )}
+                <span style={{ fontSize: 22 }}>mins</span>
               </span>
               <span className="hv-wave">Wave to start</span>
             </span>
@@ -286,20 +280,6 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               </span>
             </span>
           </button>
-          {clay && swap && (
-            <span className="hv-foot" aria-hidden="true">
-              <Toolbox size={22} />
-              Tools
-            </span>
-          )}
-          {clay && !swap && (
-            <>
-              <span className="hv-foot" aria-hidden="true">
-                <Timer size={22} />
-                Cooking time
-              </span>
-            </>
-          )}
           <span aria-hidden="true" className="hv-dots">
             <span style={{ background: swap ? 'var(--line)' : 'var(--ink)' }} />
             <span style={{ background: swap ? 'var(--ink)' : 'var(--line)' }} />
@@ -341,12 +321,6 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               )
             })}
           </ul>
-          {clay && (
-            <span className="hv-foot" aria-hidden="true">
-              <ListChecks size={22} />
-              Ingredients
-            </span>
-          )}
           {penRow !== null && penPos && (
             // eslint-disable-next-line @next/next/no-img-element
             <img className="hv-pen" src="/assets/mascot-writer-gradient.png" alt="Moldable mascot writing in the ingredient list"
