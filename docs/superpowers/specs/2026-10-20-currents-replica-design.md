@@ -4,17 +4,17 @@
 
 Recreate the public `https://adityad.as/currents` case-study page as faithfully as possible inside the existing Moldable Next.js application. The replica will live at `/currents`; the current homepage and all existing routes must remain unchanged.
 
-Success means the local page matches the reference's content, composition, typography, spacing, imagery, responsive behavior, and visible interactions closely at representative desktop and mobile sizes.
+Success means the local page matches the reference's content, composition, typography, spacing, imagery, responsive behavior, and visible interactions closely at representative desktop and mobile sizes, with the user-requested orange opening and replacement video.
 
 ## Reference Lock
 
 The user-provided Currents page is the definitive visual and content reference.
 
-- Preserve the full-height indigo-to-cream opening gradient, floating blue Home control, restrained editorial typography, white case-study canvas, narrow reading column, full-bleed media rhythm, small metadata labels, and dark next-project/footer ending.
+- Preserve the full-height opening gradient composition but replace its blue/indigo palette with a warm orange-to-cream palette. Keep the floating Home control within the same orange color family. Preserve the restrained editorial typography, white case-study canvas, narrow reading column, full-bleed media rhythm, small metadata labels, and dark next-project/footer ending.
 - Preserve the alternating hierarchy of section eyebrow, sans-serif headline, serif body copy, media, and caption.
 - Preserve the original wording and section order.
-- Use the reference media itself where it can be captured as public assets. When a motion asset cannot be obtained reliably, use a stable poster image with the same dimensions and visual treatment rather than inventing unrelated media.
-- Keep color role discipline: blue belongs to the opening scene and small interactive accents; body content stays white, black, and muted gray; the next-project area supplies the dark closing contrast.
+- Use the reference still imagery where it can be captured as public assets. Replace the reference's video demonstrations with the user-supplied 25.6-second, 1280×708 H.264 screen recording (`Screen Recording 2026-10-20 at 00.20.08.MP4`). Use a generated poster frame from that recording as its loading and no-autoplay fallback.
+- Keep color role discipline: orange belongs to the opening scene and small interactive accents; body content stays white, black, and muted gray; the next-project area supplies the dark closing contrast.
 - Reject generic portfolio cards, rounded SaaS panels, extra calls to action, decorative gradients outside the opening scene, and changes to the supplied narrative.
 
 ## Architecture
@@ -25,7 +25,7 @@ Public media and any legally reusable font substitutes live under `public/assets
 
 ## Page Structure
 
-1. Full-viewport gradient opening with a floating Home link and sparse animated light points.
+1. Full-viewport orange-to-cream gradient opening with a floating Home link and sparse animated light points.
 2. Introductory statement, supporting paragraph, hero image, caption, and three-column project metadata.
 3. Overview narrative.
 4. Feed section with feature copy and media demonstrations.
@@ -47,6 +47,7 @@ Desktop uses the reference's centered editorial column with selected media expan
 - The Home link returns to `/`.
 - Carousel Prev and Next controls update the image, caption, and position counter; controls disable at the first and last slides to match the reference.
 - External and footer links retain the destinations shown by the reference.
+- The supplied screen recording is presented with native, accessible video controls in every slot that used reference video media. It remains muted and does not autoplay with sound.
 - Motion respects `prefers-reduced-motion`; decorative motion pauses or becomes static for those users.
 
 ## Accessibility
