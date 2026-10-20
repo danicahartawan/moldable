@@ -351,10 +351,12 @@ export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
         </div>
       ) : null}
       {isDone ? (
-        <div className="gm-controls gm-controls--done" role="group" aria-label="Story">
-          <button type="button" aria-pressed={doneView === 'changes'} onClick={() => { setDoneView('changes'); setIsRecipeListening(true) }}>Recipe change</button>
-          <span className="gm-controls__divider" aria-hidden="true">/</span>
-          <button type="button" aria-pressed={doneView === 'tidy'} onClick={tidy}>Tidy</button>
+        <div className="gm-done-bar">
+          <ListeningClay levelRef={recorder.levelRef} isPaused className="gm-clay--beside" />
+          <div className="gm-controls gm-controls--done" role="group" aria-label="Story">
+            <button type="button" aria-pressed={doneView === 'changes'} onClick={() => { setDoneView('changes'); setIsRecipeListening(true) }}>Recipe change</button>
+            <button type="button" aria-pressed={doneView === 'tidy'} onClick={tidy}>Tidy</button>
+          </div>
         </div>
       ) : null}
       {isRecording ? <CameraButton onCapture={addPhoto} onOpenChange={setIsCameraOpen} /> : null}
