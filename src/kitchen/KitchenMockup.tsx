@@ -108,7 +108,7 @@ function InstructionCard({ instruction, live = false }: { instruction: Instructi
   )
 }
 
-type KitchenControls = { showGrandkids: () => void }
+type KitchenControls = { showGrandkids: () => void; showRecipe: () => void }
 
 // `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
 export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean } = {}) {
@@ -214,11 +214,16 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
       <div className="kitchen__css">
         <div ref={screen} className="kitchen__screen">
           <div data-testid="kitchen-grandma" className={`kitchen__host kitchen__host--grandma${perspective === 'grandma' ? '' : ' is-off'}`} aria-hidden={perspective !== 'grandma'} inert={perspective !== 'grandma'}>
-            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids') }) : grandmaScreen}
+            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids'), showRecipe: () => { setPerspective('grandkids'); setIsFridgeOpen(true) } }) : grandmaScreen}
           </div>
           <div data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragX ? ' is-dragging' : ''}`} style={dragX ? { transform: `translateX(${dragX}px)` } : undefined} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}${fridge ? ' kitchen__grandkids-view--fridge' : ''}`} inert={instructionStep !== null}>
               {(!fridge || isFridgeOpen) && <HomeViewBoard />}
+              {fridge && isFridgeOpen && (
+                <span className="kitchen__recipe-chili" aria-hidden="true">
+                  <span className="kitchen__recipe-chili__sway"><img src="/assets/chili-magnet.png" alt="" draggable={false} /></span>
+                </span>
+              )}
               {fridge && (!isFridgeOpen || isFridgeLeaving) && (
                 <div className={`kitchen__fridge-layer${isFridgeLeaving ? ' is-leaving' : ''}`}>
                   <FridgeScreen onOpen={openFridge} />

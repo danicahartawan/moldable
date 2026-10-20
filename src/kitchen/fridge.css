@@ -48,30 +48,56 @@
   position: absolute;
   top: 238px;
   left: 50%;
-  width: 172px;
+  width: 180px;
   cursor: grab;
   touch-action: none;
   transform: translate(calc(-50% + var(--fr-x)), var(--fr-y));
   user-select: none;
 }
 .fr-drag.is-dragging { cursor: grabbing; }
-.fr-drag.is-dragging .fr-paper {
+.fr-drag.is-dragging .fr-paper { box-shadow: 0 22px 30px rgba(0, 0, 0, .26), 0 2px 3px rgba(0, 0, 0, .14); }
+.fr-card {
   position: relative;
   display: block;
-  box-sizing: border-box;
-  height: 226px;
-  padding: 40px 14px 14px;
-  background: #fff;
-  box-shadow: 0 12px 20px rgba(0, 0, 0, .22), 0 2px 3px rgba(0, 0, 0, .14);
-  font-family: Georgia, 'Times New Roman', serif;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: inherit;
+  font: inherit;
+  text-align: left;
+  transform: rotate(-2deg);
+  transform-origin: 50% 0;
 }
-.fr-paper__title { display: block; color: #1f1c19; font-size: 18px; font-style: italic; line-height: 24px; }
-.fr-paper__sub { display: block; margin-bottom: 8px; color: #6f6a63; font-size: 12px; font-style: italic; line-height: 16px; }
-.fr-paper__ink { display: block; color: #3a3835; font-size: 10.5px; font-style: italic; line-height: 14px; opacity: .8; }
-.fr-paper__ink span { display: block; white-space: nowrap; }
+.fr-card:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
+
+.fr-paper {
+  position: relative;
+  display: flex;
+  height: 226px;
+  box-sizing: border-box;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 0 14px 44px;
+  background: #ff5a26;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, .24), 0 2px 3px rgba(0, 0, 0, .14);
+  color: #000;
+  font-family: var(--font-sans);
+}
+/* Like the sticky note: a darker band across the top with two punched holes, and a lighter band at the foot. */
+.fr-paper__band { position: absolute; top: 0; left: 0; right: 0; height: 32px; background: rgba(0, 0, 0, .07); }
+.fr-paper__hole { position: absolute; top: 9px; width: 14px; height: 14px; border-radius: 50%; background: rgba(255, 255, 255, .55); }
+.fr-paper__hole:first-child { left: 20px; }
+.fr-paper__hole:last-child { right: 20px; }
+.fr-paper__title { display: block; font-size: 23px; font-weight: 400; letter-spacing: -.03em; line-height: 26px; white-space: nowrap; }
+.fr-paper__time { margin-left: 3px; font-size: 12px; font-weight: 400; letter-spacing: 0; }
+.fr-paper__sub { display: block; margin-top: 3px; font-size: 12px; font-weight: 300; line-height: 16px; }
+.fr-paper__footer { position: absolute; left: 0; right: 0; bottom: 0; display: flex; height: 34px; align-items: center; gap: 6px; padding: 0 14px; background: rgba(255, 255, 255, .22); font-size: 12px; font-weight: 300; }
 
 /* The magnet is pinned at the note's top right; the chilies hang from it, swinging on their own and when the note is dragged. */
-.fr-dangle { position: absolute; top: -20px; left: 118px; display: block; width: 68px; height: 143px; pointer-events: none; transform-origin: 70% 15%; }
+.fr-dangle { position: absolute; top: -20px; left: 128px; display: block; width: 62px; height: 131px; pointer-events: none; transform-origin: 70% 15%; }
 .fr-dangle__sway { display: block; width: 100%; height: 100%; transform-origin: 70% 15%; animation: fr-sway 3.8s ease-in-out infinite; }
 .fr-bunch { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .28)); }
 @keyframes fr-sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
@@ -88,3 +114,9 @@
 @media (prefers-reduced-motion: reduce) { .kitchen__fridge-layer.is-leaving { animation: none; opacity: 0; } }
 /* From the fridge the recipe is simply there under the turning page, so its cards don't open on their own. */
 .kitchen__grandkids-view--fridge .hv-card { animation: none !important; }
+
+/* On the recipe itself the chili magnet hangs from the top right of the recipe card. */
+.kitchen__recipe-chili { position: absolute; top: 10px; left: 252px; z-index: 6; display: block; width: 72px; height: 152px; pointer-events: none; transform-origin: 70% 15%; }
+.kitchen__recipe-chili__sway { display: block; width: 100%; height: 100%; transform-origin: 70% 15%; animation: fr-sway 3.8s ease-in-out infinite; }
+.kitchen__recipe-chili img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 5px rgba(40, 70, 110, .3)); }
+@media (prefers-reduced-motion: reduce) { .kitchen__recipe-chili__sway { animation: none; } }

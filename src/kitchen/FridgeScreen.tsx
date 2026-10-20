@@ -1,5 +1,6 @@
 'use client'
 
+import { ClockCounterClockwise } from '@phosphor-icons/react'
 import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react'
 import './fridge.css'
 
@@ -47,7 +48,7 @@ export function FridgeScreen({ onOpen }: { onOpen: () => void }) {
   const beginDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
     const origin = { x: event.clientX, y: event.clientY, startX: offset.current.x, startY: offset.current.y }
-    const scale = (drag.current?.getBoundingClientRect().width ?? 172) / 172 || 1
+    const scale = (drag.current?.getBoundingClientRect().width ?? 180) / 180 || 1
     let last = event.clientX
     moved.current = false
 
@@ -105,17 +106,17 @@ export function FridgeScreen({ onOpen }: { onOpen: () => void }) {
       <div ref={drag} className="fr-drag" onPointerDown={beginDrag}>
         <button type="button" className="fr-card" aria-label="Open Popo’s Lelawar Bali recipe" onClick={open}>
           <span className="fr-paper">
-            <span className="fr-paper__title">Lelawar Bali</span>
+            <span className="fr-paper__band" aria-hidden="true">
+              <span className="fr-paper__hole" />
+              <span className="fr-paper__hole" />
+            </span>
+            <span className="fr-paper__title">
+              Lelawar Bali <span className="fr-paper__time">40 mins</span>
+            </span>
             <span className="fr-paper__sub">Popo’s recipe</span>
-            <span className="fr-paper__ink">
-              <span>Take half an onion, garlic,</span>
-              <span>chili, kencur, pepper and</span>
-              <span>lime leaves. Blend to a</span>
-              <span>fine paste, not too wet.</span>
-              <span>One good handful of</span>
-              <span>ground beef, browned</span>
-              <span>until golden. Toast the</span>
-              <span>coconut. Squeeze in lime.</span>
+            <span className="fr-paper__footer">
+              <ClockCounterClockwise size={15} aria-hidden="true" />
+              Version 1
             </span>
           </span>
           <span className="fr-dangle" ref={dangle}>
