@@ -1,7 +1,7 @@
 'use client'
 
 import { BowlFood, Drop, Grains, Jar, JarLabel, Leaf, Orange, OrangeSlice, Pepper, PiggyBank, Plant, TreePalm, type Icon as PhosphorIcon } from '@phosphor-icons/react'
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { ExploreBoard } from '@/boards/Explore'
 import { COOKING_STEP_COUNT, CookingStepBoard } from '@/boards/CookingStep'
 import { HomeViewBoard } from '@/boards/HomeView'
@@ -107,7 +107,10 @@ function InstructionCard({ instruction, live = false }: { instruction: Instructi
   )
 }
 
-export function KitchenMockup() {
+type KitchenControls = { showGrandkids: () => void }
+
+// `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
+export function KitchenMockup({ grandmaScreen = <GrandmaPage /> }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode) } = {}) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const screen = useRef<HTMLDivElement>(null)
   const swipeStart = useRef<number | null>(null)
@@ -196,7 +199,7 @@ export function KitchenMockup() {
       <div className="kitchen__css">
         <div ref={screen} className="kitchen__screen">
           <div data-testid="kitchen-grandma" className={`kitchen__host kitchen__host--grandma${perspective === 'grandma' ? '' : ' is-off'}`} aria-hidden={perspective !== 'grandma'} inert={perspective !== 'grandma'}>
-            <GrandmaPage />
+            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids') }) : grandmaScreen}
           </div>
           <div data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragX ? ' is-dragging' : ''}`} style={dragX ? { transform: `translateX(${dragX}px)` } : undefined} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>

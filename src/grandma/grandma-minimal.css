@@ -1,0 +1,438 @@
+/* Minimal grandma screen: a recipe note, no corner gradient. */
+.grandma-minimal::before { display: none; }
+
+.gm-note {
+  position: absolute;
+  top: 7%;
+  right: 7%;
+  bottom: 24%;
+  left: 7%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gm-note__head { display: flex; align-items: center; gap: 16px; max-width: 62%; }
+.gm-note__head .gm-note__title { width: auto; min-width: 4ch; flex: 0 1 auto; field-sizing: content; }
+
+/* Listening: a lump of orange clay in the bottom-right corner, always reshaping, swelling as she speaks. */
+.gm-clay {
+  position: absolute;
+  right: 5%;
+  bottom: 4%;
+  z-index: 3;
+  display: inline-flex;
+  width: 92px;
+  height: 92px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
+}
+/* Voice squashes the outer wrapper; the lump inside keeps getting pulled into new shapes. */
+.gm-clay__voice { display: block; transition: transform 160ms cubic-bezier(.3, .7, .3, 1); }
+.gm-clay__lump {
+  display: block;
+  width: 64px;
+  height: 64px;
+  background: radial-gradient(circle at 34% 28%, #ffc3a3 0, #ff8a5c 24%, #ff5a26 56%, #d9420f 100%);
+  box-shadow:
+    inset -7px -10px 14px rgba(140, 38, 0, .4),
+    inset 5px 6px 10px rgba(255, 226, 208, .55),
+    0 10px 18px rgba(255, 90, 38, .3);
+  animation: gm-clay-morph 4.2s ease-in-out infinite;
+}
+.gm-clay.is-paused .gm-clay__lump { animation-play-state: paused; }
+@keyframes gm-clay-morph {
+  0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; scale: 1 1; rotate: 0deg; }
+  14% { border-radius: 30% 70% 70% 30% / 50% 30% 70% 50%; scale: 1.32 .74; rotate: -8deg; }
+  28% { border-radius: 70% 30% 35% 65% / 30% 65% 35% 70%; scale: .76 1.3; rotate: 10deg; }
+  42% { border-radius: 45% 55% 25% 75% / 70% 25% 75% 30%; scale: 1.18 1.08; rotate: 22deg; }
+  56% { border-radius: 25% 75% 60% 40% / 40% 70% 30% 60%; scale: .88 .82; rotate: -14deg; }
+  70% { border-radius: 65% 35% 70% 30% / 65% 40% 60% 35%; scale: 1.38 .86; rotate: 6deg; }
+  85% { border-radius: 38% 62% 44% 56% / 28% 52% 48% 72%; scale: .82 1.24; rotate: -18deg; }
+}
+@media (prefers-reduced-motion: reduce) { .gm-clay { animation: none; } .gm-clay__lump { animation: none; border-radius: 50%; } .gm-clay__voice { transition: none; } }
+
+.gm-note__title {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #000;
+  font: inherit;
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+  outline: none;
+}
+.gm-note__title::placeholder { color: #000; }
+h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000; text-transform: none; white-space: nowrap; }
+.gm-note__title--starting { display: inline-flex; align-items: center; gap: 12px; }
+.gm-note__title--starting .md-dots { width: 26px; height: 26px; }
+.gm-note__title--starting .md-dots circle { fill: currentColor; animation: gm-dot-pulse 900ms ease-in-out infinite; }
+@keyframes gm-dot-pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .gm-note__title--starting .md-dots circle { animation: none; } }
+
+.gm-note__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.gm-note__chip {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 0 12px;
+  border: 1px dashed #c9c4bb;
+  border-radius: 18px;
+  color: #000;
+  font-size: 15px;
+  font-weight: 300;
+  animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
+}
+.gm-note__chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gm-note__chip button {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.gm-note__chip button:hover { background: rgba(0, 0, 0, .06); }
+
+.gm-note__body {
+  width: 100%;
+  min-height: 120px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1f1c19;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.45;
+  outline: none;
+  flex: 1;
+  resize: none;
+}
+.gm-note__body::placeholder { color: #a9a49d; }
+
+@media (prefers-reduced-motion: reduce) { .gm-note__chip { animation: none; } }
+
+/* While recording, the story writes itself into the note; once full, older lines slide up out of view. */
+.gm-note__story {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+.gm-note__story.is-overflowing { mask-image: linear-gradient(to bottom, transparent 0, #000 22%); }
+.gm-story {
+  margin: 0;
+  color: #1f1c19;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1.45;
+}
+.gm-story__interim { color: #85827e; }
+
+/* Camera: a gray round button under the pause/stop pill, in the same style. */
+.gm-camera {
+  position: absolute;
+  top: calc(6% + 60px);
+  right: 5%;
+  z-index: 4;
+  display: flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 24px;
+  background: #f4f4f3;
+  color: #000;
+  cursor: pointer;
+  animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
+}
+.gm-camera:hover { background: #ebebe9; }
+.gm-camera:active { transform: scale(.95); }
+.gm-note { right: calc(5% + 64px); transition: right 460ms cubic-bezier(.2, .9, .25, 1); }
+/* While the viewfinder is open, the note narrows so the text flows down the left of it. */
+.gm-note.is-beside-camera { right: calc(5% + 44% + 18px); }
+
+/* The viewfinder grows out of the camera button into a card on the right. */
+.gm-viewfinder {
+  position: absolute;
+  top: calc(6% + 60px);
+  right: 5%;
+  z-index: 10;
+  width: 44%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #000;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .22);
+  transform-origin: calc(100% - 24px) 24px;
+  animation: gm-viewfinder-open 460ms cubic-bezier(.2, .9, .25, 1.05) both;
+}
+@keyframes gm-viewfinder-open {
+  from { border-radius: 40px; opacity: .6; transform: scale(.17); }
+  to { border-radius: 24px; opacity: 1; transform: scale(1); }
+}
+.gm-viewfinder__view { display: block; width: 100%; height: 100%; object-fit: cover; }
+.gm-viewfinder__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .85);
+  color: #000;
+  cursor: pointer;
+}
+.gm-viewfinder__shutter {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 4px solid rgba(255, 255, 255, .6);
+  border-radius: 50%;
+  background: #fff;
+  background-clip: padding-box;
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+.gm-viewfinder__shutter:active { transform: translateX(-50%) scale(.92); }
+/* Taking a photo: two black blades snap shut over the view and spring back open. */
+.gm-shutter { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.gm-shutter span { position: absolute; left: 0; width: 100%; height: 50%; background: #000; }
+.gm-shutter span:first-child { top: 0; transform-origin: top; animation: gm-shutter-blade 520ms cubic-bezier(.7, 0, .3, 1) both; }
+.gm-shutter span:last-child { bottom: 0; transform-origin: bottom; animation: gm-shutter-blade 520ms cubic-bezier(.7, 0, .3, 1) both; }
+@keyframes gm-shutter-blade { 0% { transform: scaleY(0); } 40%, 55% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+@media (prefers-reduced-motion: reduce) { .gm-camera, .gm-viewfinder { animation: none; } .gm-shutter { display: none; } }
+
+/* Questions type out at the bottom, where the transcript used to be. */
+.gm-question {
+  position: absolute;
+  right: calc(5% + 104px);
+  bottom: 6%;
+  left: 8%;
+  z-index: 3;
+  margin: 0;
+  color: #85827e;
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 1.45;
+  text-align: right;
+}
+.gm-question__accessible { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Tool chips in the note match the text size and read as soft pills. */
+.gm-note__story .grandma-transcript-tool-chip {
+  --chip-bg: #eceae6;
+  --chip-fg: #4a4743;
+  min-height: 0;
+  gap: 5px;
+  margin: 0 2px;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  box-shadow: none;
+  color: var(--chip-fg);
+  font-size: 1em;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+/* Each tool takes one colour from the palette: a soft tint behind, a deeper shade for the icon and word. */
+.gm-note__story .grandma-transcript-tool-chip[data-tool="blend"] { --chip-bg: #ffe3d8; --chip-fg: #e04a17; }
+.gm-note__story .grandma-transcript-tool-chip[data-tool="weigh"] { --chip-bg: #d9ebd3; --chip-fg: #3c8a34; }
+.gm-note__story .grandma-transcript-tool-chip[data-tool="timer"] { --chip-bg: #ffef9e; --chip-fg: #c28400; }
+.gm-note__story .grandma-transcript-tool-chip[data-tool="temperature"] { --chip-bg: #f6d8d1; --chip-fg: #c0472f; }
+/* A photo shows as a plain gray [Image n] marker, set apart from the coloured tool chips. */
+.gm-image-chip { margin: 0 4px; padding: 0 8px; border-radius: 999px; background: #ececea; color: #85827e; }
+.gm-note__story .grandma-transcript-tool-chip[data-tool="microwave"] { --chip-bg: #f3e2b8; --chip-fg: #a0700c; }
+.gm-note__story .grandma-transcript-tool-chip svg { width: .9em; height: .9em; }
+
+/* Pause and stop: a quiet pill in the top-right corner. */
+.gm-controls {
+  position: absolute;
+  top: 6%;
+  right: 5%;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 24px;
+  background: #f4f4f3;
+  animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
+}
+.gm-controls button { width: 36px; height: 36px; border-radius: 18px; }
+@media (prefers-reduced-motion: reduce) { .gm-controls { animation: none; } }
+
+/* After stopping: "Recipe change / Tidy" as plain words split by a slash; a small dot marks the one chosen. */
+.gm-controls.gm-controls--done {
+  gap: 2px;
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 0, 0, .05);
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+}
+.gm-controls--done button {
+  display: inline-flex;
+  width: auto;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: #1f1c19;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 300;
+  cursor: pointer;
+}
+.gm-controls--done button:hover { background: rgba(0, 0, 0, .04); }
+.gm-controls--done button[aria-pressed='true']::before { width: 9px; height: 9px; border-radius: 50%; background: #ff5a26; content: ''; }
+.gm-controls__divider { color: #c9c4bb; font-size: 17px; font-weight: 300; }
+
+/* Recipe change: fog over the note, the clay listening in the middle. */
+.gm-fog {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: rgba(255, 255, 255, .55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  animation: gm-fog-in 520ms ease-out both;
+}
+@keyframes gm-fog-in { from { opacity: 0; -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); } to { opacity: 1; } }
+.gm-clay.gm-clay--center { position: static; width: 150px; height: 150px; }
+.gm-clay--center .gm-clay__lump { width: 108px; height: 108px; }
+/* Listening: a Newton's cradle of orange balls; the outer two take turns swinging out and knocking back. */
+.gm-cradle { display: flex; height: 30px; align-items: center; margin: 0; }
+.gm-cradle span { width: 16px; height: 16px; border-radius: 50%; background: #ff5a26; }
+.gm-cradle span:first-child { animation: gm-cradle-left 1.1s cubic-bezier(.45, 0, .55, 1) infinite; }
+.gm-cradle span:last-child { animation: gm-cradle-right 1.1s cubic-bezier(.45, 0, .55, 1) infinite; }
+@keyframes gm-cradle-left { 0%, 50%, 100% { transform: none; } 25% { transform: translate(-14px, -4px); } }
+@keyframes gm-cradle-right { 0%, 50%, 100% { transform: none; } 75% { transform: translate(14px, -4px); } }
+.gm-fog__reply { min-height: 30px; margin: 0; color: #000; font-size: 26px; font-weight: 300; letter-spacing: -.01em; }
+@media (prefers-reduced-motion: reduce) { .gm-fog, .gm-cradle span { animation: none; } }
+
+/* A change she asked for: marked in orange, old word struck through, new word beside it. */
+.gm-change {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #ffe3d8;
+  color: #e04a17;
+  animation: gm-change-in 700ms ease-out both;
+}
+.gm-change s { opacity: .6; }
+@keyframes gm-change-in { from { background: #ff5a26; color: #fff; } }
+@media (prefers-reduced-motion: reduce) { .gm-change { animation: none; } }
+/* While the note is still scrolling to it, the change reads as plain text. */
+.gm-note__story.is-searching .gm-change { padding: 0; background: none; color: inherit; animation: none; }
+.gm-note__story.is-searching .gm-change s { opacity: 1; text-decoration: none; }
+.gm-note__story.is-searching .gm-change__new { display: none; }
+
+/* Tidy: the note is a sheet of paper that scrunches into a ball and drops away. */
+.gm-sheet { position: absolute; inset: 0; background: #fff; transform-origin: 50% 55%; }
+.grandma-minimal.is-crumpling { background: #e9e7e3; transition: background 200ms ease; }
+.grandma-minimal.is-crumpling .gm-sheet {
+  pointer-events: none;
+  animation: gm-crumple 950ms cubic-bezier(.55, 0, .7, .4) both;
+}
+.gm-sheet::after {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background:
+    linear-gradient(115deg, transparent 30%, rgba(0, 0, 0, .1) 31%, transparent 34%),
+    linear-gradient(62deg, transparent 55%, rgba(0, 0, 0, .12) 56%, transparent 59%),
+    linear-gradient(160deg, transparent 18%, rgba(255, 255, 255, .7) 19%, transparent 23%),
+    linear-gradient(20deg, transparent 70%, rgba(0, 0, 0, .1) 71%, transparent 75%),
+    radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, .14) 100%);
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+}
+.grandma-minimal.is-crumpling .gm-sheet::after { animation: gm-crumple-creases 950ms ease-in both; }
+@keyframes gm-crumple {
+  0% {
+    clip-path: polygon(0% 0%, 25% 0%, 50% 0%, 75% 0%, 100% 0%, 100% 25%, 100% 50%, 100% 75%, 100% 100%, 75% 100%, 50% 100%, 25% 100%, 0% 100%, 0% 75%, 0% 50%, 0% 25%);
+    transform: none;
+    filter: none;
+  }
+  35% {
+    clip-path: polygon(4% 6%, 27% 2%, 49% 8%, 76% 1%, 96% 7%, 99% 28%, 93% 49%, 98% 77%, 94% 95%, 73% 99%, 52% 92%, 24% 98%, 5% 94%, 1% 72%, 8% 51%, 2% 27%);
+    transform: scale(.82) rotate(-4deg) skew(3deg, -2deg);
+    filter: brightness(.97);
+  }
+  70% {
+    clip-path: polygon(22% 18%, 34% 9%, 52% 20%, 70% 8%, 84% 22%, 91% 38%, 80% 52%, 92% 68%, 78% 86%, 64% 78%, 50% 91%, 33% 80%, 16% 88%, 20% 66%, 9% 50%, 18% 33%);
+    transform: scale(.42) rotate(10deg) skew(-8deg, 5deg);
+    filter: brightness(.93);
+    opacity: 1;
+  }
+  100% {
+    clip-path: polygon(38% 34%, 44% 28%, 52% 33%, 60% 27%, 66% 36%, 70% 44%, 64% 50%, 71% 58%, 63% 68%, 56% 63%, 50% 71%, 42% 65%, 33% 69%, 36% 57%, 29% 50%, 35% 42%);
+    transform: scale(.16) rotate(-24deg) translateY(30%);
+    filter: brightness(.88);
+    opacity: 0;
+  }
+}
+@keyframes gm-crumple-creases { 0% { opacity: 0; } 30% { opacity: .7; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .grandma-minimal.is-crumpling .gm-sheet, .grandma-minimal.is-crumpling .gm-sheet::after { animation: none; } }
+
+/* In this kitchen the Grandkids recipe sits on plain white; the cards take a light gray so they still read as cards. */
+.gm-kitchen .hv-screen { background: #fff; }
+.gm-kitchen .hv-screen::before { display: none; }
+.gm-kitchen .hv-card { border-color: transparent; background: #f4f4f3; box-shadow: none; }
+/* Rounded cards, and the card buttons match the "Recipe change / Tidy" pill. */
+.gm-kitchen .hv-screen .hv-card { border-radius: 28px; }
+.gm-kitchen .hv-screen .hv-wave,
+.gm-kitchen .hv-screen .hv-adjust {
+  height: 36px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  border: 1px solid rgba(0, 0, 0, .05);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+  color: #1f1c19;
+  font-size: 17px;
+  font-weight: 300;
+  animation: none;
+}
+
+/* The recipe title keeps its capitals on the Grandkids card. */
+.gm-kitchen .hv-title { text-transform: none; }

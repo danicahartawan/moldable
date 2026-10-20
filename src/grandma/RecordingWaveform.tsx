@@ -13,7 +13,7 @@ const BAR_COUNT = 44
 const FRAME_MS = 55
 
 // Gentle stand-in loudness for demos with no microphone: a slow swell plus jitter.
-function simulatedLevel(seconds: number) {
+export function simulatedLevel(seconds: number) {
   const swell = 0.5 + 0.5 * Math.sin(seconds * 1.7) * Math.sin(seconds * 0.45)
   return Math.min(1, Math.max(0.08, 0.18 + swell * 0.5 + Math.random() * 0.3))
 }

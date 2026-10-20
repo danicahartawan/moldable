@@ -13,7 +13,7 @@ import { RecordingWaveform } from './RecordingWaveform'
 import { GrandmaTranscriptScreen } from './GrandmaTranscriptScreen'
 import './grandma.css'
 
-const demoStorySegments = [
+export const demoStorySegments = [
   'Take half an onion, garlic, chili, kencur, pepper, and lime leaves. [Blend] until it becomes a fine paste.',
   'Don’t make it completely watery. You should still see a little texture. That is what gives the lawar its character.',
   'Now take one good handful of ground beef. [Weigh] this for me, because my handful might be different from yours.',
