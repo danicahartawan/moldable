@@ -22,9 +22,9 @@ const segmentStartTimes = demoStorySegments.reduce<number[]>((times, _segment, i
   return [...times, times[index - 1] + previous.length * TYPING_MS_PER_CHAR + PAUSE_BETWEEN_SEGMENTS_MS]
 }, [])
 
-const DEMO_NAME = 'Lelawar Bali, Oma’s way'
+const DEMO_NAME = 'Lelawar Bali, Popo’s way'
 const DEMO_TITLE = 'Lelawar Bali'
-const DEMO_VARIATION = 'Oma’s way'
+const DEMO_VARIATION = 'Popo’s way'
 const TITLE_TYPING_MS_PER_CHAR = 70
 
 // The recipe's name types itself into the title spot, then its family variation appears underneath.

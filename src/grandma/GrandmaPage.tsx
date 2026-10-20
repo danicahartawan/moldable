@@ -119,7 +119,7 @@ export function GrandmaPage() {
       setDemoName('')
       return
     }
-    const naming = window.setTimeout(() => setDemoName('Lawar Bali, Oma’s way'), 5_000)
+    const naming = window.setTimeout(() => setDemoName('Lawar Bali, Popo’s way'), 5_000)
     return () => window.clearTimeout(naming)
   }, [isRecording])
 

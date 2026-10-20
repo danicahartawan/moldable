@@ -6,6 +6,7 @@ import { ExploreBoard } from '@/boards/Explore'
 import { COOKING_STEP_COUNT, CookingStepBoard } from '@/boards/CookingStep'
 import { HomeViewBoard } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
+import { FridgeScreen } from './FridgeScreen'
 import { GrandmaReply } from './GrandmaReply'
 
 type Perspective = 'grandma' | 'grandkids' | 'explore'
@@ -110,13 +111,16 @@ function InstructionCard({ instruction, live = false }: { instruction: Instructi
 type KitchenControls = { showGrandkids: () => void }
 
 // `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
-export function KitchenMockup({ grandmaScreen = <GrandmaPage /> }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode) } = {}) {
+export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean } = {}) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const screen = useRef<HTMLDivElement>(null)
   const swipeStart = useRef<number | null>(null)
   const perspectiveRef = useRef<Perspective>('grandma')
   const [perspective, setPerspectiveState] = useState<Perspective>('grandma')
   const [instructionStep, setInstructionStep] = useState<number | null>(null)
+  // With `fridge`, Grandkids starts on a fridge door; tapping Popo's recipe card opens the recipe.
+  const [isFridgeOpen, setIsFridgeOpen] = useState(false)
+  const showFridge = fridge && !isFridgeOpen
   const [leavingStep, setLeavingStep] = useState<number | null>(null)
   const [slideBack, setSlideBack] = useState(false)
   const [dragX, setDragX] = useState(0)
@@ -131,6 +135,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage /> }: { grandmaScre
   }
 
   const setPerspective = (next: Perspective) => {
+    if (next !== 'grandkids') setIsFridgeOpen(false)
     perspectiveRef.current = next
     setPerspectiveState(next)
   }
@@ -177,7 +182,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage /> }: { grandmaScre
       if (distance < -56 && instructionStep < COOKING_STEP_COUNT) goToStep(instructionStep + 1)
       return
     }
-    if (perspective === 'grandkids' && distance < -56) {
+    if (perspective === 'grandkids' && distance < -56 && !showFridge) {
       goToStep(1)
       return
     }
@@ -203,7 +208,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage /> }: { grandmaScre
           </div>
           <div data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragX ? ' is-dragging' : ''}`} style={dragX ? { transform: `translateX(${dragX}px)` } : undefined} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>
-              <HomeViewBoard />
+              {showFridge ? <FridgeScreen onOpen={() => setIsFridgeOpen(true)} /> : <HomeViewBoard />}
             </div>
             {leavingStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--out${slideBack ? ' is-back' : ''}`} key={`out-${leavingStep}`} aria-hidden="true">
@@ -219,7 +224,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage /> }: { grandmaScre
               <button type="button" className="kitchen__edge-prev" aria-label="Previous" onClick={() => goToStep(instructionStep > 1 ? instructionStep - 1 : null, true)} />
             )}
             {instructionStep === null ? (
-              <button type="button" className="kitchen__edge-next" aria-label="Open step 1" onClick={() => goToStep(1)} />
+              !showFridge && <button type="button" className="kitchen__edge-next" aria-label="Open step 1" onClick={() => goToStep(1)} />
             ) : instructionStep < COOKING_STEP_COUNT && (
               <button type="button" className="kitchen__edge-next kitchen__edge-next--wide" aria-label="Next instruction" onClick={() => goToStep((instructionStep ?? 0) + 1)} />
             )}

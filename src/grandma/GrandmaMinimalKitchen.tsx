@@ -7,7 +7,7 @@ import { GrandmaMinimalPage } from './GrandmaMinimalPage'
 export function GrandmaMinimalKitchen() {
   return (
     <div className="gm-kitchen">
-      <KitchenMockup grandmaScreen={({ showGrandkids }) => <GrandmaMinimalPage onTidy={showGrandkids} />} />
+      <KitchenMockup fridge grandmaScreen={({ showGrandkids }) => <GrandmaMinimalPage onTidy={showGrandkids} />} />
     </div>
   )
 }
