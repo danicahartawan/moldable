@@ -414,8 +414,7 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 
 /* In this kitchen the Grandkids recipe sits on plain white; the cards take a light gray so they still read as cards. */
 .gm-kitchen .hv-screen { background: #fff; }
-.gm-kitchen .hv-screen::before { display: none; }
-.gm-kitchen .hv-card { border-color: transparent; background: #f4f4f3; box-shadow: none; }
+
 /* Rounded cards, and the card buttons match the "Recipe change / Tidy" pill. */
 .gm-kitchen .hv-screen .hv-card { border-radius: 28px; }
 .gm-kitchen .hv-screen .hv-wave,

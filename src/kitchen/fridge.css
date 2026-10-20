@@ -91,7 +91,7 @@
 .fr-paper__hole { position: absolute; top: 9px; width: 14px; height: 14px; border-radius: 50%; background: rgba(255, 255, 255, .55); }
 .fr-paper__hole:first-child { left: 20px; }
 .fr-paper__hole:last-child { right: 20px; }
-.fr-paper__title { display: block; font-size: 23px; font-weight: 400; letter-spacing: -.03em; line-height: 26px; white-space: nowrap; }
+.fr-paper__title { display: block; font-size: 22px; font-weight: 400; letter-spacing: -.03em; line-height: 26px; white-space: nowrap; }
 .fr-paper__time { margin-left: 3px; font-size: 12px; font-weight: 400; letter-spacing: 0; }
 .fr-paper__sub { display: block; margin-top: 3px; font-size: 12px; font-weight: 300; line-height: 16px; }
 .fr-paper__footer { position: absolute; left: 0; right: 0; bottom: 0; display: flex; height: 34px; align-items: center; gap: 6px; padding: 0 14px; background: rgba(255, 255, 255, .22); font-size: 12px; font-weight: 300; }
@@ -122,12 +122,12 @@
 /* No highlighting of the changed words; the photo gives up space to the version history; the Adjust chip is bigger. */
 .gm-kitchen .hv-mark { padding: 0; margin: 0; background: none; }
 .gm-kitchen .hv-ingr li.is-voice-target { background: none; }
-.gm-kitchen .hv-photo { height: 196px; border-radius: 20px; }
+.gm-kitchen .hv-photo { height: 160px; }
 .gm-kitchen .hv-recipe { padding-bottom: 82px; }
 /* No white tiles or pills: icons sit straight on the card, buttons are soft gray like Wave to start. */
 .gm-kitchen .hv-tool__icon, .gm-kitchen .hv-round { background: none; box-shadow: none; }
-.gm-kitchen .hv-screen .hv-wave { border: 0; background: rgba(0, 0, 0, .06); box-shadow: none; color: #1f1c19; }
-.hv-actions { position: absolute; z-index: 5; left: 30px; bottom: 30px; display: flex; gap: 10px; }
+.gm-kitchen .hv-screen .hv-wave { border: 1px solid rgba(255, 255, 255, .6); background: rgba(0, 0, 0, .05); box-shadow: none; color: #1f1c19; }
+.hv-actions { position: absolute; z-index: 5; left: 26px; bottom: 24px; display: flex; gap: 10px; }
 .gm-kitchen .hv-screen .hv-actions .hv-glance {
   display: inline-flex;
   height: 36px;
@@ -135,9 +135,9 @@
   align-items: center;
   gap: 8px;
   padding: 0 16px;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, .6);
   border-radius: 18px;
-  background: rgba(0, 0, 0, .06);
+  background: rgba(0, 0, 0, .05);
   box-shadow: none;
   color: #1f1c19;
   font-size: 17px;
@@ -159,18 +159,177 @@
 @media (prefers-reduced-motion: reduce) { .hv-clay-orb .hv-adjust__blob { animation: none; } }
 
 /* Ingredients as a stack of pills, each with a circle you can tick off. Black and white only, text as big as Wave to start. */
-/* No white frame: the cards run edge to edge on a soft gray ground, the display's own rounded corners clip them. */
-.gm-kitchen .hv-screen { background: #e6e6e3; }
-.gm-kitchen .hv-screen .hv-card { border-radius: 0; }
-.gm-kitchen .hv-screen .hv-recipe { left: 0; top: 0; width: 317px; height: 640px; padding: 28px 22px 88px; }
-.gm-kitchen .hv-screen .hv-recipe .hv-recipe__inner { padding: 14px 8px 6px; }
-.gm-kitchen .hv-screen .hv-swap { left: 323px; top: 0; width: 317px; height: 226px; }
-.gm-kitchen .hv-screen .hv-ingr { left: 323px; top: 232px; width: 317px; height: 408px; gap: 10px; padding: 22px 26px 30px 22px; }
-.gm-kitchen .hv-ingr ul { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
-.gm-kitchen .hv-ingr li { align-items: center; justify-content: flex-start; gap: 7px; padding: 3px 12px 3px 9px; border-radius: 13px; background: rgba(0, 0, 0, .055); color: #1f1c19; font-size: 17px; font-weight: 300; line-height: 22px; cursor: pointer; user-select: none; }
+/* The Grandkids recipe: frosted glass widgets floating over a soft warm backdrop (cream with orange and teal glows). */
+.gm-kitchen .hv-screen { background: #f3ebe0; }
+.gm-kitchen .hv-screen::before {
+  display: block;
+  inset: -10%;
+  z-index: -1;
+  height: auto;
+  background:
+    radial-gradient(circle at 16% 20%, rgba(255, 130, 80, .55), transparent 42%),
+    radial-gradient(circle at 86% 82%, rgba(63, 191, 189, .42), transparent 46%),
+    radial-gradient(circle at 74% 14%, rgba(255, 214, 150, .65), transparent 40%),
+    radial-gradient(circle at 30% 88%, rgba(255, 190, 140, .5), transparent 42%),
+    #f3ebe0;
+  box-shadow: none;
+  filter: blur(18px);
+  opacity: 1;
+  pointer-events: none;
+}
+.gm-kitchen .hv-screen .hv-card {
+  border: 1px solid rgba(255, 255, 255, .7);
+  background: linear-gradient(160deg, rgba(255, 255, 255, .62), rgba(255, 255, 255, .38));
+  -webkit-backdrop-filter: blur(26px) saturate(1.3);
+  backdrop-filter: blur(26px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 22px 44px rgba(40, 60, 90, .16), 0 3px 8px rgba(40, 60, 90, .07);
+}
+/* Corners that meet the display's own corner follow its curve (68px minus the 14px inset); the rest are softer. */
+.gm-kitchen .hv-screen .hv-card.hv-recipe { border-radius: 54px 36px 36px 54px; }
+.gm-kitchen .hv-screen .hv-card.hv-swap { border-radius: 36px 54px 36px 36px; }
+.gm-kitchen .hv-screen .hv-card.hv-ingr { border-radius: 36px 36px 54px 36px; }
+.gm-kitchen .hv-screen .hv-recipe { left: 14px; top: 14px; width: 298px; height: 612px; padding: 22px 18px 88px; }
+.gm-kitchen .hv-screen .hv-recipe .hv-recipe__inner { padding: 12px 8px 6px; }
+.gm-kitchen .hv-screen .hv-swap { left: 324px; top: 14px; width: 302px; height: 166px; }
+.gm-kitchen .hv-screen .hv-ingr { left: 324px; top: 192px; width: 302px; height: 434px; gap: 8px; padding: 20px 22px 50px 20px; }
+.gm-kitchen .hv-title { font-size: 34px; line-height: 38px; letter-spacing: -.035em; }
+.gm-kitchen .hv-photo { border-radius: 24px; }
+.gm-kitchen .hv-ingr ul { display: flex; flex-wrap: wrap; gap: 5px; align-content: flex-start; }
+.gm-kitchen .hv-ingr li { align-items: center; justify-content: flex-start; gap: 7px; padding: 2px 12px 2px 9px; border-radius: 13px; background: rgba(0, 0, 0, .05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45); color: #1f1c19; font-size: 17px; font-weight: 300; line-height: 22px; cursor: pointer; user-select: none; }
 .gm-kitchen .hv-ingr li::before { width: 16px; height: 16px; flex: none; box-sizing: border-box; border: 1.5px solid #1f1c19; border-radius: 50%; content: ''; transition: background-color 160ms ease; }
 .gm-kitchen .hv-ingr li:focus-visible { outline: 2px solid #1f1c19; outline-offset: 2px; }
 .gm-kitchen .hv-ingr li[aria-checked='true']::before { background: #1f1c19 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5.5'/%3E%3C/svg%3E") center / 10px no-repeat; }
-.gm-kitchen .hv-ingr li[aria-checked='true'] { color: #85827e; }
+.gm-kitchen .hv-ingr li[aria-checked='true'] { color: #6a6761; }
 .gm-kitchen .hv-ingr li[aria-checked='true'] > :first-child { text-decoration: line-through; }
-.gm-kitchen .hv-ingr .hv-amt { margin-left: 1px; color: #85827e; }
+.gm-kitchen .hv-ingr .hv-amt { margin-left: 1px; color: #4f4c47; }
+
+/* Widgets like the app cards: the visual up top, the big figure low, a small line under it, and a tinted action band along the bottom. */
+.gm-kitchen .hv-screen .hv-swap,
+.gm-kitchen .hv-screen .hv-ingr { overflow: hidden; }
+.hv-foot { position: absolute; left: 0; right: 0; bottom: 0; display: flex; height: 38px; align-items: center; gap: 9px; padding: 0 22px; background: rgba(255, 255, 255, .42); color: #1f1c19; pointer-events: none; }
+.hv-stat { display: flex; align-items: baseline; gap: 8px; margin-top: auto; }
+.hv-stat__num { font-size: 60px; font-weight: 400; letter-spacing: -.04em; line-height: 56px; }
+.hv-stat__unit { font-size: 22px; line-height: 26px; letter-spacing: -.01em; }
+.hv-stat__label { font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 38px; }
+.hv-stat__sub { margin: -2px 0 0; }
+
+/* Cooking time: the minutes sit low as the big figure, a small line under them, and the band says what the card is. */
+.gm-kitchen .hv-swap .hv-roll:first-child { top: 12px; bottom: 50px; justify-content: flex-end; gap: 0; }
+.gm-kitchen .hv-swap .hv-roll:first-child .hv-h { display: none; }
+.gm-kitchen .hv-swap .hv-roll:first-child .hv-wave { display: none; }
+/* Glance and Wave to start: one two-part toggle. The chosen part is tinted and shows its label; the other is just its icon. */
+.hv-seg { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: rgba(0, 0, 0, .07); }
+.hv-seg__btn { display: inline-flex; height: 36px; min-width: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 11px; border: 0; border-radius: 999px; background: transparent; color: #1f1c19; font: inherit; font-size: 17px; font-weight: 300; white-space: nowrap; transition: background-color 200ms ease, color 200ms ease; }
+.hv-seg__btn.is-on { padding: 0 16px 0 12px; background: rgba(255, 90, 38, .16); color: #e04a17; }
+.hv-seg__label { display: none; }
+.hv-seg__btn.is-on .hv-seg__label { display: inline; }
+.gm-kitchen .hv-swap .hv-mins { font-size: 60px; font-weight: 400; letter-spacing: -.04em; line-height: 56px; }
+.gm-kitchen .hv-swap .hv-roll:first-child > span:nth-child(2) > span:last-child { font-size: 22px !important; }
+.hv-swap__sub { position: absolute; left: 20px; bottom: 58px; margin: 0; }
+
+/* Ingredients: the pills on top; the heading row is replaced by the figure and line below them. */
+.gm-kitchen .hv-ingr > div:first-child { display: none !important; }
+.gm-kitchen .hv-ingr { padding-top: 20px; }
+
+/* Tools view: the five tools on top, "Tools" in the thin band like the other cards. */
+.gm-kitchen .hv-swap .hv-roll:nth-child(2) { top: 16px; bottom: 50px; justify-content: center; }
+.gm-kitchen .hv-swap .hv-roll:nth-child(2) > span:first-child { display: none !important; }
+.gm-kitchen .hv-swap .hv-tools { gap: 4px 12px; }
+.gm-kitchen .hv-swap .hv-tool { font-size: 17px; line-height: 22px; gap: 8px; }
+.gm-kitchen .hv-swap .hv-tool__icon { width: 26px; height: 26px; }
+
+/* Cooking time: minutes and servings side by side. */
+.gm-kitchen .hv-swap .hv-roll:first-child > span:nth-child(2) { flex-wrap: nowrap; gap: 6px; align-items: baseline; }
+.gm-kitchen .hv-swap .hv-mins { font-size: 50px; line-height: 50px; }
+.gm-kitchen .hv-swap .hv-mins--serves { margin-left: 8px; }
+.gm-kitchen .hv-swap .hv-roll:first-child > span:nth-child(2) > span:not(.hv-mins) { font-size: 17px !important; }
+
+/* Ingredients: the pills spread evenly down the card. */
+.gm-kitchen .hv-ingr ul { flex: 1; align-content: space-evenly; gap: 6px 6px; }
+
+/* Glance: one full-page widget. Ingredients first, then a yellow note of steps; it fades out at the foot. */
+.hv-glance-sheet {
+  position: absolute;
+  z-index: 9;
+  inset: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 54px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, .78), rgba(255, 244, 228, .7));
+  -webkit-backdrop-filter: blur(30px) saturate(1.3);
+  backdrop-filter: blur(30px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 22px 44px rgba(40, 60, 90, .18);
+  animation: hv-glance-in 420ms cubic-bezier(.2, .9, .25, 1) both;
+}
+@keyframes hv-glance-in { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+.hv-glance-sheet__close { position: absolute; z-index: 3; top: 22px; right: 26px; display: grid; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, .06); color: #1f1c19; place-items: center; }
+.hv-glance-sheet__scroll {
+  height: 100%;
+  box-sizing: border-box;
+  padding: 26px 30px 120px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 70%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 70%, transparent 96%);
+}
+.hv-glance-sheet__scroll::-webkit-scrollbar { display: none; }
+.hv-glance-sheet__title { margin: 0 0 14px; font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 38px; text-transform: none; }
+.hv-glance-sheet__pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 0; list-style: none; }
+.hv-glance-sheet__pills li { display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 10px; border-radius: 14px; background: rgba(0, 0, 0, .055); font-size: 17px; font-weight: 300; line-height: 24px; cursor: pointer; user-select: none; }
+.hv-glance-sheet__pills li::before { width: 16px; height: 16px; flex: none; box-sizing: border-box; border: 1.5px solid #1f1c19; border-radius: 50%; content: ''; }
+.hv-glance-sheet__pills li[aria-checked='true']::before { background: #1f1c19 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5.5'/%3E%3C/svg%3E") center / 10px no-repeat; }
+.hv-glance-sheet__pills li[aria-checked='true'] { color: #6a6761; }
+.hv-glance-sheet__pills li[aria-checked='true'] > span:first-child { text-decoration: line-through; }
+.hv-glance-sheet__pills .hv-amt { color: #4f4c47; }
+
+.hv-note { position: relative; overflow: hidden; border-radius: 26px; background: #fbef7d; box-shadow: 0 10px 22px rgba(120, 100, 0, .12); }
+.hv-note__band { display: block; height: 40px; background: rgba(0, 0, 0, .06); }
+.hv-note__band span { position: absolute; top: 12px; width: 18px; height: 18px; border-radius: 50%; background: rgba(0, 0, 0, .12); }
+.hv-note__band span:first-child { left: 22px; }
+.hv-note__band span:last-child { right: 22px; }
+.hv-note ol { margin: 0; padding: 14px 22px 8px 40px; font-size: 17px; font-weight: 300; line-height: 24px; }
+.hv-note li { margin: 0 0 12px; }
+.hv-note__foot { display: flex; align-items: center; gap: 8px; margin: 0; padding: 12px 22px; background: rgba(0, 0, 0, .05); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .hv-glance-sheet { animation: none; } }
+
+/* Cooking steps in the grandma theme: light Inter Tight on the type scale, soft gray pieces, tinted pill chips, no hard outlines. */
+.gm-kitchen .st-screen { background: #fff; }
+.gm-kitchen .st-title, .gm-kitchen .ck-step { font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 38px; text-transform: none; }
+.gm-kitchen .ck-bubble { padding: 10px 16px; border-radius: 4px 22px 22px 22px; background: rgba(0, 0, 0, .055); font-size: 17px; font-weight: 300; line-height: 24px; letter-spacing: 0; }
+.gm-kitchen .ck-instruction { font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 40px; }
+/* The verb is a tool chip like Blend / Weigh in the story: a tinted pill with a deeper icon and word. */
+.gm-kitchen .ck-verb { height: auto; margin-right: 10px; padding: 0 14px 0 10px; border-radius: 999px; background: #ffe3d8; color: #e04a17; font-size: 1em; font-weight: 300; letter-spacing: -.02em; }
+.gm-kitchen .ck-verb[data-verb='Squeeze'], .gm-kitchen .ck-verb[data-verb='Stir'] { background: #d9ebd3; color: #3c8a34; }
+.gm-kitchen .ck-verb[data-verb='Toast'], .gm-kitchen .ck-verb[data-verb='Serve'] { background: #ffef9e; color: #c28400; }
+.gm-kitchen .ck-verb[data-verb='Fry'], .gm-kitchen .ck-verb[data-verb='Cook'] { background: #f6d8d1; color: #c0472f; }
+.gm-kitchen .ck-verb svg { width: 22px; height: 22px; }
+/* "For this step": a soft gray card with pill-like rows, no dividers. */
+.gm-kitchen .ck-ingredients { border: 0; border-radius: 28px; background: rgba(0, 0, 0, .05); box-shadow: none; padding: 18px 20px; }
+.gm-kitchen .ck-ingredients .st-h2 { margin: 0 0 4px; font-size: 22px; font-weight: 300; letter-spacing: -.02em; line-height: 28px; }
+.gm-kitchen .ck-ingredients ul { column-gap: 10px; row-gap: 8px; }
+.gm-kitchen .ck-ingredients li { padding: 4px 14px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, .7); font-size: 17px; font-weight: 300; line-height: 24px; }
+.gm-kitchen .ck-amt { color: #4f4c47; }
+/* The Ingredients button is the same soft pill as Glance, orange when hovered or open. */
+.gm-kitchen .ck-ing-btn { height: 40px; padding: 0 18px 0 14px; border: 0; background: rgba(0, 0, 0, .06); color: #1f1c19; font-size: 17px; font-weight: 300; }
+.gm-kitchen .ck-ing-btn:hover, .gm-kitchen .ck-ing-btn.is-open { background: rgba(255, 90, 38, .14); color: #e04a17; }
+
+/* The orange clay ball stands in for the mascot; the buttons have no ring, and read at the body size. */
+.gm-kitchen .ck-mascot { display: grid; width: 44px; height: 44px; place-items: center; }
+.gm-kitchen .ck-mascot .hv-adjust__blob { width: 34px; height: 34px; animation: hv-clay-orb-bob 4.5s ease-in-out infinite; }
+.gm-kitchen .st-tap:focus-visible, .gm-kitchen .ck-step:focus-visible { outline: none; }
+.gm-kitchen .ck-ing-btn { font-size: 17px; }
+.gm-kitchen .ck-ing-btn.is-open { box-shadow: none; }
+
+/* One body size on the cooking steps: the sentence, the chip, the cue and the ingredient rows are all 17px, like the story. */
+.gm-kitchen .ck-instruction { font-size: 17px; font-weight: 300; letter-spacing: 0; line-height: 26px; }
+.gm-kitchen .ck-verb { display: inline-flex; height: auto; align-items: center; gap: 5px; margin: 0 4px 0 0; padding: 0 10px 0 8px; font-size: 1em; line-height: inherit; letter-spacing: 0; vertical-align: baseline; }
+.gm-kitchen .ck-verb svg { width: 18px; height: 18px; }
+.gm-kitchen .ck-ingredients .st-h2 { font-size: 17px; font-weight: 400; letter-spacing: 0; line-height: 24px; }
+
+/* Cooking steps: a small "Step n" label and a bigger instruction. */
+.gm-kitchen .st-title, .gm-kitchen .ck-step { font-size: 22px; line-height: 28px; letter-spacing: -.02em; }
+.gm-kitchen .ck-instruction { font-size: 26px; line-height: 34px; letter-spacing: -.02em; }
+.gm-kitchen .ck-verb svg { width: 24px; height: 24px; }
+
+/* Opening "For this step" doesn't blur or fade the rest of the screen. */
+.gm-kitchen .ck-freeze { filter: none !important; opacity: 1 !important; }

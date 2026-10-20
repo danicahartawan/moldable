@@ -54,7 +54,7 @@
 }
 
 /* 2. It sinks in as a spot, then is stretched wide, pulled tall, smeared round, until it fills the clay. */
-.cm__smear { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; background: var(--clay-teal); filter: blur(1.5px); opacity: 0; animation: cm-smear 3s cubic-bezier(.4, 0, .3, 1) 2.05s both; }
+.cm__smear { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; background: var(--clay-teal); filter: blur(1.5px); opacity: 0; animation: cm-smear 3s cubic-bezier(.4, 0, .3, 1) 2.05s forwards; }
 @keyframes cm-smear {
   0% { opacity: 1; transform: translate(0, -42px) scale(.26, .18); border-radius: 50%; }
   10% { transform: translate(0, -40px) scale(.4, .28); }

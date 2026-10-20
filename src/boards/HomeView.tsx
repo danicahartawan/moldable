@@ -2,7 +2,7 @@
 
 import { ClayBlob, ClayMix } from '@/kitchen/ClayMix'
 import { VersionHistory, initialVersions, newVersion, type VersionEntry } from '@/kitchen/VersionHistory'
-import { Eye } from '@phosphor-icons/react'
+import { Eye, HandWaving, ListChecks, Timer, Toolbox, X } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 
@@ -48,6 +48,67 @@ function Icon({ d, size = 18 }: { d: string; size?: number }) {
 // How long the clay takes to turn fully teal, after the drop falls and is smeared through.
 const CLAY_MIX_MS = 5300
 
+// The recipe in a glance: what Popo said, in order.
+const GLANCE_STEPS = [
+  'Blend half an onion, garlic, chili, kencur, pepper and lime leaves into a fine paste. Keep a little texture, don’t let it go watery.',
+  'Weigh one good handful of ground beef. Popo’s handful may be different from yours.',
+  'Toast the grated coconut in a dry pan, stirring the whole time. Check it after two minutes and trust the colour over the clock.',
+  'Sauté the rest of the onion, then the garlic and the paste, until the sound turns sharp and the oil separates.',
+  'Add the beef and let the edges go deep golden. Don’t stir every second.',
+  'Mix in the coconut, green beans and chives. Keep the beans a little crisp.',
+  'Turn off the heat and squeeze in lime. Taste: savoury first, then fragrant, a little spicy, fresh at the end.',
+] as const
+
+// A full-page widget: the ingredients first, then the steps on a yellow note. Scrolls slowly and fades out at the foot.
+function GlanceSheet({ checked, onToggle, onClose }: { checked: ReadonlySet<number>; onToggle: (row: number) => void; onClose: () => void }) {
+  const scroller = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const box = scroller.current
+    if (!box) return
+    const slow = (event: WheelEvent) => {
+      event.preventDefault()
+      box.scrollTop += event.deltaY * 0.3
+    }
+    box.addEventListener('wheel', slow, { passive: false })
+    return () => box.removeEventListener('wheel', slow)
+  }, [])
+
+  return (
+    <div className="hv-glance-sheet" role="dialog" aria-label="The recipe at a glance">
+      <button type="button" className="hv-tap hv-glance-sheet__close" aria-label="Close" onClick={onClose}>
+        <X size={18} weight="bold" />
+      </button>
+      <div ref={scroller} className="hv-glance-sheet__scroll">
+        <h2 className="hv-glance-sheet__title">Ingredients</h2>
+        <ul className="hv-glance-sheet__pills">
+          {ING.map((r, i) => (
+            <li
+              key={r[0]}
+              role="checkbox"
+              tabIndex={0}
+              aria-checked={checked.has(i)}
+              onClick={() => onToggle(i)}
+              onKeyDown={(event) => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); onToggle(i) } }}
+            >
+              <span>{r[0]}</span>
+              <span className="hv-amt">{r[2]}</span>
+            </li>
+          ))}
+        </ul>
+
+        <section className="hv-note" aria-label="Steps">
+          <span className="hv-note__band" aria-hidden="true"><span /><span /></span>
+          <ol>
+            {GLANCE_STEPS.map((step) => <li key={step}>{step}</li>)}
+          </ol>
+          <p className="hv-note__foot"><ListChecks size={20} aria-hidden="true" /> Steps · {GLANCE_STEPS.length}</p>
+        </section>
+      </div>
+    </div>
+  )
+}
+
 export function HomeViewBoard({ embedded = false, overlay = null, clay = false }: { embedded?: boolean; overlay?: ReactNode; clay?: boolean } = {}) {
   const embedRef = useRef<HTMLDivElement>(null)
   const [embedScale, setEmbedScale] = useState(1)
@@ -71,6 +132,9 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
   const [heard, setHeard] = useState('')
   // With the clay look, the Adjust chip's blob turns teal once the teal has been mixed all the way through.
   const [blobTeal, setBlobTeal] = useState(false)
+  // Glance and Wave to start are two sides of one toggle.
+  const [seg, setSeg] = useState<'glance' | 'wave'>('glance')
+  const [glanceOpen, setGlanceOpen] = useState(false)
   // With the clay look, ingredients can be checked off.
   const [checked, setChecked] = useState<ReadonlySet<number>>(new Set())
   const toggleChecked = (row: number) => setChecked((current) => {
@@ -174,10 +238,16 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
           </div>
             {clay ? (
               <span className="hv-actions">
-                <button type="button" className="hv-tap hv-glance" aria-label="Glance at the recipe">
-                  <Eye size={22} aria-hidden="true" />
-                  Glance
-                </button>
+                <span className="hv-seg" role="group" aria-label="How to follow the recipe">
+                  <button type="button" className={`hv-tap hv-seg__btn${seg === 'glance' ? ' is-on' : ''}`} aria-label="Glance at the recipe" aria-pressed={seg === 'glance'} onClick={() => { setSeg('glance'); setGlanceOpen(true) }}>
+                    <Eye size={22} aria-hidden="true" />
+                    <span className="hv-seg__label">Glance</span>
+                  </button>
+                  <button type="button" className={`hv-tap hv-seg__btn${seg === 'wave' ? ' is-on' : ''}`} aria-label="Wave to start" aria-pressed={seg === 'wave'} onClick={() => setSeg('wave')}>
+                    <HandWaving size={22} aria-hidden="true" />
+                    <span className="hv-seg__label">Wave to start</span>
+                  </button>
+                </span>
               </span>
             ) : (
               <button type="button" className={`hv-tap hv-adjust is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
@@ -192,7 +262,13 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               <span className="hv-h">Cooking time</span>
               <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span className="hv-mins"><Mark on={mins !== 40}>{mins}</Mark></span>
-                <span style={{ fontSize: 22 }}>mins</span>
+                <span style={{ fontSize: 22 }}>{clay ? 'minutes' : 'mins'}</span>
+                {clay && (
+                  <>
+                    <span className="hv-mins hv-mins--serves">{serves2 ? 2 : 4}</span>
+                    <span style={{ fontSize: 22 }}>servings</span>
+                  </>
+                )}
               </span>
               <span className="hv-wave">Wave to start</span>
             </span>
@@ -210,6 +286,20 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               </span>
             </span>
           </button>
+          {clay && swap && (
+            <span className="hv-foot" aria-hidden="true">
+              <Toolbox size={22} />
+              Tools
+            </span>
+          )}
+          {clay && !swap && (
+            <>
+              <span className="hv-foot" aria-hidden="true">
+                <Timer size={22} />
+                Cooking time
+              </span>
+            </>
+          )}
           <span aria-hidden="true" className="hv-dots">
             <span style={{ background: swap ? 'var(--line)' : 'var(--ink)' }} />
             <span style={{ background: swap ? 'var(--ink)' : 'var(--line)' }} />
@@ -251,12 +341,20 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               )
             })}
           </ul>
+          {clay && (
+            <span className="hv-foot" aria-hidden="true">
+              <ListChecks size={22} />
+              Ingredients
+            </span>
+          )}
           {penRow !== null && penPos && (
             // eslint-disable-next-line @next/next/no-img-element
             <img className="hv-pen" src="/assets/mascot-writer-gradient.png" alt="Moldable mascot writing in the ingredient list"
               style={{ left: penPos.left, top: penPos.top }} />
           )}
         </section>
+
+        {clay && glanceOpen && <GlanceSheet checked={checked} onToggle={toggleChecked} onClose={() => setGlanceOpen(false)} />}
 
         {clay && (
           <button type="button" className={`hv-tap hv-clay-orb is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>

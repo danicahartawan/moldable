@@ -1,5 +1,6 @@
 'use client'
 
+import { ClayBlob } from '@/kitchen/ClayMix'
 import { useEffect, useRef, useState } from 'react'
 
 const IC = {
@@ -124,9 +125,11 @@ type CookingStepProps = {
   step?: number
   /** Called when the step number is tapped, in place of the board advancing itself. */
   onStepTap?: () => void
+  /** Swaps the mascot for the orange clay ball. */
+  clay?: boolean
 }
 
-export function CookingStepBoard({ embedded = false, step: hostStep, onStepTap }: CookingStepProps = {}) {
+export function CookingStepBoard({ embedded = false, step: hostStep, onStepTap, clay = false }: CookingStepProps = {}) {
   const [own, setI] = useState(0)
   const i = hostStep ?? own
   const [ing, setIng] = useState(false)
@@ -167,7 +170,7 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepTap }
           {/* Keyed by step so each new step rises in and its cue is spoken afresh */}
           <div key={i} className="ck-view st-rise">
             <div className="ck-cue ck-freeze" style={frozen}>
-              <span className="ck-mascot"><Mascot /></span>
+              <span className="ck-mascot">{clay ? <ClayBlob /> : <Mascot />}</span>
               <p className="ck-bubble" aria-label={step.cue}>
                 {step.cue.split(' ').map((t, j, a) => (
                   <span key={j} className="st-word" aria-hidden="true" style={{ animationDelay: `${(0.3 + j * 0.06).toFixed(2)}s` }}>
@@ -178,7 +181,7 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepTap }
             </div>
 
             <p className="ck-instruction ck-freeze" style={frozen}>
-              <span className="ck-verb">
+              <span className="ck-verb" data-verb={step.verb}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={step.icon} /></svg>
                 {step.verb}
               </span>

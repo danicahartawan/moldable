@@ -227,12 +227,12 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
             </div>
             {leavingStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--out${slideBack ? ' is-back' : ''}`} key={`out-${leavingStep}`} aria-hidden="true">
-                <CookingStepBoard embedded step={leavingStep - 1} />
+                <CookingStepBoard embedded clay={fridge} step={leavingStep - 1} />
               </div>
             )}
             {instructionStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--in${slideBack ? ' is-back' : ''}`} key={instructionStep}>
-                <CookingStepBoard embedded step={instructionStep - 1} onStepTap={() => instructionStep < COOKING_STEP_COUNT && goToStep(instructionStep + 1)} />
+                <CookingStepBoard embedded clay={fridge} step={instructionStep - 1} onStepTap={() => instructionStep < COOKING_STEP_COUNT && goToStep(instructionStep + 1)} />
               </div>
             )}
             {instructionStep !== null && (
