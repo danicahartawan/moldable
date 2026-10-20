@@ -118,3 +118,59 @@
 /* The Adjust chip: a white pill with the clay blob in front, like the app chips. */
 .gm-kitchen .hv-screen .hv-adjust { gap: 10px; padding: 0 18px 0 12px; background: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, .1); }
 .gm-kitchen .hv-adjust__blob { width: 24px; height: 24px; }
+
+/* No highlighting of the changed words; the photo gives up space to the version history; the Adjust chip is bigger. */
+.gm-kitchen .hv-mark { padding: 0; margin: 0; background: none; }
+.gm-kitchen .hv-ingr li.is-voice-target { background: none; }
+.gm-kitchen .hv-photo { height: 196px; border-radius: 20px; }
+.gm-kitchen .hv-recipe { padding-bottom: 82px; }
+/* No white tiles or pills: icons sit straight on the card, buttons are soft gray like Wave to start. */
+.gm-kitchen .hv-tool__icon, .gm-kitchen .hv-round { background: none; box-shadow: none; }
+.gm-kitchen .hv-screen .hv-wave { border: 0; background: rgba(0, 0, 0, .06); box-shadow: none; color: #1f1c19; }
+.hv-actions { position: absolute; z-index: 5; left: 30px; bottom: 30px; display: flex; gap: 10px; }
+.gm-kitchen .hv-screen .hv-actions .hv-glance {
+  display: inline-flex;
+  height: 36px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, .06);
+  box-shadow: none;
+  color: #1f1c19;
+  font-size: 17px;
+  font-weight: 300;
+}
+
+/* Adjust is a clay orb at the top of the screen, like the orb on the smart display. */
+.hv-clay-orb { position: absolute; z-index: 8; top: 26px; left: 50%; display: grid; width: 56px; height: 56px; padding: 0; border: 0; background: none; place-items: center; transform: translateX(-50%); cursor: pointer; }
+.hv-clay-orb:active { transform: translateX(-50%) scale(.94); }
+.hv-clay-orb:focus-visible { outline: none; }
+/* The clay orb has no rim: just its shading and a soft shadow. */
+.hv-clay-orb .hv-adjust__blob, .hv-clay-orb .hv-adjust__blob::after { box-shadow: inset -5px -7px 9px rgba(120, 30, 0, .32), 0 6px 10px rgba(255, 90, 38, .28); }
+.hv-clay-orb .hv-adjust__blob::after { box-shadow: inset -5px -7px 9px rgba(0, 70, 70, .32), 0 6px 10px rgba(31, 157, 157, .28); }
+.hv-clay-orb .hv-adjust__blob { width: 40px; height: 40px; animation: hv-clay-orb-bob 4.5s ease-in-out infinite; }
+@keyframes hv-clay-orb-bob {
+  0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; transform: scale(1, 1); }
+  50% { border-radius: 46% 54% 56% 44% / 44% 58% 42% 56%; transform: scale(1.06, .95); }
+}
+@media (prefers-reduced-motion: reduce) { .hv-clay-orb .hv-adjust__blob { animation: none; } }
+
+/* Ingredients as a stack of pills, each with a circle you can tick off. Black and white only, text as big as Wave to start. */
+/* No white frame: the cards run edge to edge on a soft gray ground, the display's own rounded corners clip them. */
+.gm-kitchen .hv-screen { background: #e6e6e3; }
+.gm-kitchen .hv-screen .hv-card { border-radius: 0; }
+.gm-kitchen .hv-screen .hv-recipe { left: 0; top: 0; width: 317px; height: 640px; padding: 28px 22px 88px; }
+.gm-kitchen .hv-screen .hv-recipe .hv-recipe__inner { padding: 14px 8px 6px; }
+.gm-kitchen .hv-screen .hv-swap { left: 323px; top: 0; width: 317px; height: 226px; }
+.gm-kitchen .hv-screen .hv-ingr { left: 323px; top: 232px; width: 317px; height: 408px; gap: 10px; padding: 22px 26px 30px 22px; }
+.gm-kitchen .hv-ingr ul { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+.gm-kitchen .hv-ingr li { align-items: center; justify-content: flex-start; gap: 7px; padding: 3px 12px 3px 9px; border-radius: 13px; background: rgba(0, 0, 0, .055); color: #1f1c19; font-size: 17px; font-weight: 300; line-height: 22px; cursor: pointer; user-select: none; }
+.gm-kitchen .hv-ingr li::before { width: 16px; height: 16px; flex: none; box-sizing: border-box; border: 1.5px solid #1f1c19; border-radius: 50%; content: ''; transition: background-color 160ms ease; }
+.gm-kitchen .hv-ingr li:focus-visible { outline: 2px solid #1f1c19; outline-offset: 2px; }
+.gm-kitchen .hv-ingr li[aria-checked='true']::before { background: #1f1c19 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5.5'/%3E%3C/svg%3E") center / 10px no-repeat; }
+.gm-kitchen .hv-ingr li[aria-checked='true'] { color: #85827e; }
+.gm-kitchen .hv-ingr li[aria-checked='true'] > :first-child { text-decoration: line-through; }
+.gm-kitchen .hv-ingr .hv-amt { margin-left: 1px; color: #85827e; }

@@ -6,6 +6,7 @@
 
 /* The chip's icon: a small lump of orange clay. */
 .hv-adjust__blob {
+  position: relative;
   display: block;
   width: 22px;
   height: 22px;
@@ -15,7 +16,21 @@
   box-shadow: inset -2px -3px 4px rgba(140, 38, 0, .4), inset 2px 2px 3px rgba(255, 226, 208, .55), 0 2px 4px rgba(255, 90, 38, .3);
 }
 
+.hv-adjust__blob::after { position: absolute; inset: 0; border-radius: inherit; background: var(--clay-teal); box-shadow: inset -2px -3px 4px rgba(0, 70, 70, .4), inset 2px 2px 3px rgba(220, 255, 252, .55), 0 2px 4px rgba(31, 157, 157, .3); content: ''; opacity: 0; transition: opacity 600ms ease; }
+.hv-adjust__blob.is-teal::after { opacity: 1; }
+
 .cm { position: relative; display: block; width: 150px; height: 150px; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .18)); }
+/* The whole ball is stretched wide, pulled tall and twisted, not just recoloured. */
+.cm__stretch { position: absolute; inset: 0; animation: cm-stretch 3.2s ease-in-out 1.95s both; }
+@keyframes cm-stretch {
+  0% { transform: scale(1, 1) rotate(0deg) skew(0deg, 0deg); }
+  10% { transform: scale(1.06, .86) rotate(0deg); }
+  26% { transform: scale(1.4, .7) rotate(-9deg) skew(8deg, 0deg); }
+  44% { transform: scale(.74, 1.42) rotate(12deg) skew(-6deg, 4deg); }
+  62% { transform: scale(1.34, .8) rotate(-16deg) skew(5deg, -6deg); }
+  80% { transform: scale(.88, 1.24) rotate(8deg) skew(-3deg, 3deg); }
+  100% { transform: scale(1, 1) rotate(0deg) skew(0deg, 0deg); }
+}
 .cm__lump {
   position: absolute;
   left: 11px;
@@ -29,20 +44,29 @@
 /* The shading sits on top, so it stays over both colours. */
 .cm__lump::after { position: absolute; inset: 0; z-index: 3; border-radius: inherit; box-shadow: inset -9px -12px 16px rgba(80, 30, 10, .32), inset 6px 7px 12px rgba(255, 255, 255, .45); content: ''; pointer-events: none; }
 
-.cm__stir { position: absolute; inset: -30%; animation: cm-stir 5.2s linear both; }
-.cm__teal { position: absolute; top: 50%; left: 50%; width: 92px; height: 92px; margin: -46px 0 0 -46px; border-radius: 50%; background: var(--clay-teal); filter: blur(7px); opacity: 0; animation: cm-pour 2.4s cubic-bezier(.35, 0, .3, 1) both; }
-.cm__teal--a { animation-delay: 1s; --from: 0px -150px; --to: -22px -18px; }
-.cm__teal--b { animation-delay: 1.9s; --from: 150px 40px; --to: 26px 8px; }
-.cm__teal--c { animation-delay: 2.8s; --from: -150px 60px; --to: -4px 28px; }
-@keyframes cm-pour {
-  0% { opacity: 0; transform: translate(var(--from)) scale(.4); }
-  18% { opacity: 1; }
-  100% { opacity: 1; transform: translate(var(--to)) scale(.95); }
+/* 1. A single teal dot drops onto the clay. */
+.cm__fall { position: absolute; top: 24px; left: 50%; z-index: 4; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%; background: var(--clay-teal); opacity: 0; animation: cm-fall .6s cubic-bezier(.5, 0, .9, .6) 1.3s both; }
+@keyframes cm-fall {
+  0% { opacity: 0; transform: translateY(-120px) scale(.9); }
+  14% { opacity: 1; }
+  82% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(4px) scale(1.5, .5); }
 }
-@keyframes cm-stir { from { transform: rotate(0); } to { transform: rotate(620deg); } }
 
-/* In the end the whole lump is smoothly teal. */
-.cm__wash { position: absolute; inset: 0; z-index: 2; background: var(--clay-teal); opacity: 0; animation: cm-wash 1.5s ease-in-out 3.8s both; }
+/* 2. It sinks in as a spot, then is stretched wide, pulled tall, smeared round, until it fills the clay. */
+.cm__smear { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; background: var(--clay-teal); filter: blur(1.5px); opacity: 0; animation: cm-smear 3s cubic-bezier(.4, 0, .3, 1) 2.05s both; }
+@keyframes cm-smear {
+  0% { opacity: 1; transform: translate(0, -42px) scale(.26, .18); border-radius: 50%; }
+  10% { transform: translate(0, -40px) scale(.4, .28); }
+  26% { transform: translate(-12px, -28px) scale(1.6, .5) rotate(-14deg); border-radius: 62% 38% 55% 45% / 46% 54% 46% 54%; }
+  44% { transform: translate(9px, -6px) scale(.9, 2) rotate(28deg); border-radius: 44% 56% 40% 60% / 62% 38% 62% 38%; }
+  62% { transform: translate(-9px, 12px) scale(2.2, 1.1) rotate(-36deg); border-radius: 58% 42% 52% 48% / 40% 60% 40% 60%; }
+  80% { transform: translate(3px, 4px) scale(2.3, 2) rotate(12deg); border-radius: 50% 50% 46% 54% / 54% 46% 54% 46%; }
+  100% { opacity: 1; transform: translate(0, 0) scale(2.8) rotate(0deg); border-radius: 50%; }
+}
+
+/* 3. In the end the whole lump is smoothly teal. */
+.cm__wash { position: absolute; inset: 0; z-index: 2; background: var(--clay-teal); opacity: 0; animation: cm-wash 1s ease-in-out 4.2s both; }
 @keyframes cm-wash { from { opacity: 0; } to { opacity: 1; } }
 
 @keyframes cm-morph {
@@ -54,6 +78,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cm__lump { animation: none; border-radius: 50%; }
-  .cm__stir, .cm__teal { animation: none; opacity: 0; }
+  .cm__fall, .cm__smear, .cm__stretch { animation: none; opacity: 0; }
+  .cm__stretch { opacity: 1; }
   .cm__wash { animation: none; opacity: 1; }
+  .hv-adjust__blob::after { transition: none; }
 }

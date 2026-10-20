@@ -1,0 +1,32 @@
+/* The recipe's version history: a quiet timeline that fades out at the top and bottom and scrolls. */
+.vh { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 6px; }
+.vh__head { display: flex; align-items: center; justify-content: space-between; color: #85827e; font-size: 13px; font-weight: 300; line-height: 18px; }
+.vh__current { padding: 1px 9px; border-radius: 999px; background: rgba(255, 90, 38, .14); color: #e04a17; font-size: 12px; }
+
+.vh__list {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  margin: 0;
+  padding: 10px 0 24px;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: none;
+  scroll-behavior: auto;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 74%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 74%, transparent 100%);
+}
+.vh__list::-webkit-scrollbar { display: none; }
+
+/* A thin line joins the dots. */
+.vh__item { position: relative; display: grid; grid-template-columns: 14px 1fr auto; column-gap: 10px; padding: 0 0 14px; }
+.vh__item::before { position: absolute; top: 14px; bottom: -2px; left: 3px; width: 1px; background: rgba(0, 0, 0, .1); content: ''; }
+.vh__item:last-child::before { display: none; }
+.vh__dot { width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; }
+.vh__dot--orange { background: #ff5a26; }
+.vh__dot--teal { background: #2eb8b8; }
+.vh__time { grid-column: 2; color: #9a968f; font-size: 11px; font-weight: 300; line-height: 14px; }
+.vh__what { grid-column: 2; color: #1f1c19; font-size: 14px; font-weight: 300; line-height: 18px; }
+.vh__what strong { font-weight: 400; }
+.vh__current--teal { background: rgba(31, 157, 157, .14); color: #1a8585; }
+.vh__tag { grid-column: 3; grid-row: 1 / span 2; align-self: center; color: #9a968f; font-size: 11px; font-weight: 300; }

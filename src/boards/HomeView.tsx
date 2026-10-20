@@ -1,6 +1,8 @@
 'use client'
 
 import { ClayBlob, ClayMix } from '@/kitchen/ClayMix'
+import { VersionHistory, initialVersions, newVersion, type VersionEntry } from '@/kitchen/VersionHistory'
+import { Eye } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 
@@ -43,6 +45,9 @@ function Icon({ d, size = 18 }: { d: string; size?: number }) {
 }
 
 // `clay` swaps the mascot for orange clay: a blob inside the Adjust chip, and teal mixed into the clay while the screen is fogged.
+// How long the clay takes to turn fully teal, after the drop falls and is smeared through.
+const CLAY_MIX_MS = 5300
+
 export function HomeViewBoard({ embedded = false, overlay = null, clay = false }: { embedded?: boolean; overlay?: ReactNode; clay?: boolean } = {}) {
   const embedRef = useRef<HTMLDivElement>(null)
   const [embedScale, setEmbedScale] = useState(1)
@@ -64,6 +69,17 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
   const [kencurSwap, setKencurSwap] = useState(false)
   const [phase, setPhase] = useState<AdjustPhase>('idle')
   const [heard, setHeard] = useState('')
+  // With the clay look, the Adjust chip's blob turns teal once the teal has been mixed all the way through.
+  const [blobTeal, setBlobTeal] = useState(false)
+  // With the clay look, ingredients can be checked off.
+  const [checked, setChecked] = useState<ReadonlySet<number>>(new Set())
+  const toggleChecked = (row: number) => setChecked((current) => {
+    const next = new Set(current)
+    if (!next.delete(row)) next.add(row)
+    return next
+  })
+  // With the clay look, there's a version history under the recipe; each adjustment adds a version to it.
+  const [versions, setVersions] = useState<VersionEntry[]>(initialVersions)
   const [penRow, setPenRow] = useState<number | null>(null)
   const [penPos, setPenPos] = useState<{ left: number; top: number } | null>(null)
   const stage = useRef(0)
@@ -100,16 +116,20 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
       setServes2(false)
       setRowsDone(0)
       setKencurSwap(false)
+      setVersions(initialVersions())
       stage.current = 0
     }
     const next = stage.current + 1
     setPhase('listening')
     setHeard('')
+    setBlobTeal(false)
+    later(CLAY_MIX_MS, () => setBlobTeal(true))
     later(1400, () => setHeard(ADJUST_SCRIPT[next - 1]))
     later(5000, () => setPhase('thinking'))
     later(5800, () => {
       stage.current = next
       setPhase('writing')
+      if (clay) setVersions((current) => [newVersion((current[0]?.version ?? 1) + 1, next === 1 ? 'Servings 4 → 2' : 'Kencur swapped out'), ...current])
       if (next === 1) {
         setServes2(true)
         runPencilPass((row) => setRowsDone(row + 1), 450)
@@ -150,11 +170,20 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               Balinese minced <Mark on={m.chicken}>{m.chicken ? 'chicken' : 'pork'}</Mark> with toasted coconut, fried in a{' '}
               <Mark on={m.mild}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</Mark> and served on pandan rice.
             </p>
+            {clay && <VersionHistory entries={versions} />}
           </div>
-            <button type="button" className={`hv-tap hv-adjust is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
-              {clay && <ClayBlob />}
-              {adjustLabel}
-            </button>
+            {clay ? (
+              <span className="hv-actions">
+                <button type="button" className="hv-tap hv-glance" aria-label="Glance at the recipe">
+                  <Eye size={22} aria-hidden="true" />
+                  Glance
+                </button>
+              </span>
+            ) : (
+              <button type="button" className={`hv-tap hv-adjust is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
+                {adjustLabel}
+              </button>
+            )}
         </section>
 
         <section className="hv-card hv-swap" aria-label={swap ? 'Tools: bowl, dry pan, blender, spatula and rice pot. Tap for cooking time' : `Cooking time ${mins} minutes. Tap for tools`}>
@@ -200,7 +229,20 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               if (swapped) amt = halved ? '1 cm + zest' : '2 cm + zest'
               const changed = (halved && r[2] !== r[3]) || swapped
               return (
-                <li key={r[0]} data-family-amount={r[1]} style={{ '--i': i } as CSSProperties} className={penRow === i ? 'is-voice-target' : undefined}>
+                <li
+                  key={r[0]}
+                  data-family-amount={r[1]}
+                  data-changed={changed || undefined}
+                  style={{ '--i': i } as CSSProperties}
+                  className={penRow === i ? 'is-voice-target' : undefined}
+                  {...(clay ? {
+                    role: 'checkbox',
+                    tabIndex: 0,
+                    'aria-checked': checked.has(i),
+                    onClick: () => toggleChecked(i),
+                    onKeyDown: (event: React.KeyboardEvent) => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); toggleChecked(i) } },
+                  } : {})}
+                >
                   <Mark on={swapped}>{swapped ? 'Ginger + lime zest' : r[0]}</Mark>
                   <span className="hv-amt">
                     <span key={`${amt}-${changed}`} className={`hv-blurin${changed ? ' hv-mark' : ''}`}>{amt}</span>
@@ -215,6 +257,12 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               style={{ left: penPos.left, top: penPos.top }} />
           )}
         </section>
+
+        {clay && (
+          <button type="button" className={`hv-tap hv-clay-orb is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
+            <ClayBlob teal={blobTeal} />
+          </button>
+        )}
 
         <div className={`hv-fog${phase === 'listening' || phase === 'thinking' ? ' is-on' : ''}`} aria-hidden="true">
           {clay ? (

@@ -2,23 +2,22 @@
 
 import './clay-mix.css'
 
-// The orange clay with teal poured in: three drops swirl through it until it's one teal ball.
+// The orange clay sits alone, then one drop of teal lands. The whole ball is stretched and pulled about while the teal spreads, until it's all teal.
 export function ClayMix() {
   return (
     <span className="cm" role="img" aria-label="Mixing teal into the clay">
-      <span className="cm__lump">
-        <span className="cm__stir">
-          <span className="cm__teal cm__teal--a" />
-          <span className="cm__teal cm__teal--b" />
-          <span className="cm__teal cm__teal--c" />
+      <span className="cm__fall" />
+      <span className="cm__stretch">
+        <span className="cm__lump">
+          <span className="cm__smear" />
+          <span className="cm__wash" />
         </span>
-        <span className="cm__wash" />
       </span>
     </span>
   )
 }
 
-// A little orange clay blob, the icon inside the Adjust chip.
-export function ClayBlob() {
-  return <span className="hv-adjust__blob" aria-hidden="true" />
+// A little clay blob, the icon inside the Adjust chip. It turns teal once the clay has been mixed.
+export function ClayBlob({ teal = false }: { teal?: boolean }) {
+  return <span className={`hv-adjust__blob${teal ? ' is-teal' : ''}`} aria-hidden="true" />
 }

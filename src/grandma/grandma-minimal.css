@@ -314,10 +314,10 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   font-weight: 300;
   cursor: pointer;
 }
-/* Hovered or chosen: a translucent orange wash with orange text. */
+/* Only while hovered: a translucent orange wash with orange text. */
 .gm-controls--done button { transition: background-color 180ms ease, color 180ms ease; }
 .gm-controls--done button:hover,
-.gm-controls--done button[aria-pressed='true'] { background: rgba(255, 90, 38, .14); color: #e04a17; }
+.gm-controls--done button:focus-visible { background: rgba(255, 90, 38, .14); color: #e04a17; }
 
 /* Recipe change: fog over the note, the clay listening in the middle. */
 .gm-fog {
