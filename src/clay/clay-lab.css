@@ -38,7 +38,8 @@
 .lab__grid label { display: grid; grid-template-columns: 1fr 120px 5ch; align-items: center; gap: 8px; font-size: 13px; }
 .lab__tuning pre { overflow-x: auto; margin: 10px 0 0; padding: 10px; border-radius: 10px; background: #f6f4ef; font-size: 11px; }
 @media (prefers-reduced-motion: reduce) { .lab-old, .lab-old__voice { transition: none; } .lab-old__lump { animation: none; border-radius: 50%; } }
-.lab__inplace { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 12px; text-align: center; }
+.lab__inplace { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 12px; }
+.lab__inplace > h2, .lab__inplace > p { text-align: center; }
 .lab__inplace h2 { margin: 0; font-size: 20px; font-weight: 400; text-transform: none; }
 .lab__inplace p { max-width: 560px; margin: 0; color: #655e54; font-size: 14px; line-height: 20px; }
 .lab__inplace .lab__row-buttons { justify-content: center; margin: 6px 0 2px; }

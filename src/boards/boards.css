@@ -315,15 +315,14 @@
 .hv-mark { padding: 1px 3px; margin: 0 -3px; border-radius: 3px; background: rgba(214, 160, 238, .5); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 
 .hv-replay { position: absolute; z-index: 1; left: 0; top: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; cursor: pointer; }
-.hv-card { position: absolute; box-sizing: border-box; border: 1px solid rgba(255, 255, 255, .6); border-radius: 0; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1); box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 8px 24px rgba(70, 110, 160, .08); }
+.hv-card { position: absolute; box-sizing: border-box; border: 1px solid rgba(255, 255, 255, .6); border-radius: 24px; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1); box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 8px 24px rgba(70, 110, 160, .08); }
 
-.hv-recipe { left: 20px; top: 20px; width: 290px; height: 600px; overflow: hidden; display: flex; flex-direction: column; padding: 10px 10px 72px; }
-.hv-recipe__inner { flex: 1; display: flex; flex-direction: column; gap: 14px; min-height: 0; padding: 14px 10px 6px; }
+.hv-recipe { left: 20px; top: 20px; width: 290px; height: 548px; overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 20px 20px 16px; }
 .hv-recipe__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .hv-title { margin: 0; font-family: var(--font-display); font-size: 30px; line-height: 34px; font-weight: 300; letter-spacing: -0.02em; }
 .hv-sub { margin: 2px 0 0; color: var(--ink-muted); font-size: 14px; line-height: 18px; }
-.hv-round { display: grid; width: 44px; height: 44px; flex: none; place-items: center; border: 0; border-radius: 0; background: var(--flour-sunken); color: var(--ink); }
-.hv-photo { display: block; flex: none; width: 100%; height: 300px; border-radius: 0; object-fit: cover; object-position: 50% 30%; }
+.hv-round { display: grid; width: 44px; height: 44px; flex: none; place-items: center; border: 0; border-radius: 50%; background: var(--flour-sunken); color: var(--ink); }
+.hv-photo { display: block; flex: none; width: 100%; height: 148px; border-radius: 16px; object-fit: cover; object-position: 50% 30%; }
 .hv-overview { margin: 0; color: var(--ink); font-size: 16px; line-height: 22px; }
 .hv-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin: auto 0 0; padding-top: 12px; border-top: 1.5px solid #000; }
 .hv-stats dt { color: var(--ink-muted); font-size: 12px; line-height: 16px; }
@@ -343,8 +342,8 @@
 .hv-dots { position: absolute; right: 18px; top: 22px; display: flex; gap: 5px; }
 .hv-dots span { width: 6px; height: 6px; border-radius: 50%; transition: background-color 300ms; }
 
-.hv-ingr { left: 326px; top: 302px; width: 294px; height: 318px; display: flex; flex-direction: column; gap: 18px; padding: 20px 22px; }
-.hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 9px; margin: 0; padding: 0; list-style: none; }
+.hv-ingr { left: 326px; top: 302px; width: 294px; height: 266px; display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; }
+.hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 8px; margin: 0; padding: 0; list-style: none; }
 .hv-ingr li { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; line-height: 22px; white-space: nowrap; }
 .hv-ingr li.is-voice-target { border-radius: 6px; background: rgba(214, 160, 238, .22); }
 .hv-amt { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
@@ -489,9 +488,6 @@
 .hv-screen--embedded { zoom: 1 !important; position: absolute; top: 0; left: 0; border-radius: 0; box-shadow: none; transform-origin: 0 0; }
 
 /* Outer corners follow the screen's 68px curve (20px inset), inner corners stay square. */
-.hv-card.hv-recipe { border-radius: 48px 0 0 48px; }
-.hv-card.hv-swap { border-radius: 0 48px 0 0; }
-.hv-card.hv-ingr { border-radius: 0 0 48px 0; }
 
 @keyframes hv-wave-glow {
   0%, 100% { box-shadow: 0 1px 2px rgba(40, 70, 110, .1), 0 0 8px rgba(40, 190, 190, .3); }
@@ -611,3 +607,85 @@
 .hv-content { position: absolute; inset: 0; transition: transform 520ms cubic-bezier(.34, 1.56, .64, 1), filter 420ms ease; }
 .hv-screen[data-voice='on'] .hv-content { transform: scale(.985); filter: saturate(.88) blur(.4px); transition: transform 420ms cubic-bezier(.2, .8, .2, 1), filter 420ms ease; }
 @media (prefers-reduced-motion: reduce) { .hv-content, .hv-screen[data-voice='on'] .hv-content { transform: none; transition: filter 300ms ease; } }
+
+/* Board 11: the recipe card's own layout. Title row, then the overview (or the steps), and a bottom row pinned to the foot. */
+.hv-recipe__head { flex: none; }
+.hv-steps { position: relative; flex: 1; min-height: 0; }
+.hv-steps ol { display: flex; height: 100%; flex-direction: column; gap: 14px; margin: 0; padding: 4px 0 60px; box-sizing: border-box; overflow-y: auto; list-style: none; scrollbar-width: none; }
+.hv-steps ol::-webkit-scrollbar { display: none; }
+.hv-steps li { display: flex; align-items: baseline; gap: 12px; font-size: 17px; line-height: 24px; }
+.hv-steps__n { width: 18px; flex: none; color: var(--ink-muted); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.hv-steps__veil { position: absolute; right: 0; bottom: 0; left: 0; height: 80px; pointer-events: none; -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 70%); mask-image: linear-gradient(180deg, transparent, #000 70%); }
+.hv-recipe__foot { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 12px; margin-top: auto; }
+/* Waving is a gesture: quiet grey text with a hand, not a button. */
+.hv-wave-hint { display: inline-flex; align-items: center; gap: 8px; color: #8a8580; font-size: 17px; font-weight: 300; line-height: 24px; }
+.hv-adjust-btn.is-open { background: var(--ink); color: #fff; }
+
+/* The Adjust menu grows up and out of the round Adjust button, above the card's bottom row. */
+@keyframes hv-menu-in { 0% { opacity: 0; transform: scale(.3); filter: blur(10px); } 55% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: none; filter: none; } }
+@keyframes hv-menu-out { from { opacity: 1; transform: none; filter: none; } to { opacity: 0; transform: scale(.3); filter: blur(10px); } }
+.hv-menu { position: absolute; z-index: 6; right: 14px; bottom: 72px; display: flex; width: 258px; box-sizing: border-box; flex-direction: column; gap: 4px; padding: 8px; border-radius: 22px; background: color-mix(in srgb, #fff 96%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 12px 32px rgba(31, 28, 25, .18); transform-origin: 100% 100%; animation: hv-menu-in 520ms cubic-bezier(.34, 1.36, .5, 1) both; }
+.hv-menu.is-closing { animation: hv-menu-out 220ms cubic-bezier(.5, 0, .75, 0) both; pointer-events: none; }
+.hv-menu__title { margin: 4px 10px 0; color: #8a8580; font-size: 13px; line-height: 16px; }
+.hv-menu__rule { height: 1px; margin: 4px 10px; background: #efede9; }
+.hv-menu__row { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 10px; padding: 0 14px; border: 0; border-radius: 14px; background: #f4f3f1; color: #1f1c19; font: inherit; font-size: 16px; font-weight: 400; line-height: 1; text-align: left; }
+.hv-menu__row.is-on { background: #1f1c19; color: #fff; }
+.hv-menu__row--glance { background: rgba(255, 90, 38, .14); color: #e04a17; }
+.hv-menu__row--glance[aria-checked='true'] { background: rgba(255, 90, 38, .24); }
+.hv-menu__label { display: inline-flex; align-items: center; gap: 8px; }
+.hv-menu__hint { font-size: 13px; opacity: .7; }
+@media (prefers-reduced-motion: reduce) {
+  .hv-menu { animation: voice-fade-in 150ms ease both; }
+  .hv-menu.is-closing { animation: voice-fade-out 150ms ease both; }
+  @keyframes voice-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes voice-fade-out { from { opacity: 1; } to { opacity: 0; } }
+}
+
+/* The wake word, in the wireframe: an unmarked top-left corner you can tap or tab to. There's no clay until voice starts. */
+.hv-talk { position: absolute; z-index: 8; top: 0; left: 0; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 0 0 16px 0; background: transparent; cursor: pointer; }
+.hv-talk:focus-visible { outline: 2px solid #3546a8; outline-offset: -2px; }
+
+/* Glance: one full-page widget. Ingredients first, then a yellow note of steps; it fades out at the foot. */
+.hv-glance-sheet {
+  position: absolute;
+  z-index: 9;
+  inset: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 54px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, .78), rgba(255, 244, 228, .7));
+  -webkit-backdrop-filter: blur(30px) saturate(1.3);
+  backdrop-filter: blur(30px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 22px 44px rgba(40, 60, 90, .18);
+  animation: hv-glance-in 420ms cubic-bezier(.2, .9, .25, 1) both;
+}
+@keyframes hv-glance-in { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
+.hv-glance-sheet__close { position: absolute; z-index: 3; top: 22px; right: 26px; display: grid; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, .06); color: #1f1c19; place-items: center; }
+.hv-glance-sheet__scroll {
+  height: 100%;
+  box-sizing: border-box;
+  padding: 26px 30px 120px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 70%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 70%, transparent 96%);
+}
+.hv-glance-sheet__scroll::-webkit-scrollbar { display: none; }
+.hv-glance-sheet__title { margin: 0 0 14px; font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 38px; text-transform: none; }
+.hv-glance-sheet__pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 0; list-style: none; }
+.hv-glance-sheet__pills li { display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 10px; border-radius: 14px; background: rgba(0, 0, 0, .055); font-size: 17px; font-weight: 300; line-height: 24px; cursor: pointer; user-select: none; }
+.hv-glance-sheet__pills li::before { width: 16px; height: 16px; flex: none; box-sizing: border-box; border: 1.5px solid #1f1c19; border-radius: 50%; content: ''; }
+.hv-glance-sheet__pills li[aria-checked='true']::before { background: #1f1c19 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5.5'/%3E%3C/svg%3E") center / 10px no-repeat; }
+.hv-glance-sheet__pills li[aria-checked='true'] { color: #6a6761; }
+.hv-glance-sheet__pills li[aria-checked='true'] > span:first-child { text-decoration: line-through; }
+.hv-glance-sheet__pills .hv-amt { color: #4f4c47; }
+
+.hv-note { position: relative; overflow: hidden; border-radius: 26px; background: #fbef7d; box-shadow: 0 10px 22px rgba(120, 100, 0, .12); }
+.hv-note__band { display: block; height: 40px; background: rgba(0, 0, 0, .06); }
+.hv-note__band span { position: absolute; top: 12px; width: 18px; height: 18px; border-radius: 50%; background: rgba(0, 0, 0, .12); }
+.hv-note__band span:first-child { left: 22px; }
+.hv-note__band span:last-child { right: 22px; }
+.hv-note ol { margin: 0; padding: 14px 22px 8px 40px; font-size: 17px; font-weight: 300; line-height: 24px; }
+.hv-note li { margin: 0 0 12px; }
+.hv-note__foot { display: flex; align-items: center; gap: 8px; margin: 0; padding: 12px 22px; background: rgba(0, 0, 0, .05); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .hv-glance-sheet { animation: none; } }

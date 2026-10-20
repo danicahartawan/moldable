@@ -115,40 +115,6 @@
 /* From the fridge the recipe is simply there under the turning page, so its cards don't open on their own. */
 .kitchen__grandkids-view--fridge .hv-card { animation: none !important; }
 
-/* The Adjust chip: a white pill with the clay blob in front, like the app chips. */
-.gm-kitchen .hv-screen .hv-adjust { gap: 10px; padding: 0 18px 0 12px; background: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, .1); }
-.gm-kitchen .hv-adjust__blob { width: 24px; height: 24px; }
-
-/* No highlighting of the changed words; the photo gives up space to the version history; the Adjust chip is bigger. */
-.gm-kitchen .hv-mark { padding: 0; margin: 0; background: none; }
-.gm-kitchen .hv-ingr li.is-voice-target { background: none; }
-.gm-kitchen .hv-photo { height: 160px; }
-.gm-kitchen .hv-recipe { padding-bottom: 82px; }
-/* No white tiles or pills: icons sit straight on the card, buttons are soft gray like Wave to start. */
-.gm-kitchen .hv-tool__icon, .gm-kitchen .hv-round { background: none; box-shadow: none; }
-.gm-kitchen .hv-screen .hv-wave { border: 1px solid rgba(255, 255, 255, .6); background: rgba(0, 0, 0, .05); box-shadow: none; color: #1f1c19; }
-.hv-actions { position: absolute; z-index: 5; left: 26px; bottom: 24px; display: flex; gap: 10px; }
-.gm-kitchen .hv-screen .hv-actions .hv-glance {
-  display: inline-flex;
-  height: 36px;
-  box-sizing: border-box;
-  align-items: center;
-  gap: 8px;
-  padding: 0 16px;
-  border: 1px solid rgba(255, 255, 255, .6);
-  border-radius: 18px;
-  background: rgba(0, 0, 0, .05);
-  box-shadow: none;
-  color: #1f1c19;
-  font-size: 17px;
-  font-weight: 300;
-}
-
-/* Adjust is a clay orb at the top of the screen, like the orb on the smart display. */
-/* The clay orb has no rim: just its shading and a soft shadow. */
-/* The wake word, in the wireframe: an unmarked top-left corner you can tap or tab to. There's no clay until voice starts. */
-.hv-talk { position: absolute; z-index: 8; top: 0; left: 0; width: 64px; height: 64px; padding: 0; border: 0; border-radius: 0 0 24px 0; background: transparent; cursor: pointer; }
-.hv-talk:focus-visible { outline: 2px solid #3546a8; outline-offset: -6px; }
 @keyframes hv-clay-orb-bob {
   0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; transform: scale(1, 1); }
   50% { border-radius: 46% 54% 56% 44% / 44% 58% 42% 56%; transform: scale(1.06, .95); }
@@ -164,16 +130,7 @@
   backdrop-filter: none;
   box-shadow: none;
 }
-/* Corners that meet the display's own corner follow its curve (68px minus the 14px inset); the rest are softer. */
-.gm-kitchen .hv-screen .hv-card.hv-recipe { border-radius: 54px 36px 36px 54px; }
-.gm-kitchen .hv-screen .hv-card.hv-swap { border-radius: 36px 54px 36px 36px; }
-.gm-kitchen .hv-screen .hv-card.hv-ingr { border-radius: 36px 36px 54px 36px; }
-.gm-kitchen .hv-screen .hv-recipe { left: 14px; top: 14px; width: 298px; height: 612px; padding: 22px 18px 88px; }
-.gm-kitchen .hv-screen .hv-recipe .hv-recipe__inner { padding: 12px 8px 6px; }
-.gm-kitchen .hv-screen .hv-swap { left: 324px; top: 14px; width: 302px; height: 166px; overflow: hidden; }
-.gm-kitchen .hv-screen .hv-ingr { left: 324px; top: 192px; width: 302px; height: 434px; gap: 14px; padding: 22px 24px; }
 .gm-kitchen .hv-title { font-size: 34px; line-height: 38px; letter-spacing: -.035em; }
-.gm-kitchen .hv-photo { border-radius: 24px; }
 
 /* Card headings, as in the home view: "Cooking time", "Tools" and "Ingredients" up top, a small muted count on the right. */
 .gm-kitchen .hv-screen .hv-swap .hv-h,
@@ -191,65 +148,15 @@
 .gm-kitchen .hv-swap .hv-tool { font-size: 17px; line-height: 22px; gap: 8px; }
 .gm-kitchen .hv-swap .hv-tool__icon { width: 26px; height: 26px; }
 
-/* Glance and Wave to start: one two-part toggle. The chosen part is tinted and shows its label; the other is just its icon. */
-.hv-seg { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: rgba(0, 0, 0, .07); }
-.hv-seg__btn { display: inline-flex; height: 36px; min-width: 44px; align-items: center; justify-content: center; gap: 8px; padding: 0 11px; border: 0; border-radius: 999px; background: transparent; color: #1f1c19; font: inherit; font-size: 17px; font-weight: 300; white-space: nowrap; transition: background-color 200ms ease, color 200ms ease; }
-.hv-seg__btn.is-on { padding: 0 16px 0 12px; background: rgba(255, 90, 38, .16); color: #e04a17; }
-.hv-seg__label { display: none; }
-.hv-seg__btn.is-on .hv-seg__label { display: inline; }
 
 /* Ingredients: two columns of name and amount, the amount muted on the right. Tap a row to tick it off; ticked rows are struck through. */
-.gm-kitchen .hv-screen .hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 12px; }
+.gm-kitchen .hv-screen .hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 8px; }
 .gm-kitchen .hv-screen .hv-ingr li { display: flex; justify-content: space-between; gap: 6px; color: #1f1c19; font-size: 16px; font-weight: 400; line-height: 22px; white-space: nowrap; cursor: pointer; user-select: none; }
 .gm-kitchen .hv-screen .hv-ingr .hv-amt { color: #8a8580; font-variant-numeric: tabular-nums; }
 .gm-kitchen .hv-ingr li:focus-visible { border-radius: 4px; outline: 2px solid #1f1c19; outline-offset: 2px; }
 .gm-kitchen .hv-ingr li[aria-checked='true'] { color: #b5ada1; }
 .gm-kitchen .hv-ingr li[aria-checked='true'] > :first-child { text-decoration: line-through; }
 
-/* Glance: one full-page widget. Ingredients first, then a yellow note of steps; it fades out at the foot. */
-.hv-glance-sheet {
-  position: absolute;
-  z-index: 9;
-  inset: 14px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .7);
-  border-radius: 54px;
-  background: linear-gradient(165deg, rgba(255, 255, 255, .78), rgba(255, 244, 228, .7));
-  -webkit-backdrop-filter: blur(30px) saturate(1.3);
-  backdrop-filter: blur(30px) saturate(1.3);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 22px 44px rgba(40, 60, 90, .18);
-  animation: hv-glance-in 420ms cubic-bezier(.2, .9, .25, 1) both;
-}
-@keyframes hv-glance-in { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
-.hv-glance-sheet__close { position: absolute; z-index: 3; top: 22px; right: 26px; display: grid; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, .06); color: #1f1c19; place-items: center; }
-.hv-glance-sheet__scroll {
-  height: 100%;
-  box-sizing: border-box;
-  padding: 26px 30px 120px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 70%, transparent 96%);
-  mask-image: linear-gradient(to bottom, #000 0, #000 70%, transparent 96%);
-}
-.hv-glance-sheet__scroll::-webkit-scrollbar { display: none; }
-.hv-glance-sheet__title { margin: 0 0 14px; font-size: 34px; font-weight: 300; letter-spacing: -.035em; line-height: 38px; text-transform: none; }
-.hv-glance-sheet__pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 0; list-style: none; }
-.hv-glance-sheet__pills li { display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 10px; border-radius: 14px; background: rgba(0, 0, 0, .055); font-size: 17px; font-weight: 300; line-height: 24px; cursor: pointer; user-select: none; }
-.hv-glance-sheet__pills li::before { width: 16px; height: 16px; flex: none; box-sizing: border-box; border: 1.5px solid #1f1c19; border-radius: 50%; content: ''; }
-.hv-glance-sheet__pills li[aria-checked='true']::before { background: #1f1c19 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-5.5'/%3E%3C/svg%3E") center / 10px no-repeat; }
-.hv-glance-sheet__pills li[aria-checked='true'] { color: #6a6761; }
-.hv-glance-sheet__pills li[aria-checked='true'] > span:first-child { text-decoration: line-through; }
-.hv-glance-sheet__pills .hv-amt { color: #4f4c47; }
-
-.hv-note { position: relative; overflow: hidden; border-radius: 26px; background: #fbef7d; box-shadow: 0 10px 22px rgba(120, 100, 0, .12); }
-.hv-note__band { display: block; height: 40px; background: rgba(0, 0, 0, .06); }
-.hv-note__band span { position: absolute; top: 12px; width: 18px; height: 18px; border-radius: 50%; background: rgba(0, 0, 0, .12); }
-.hv-note__band span:first-child { left: 22px; }
-.hv-note__band span:last-child { right: 22px; }
-.hv-note ol { margin: 0; padding: 14px 22px 8px 40px; font-size: 17px; font-weight: 300; line-height: 24px; }
-.hv-note li { margin: 0 0 12px; }
-.hv-note__foot { display: flex; align-items: center; gap: 8px; margin: 0; padding: 12px 22px; background: rgba(0, 0, 0, .05); font-size: 14px; }
-@media (prefers-reduced-motion: reduce) { .hv-glance-sheet { animation: none; } }
 
 /* Cooking steps in the grandma theme: light Inter Tight on the type scale, soft gray pieces, tinted pill chips, no hard outlines. */
 .gm-kitchen .st-screen { background: #fff; }
@@ -292,3 +199,11 @@
 
 /* Opening "For this step" doesn't blur or fade the rest of the screen. */
 .gm-kitchen .ck-freeze { filter: none !important; opacity: 1 !important; }
+
+/* Board 11 in the kitchen: changed words get the ember underline; round buttons are soft grey. */
+.gm-kitchen .hv-mark { padding: 0; margin: 0; border-radius: 0; background: none; box-shadow: inset 0 -2px 0 var(--thermal-ember); }
+.gm-kitchen .hv-ingr li.is-voice-target { background: none; }
+.gm-kitchen .hv-tool__icon { background: none; box-shadow: none; }
+.gm-kitchen .hv-round { background: #f4f3f1; box-shadow: none; }
+.gm-kitchen .hv-adjust-btn.is-open { background: #1f1c19; color: #fff; }
+.gm-kitchen .hv-title { font-size: 34px; line-height: 38px; letter-spacing: -.035em; }

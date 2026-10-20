@@ -5,13 +5,26 @@ import type { Vec } from '@/clay/ClaySim'
 import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
 import { VoiceNotification } from '@/voice/VoiceNotification'
 import { VersionHistory, initialVersions, newVersion, type VersionEntry } from '@/kitchen/VersionHistory'
-import { Eye, HandWaving, ListChecks, X } from '@phosphor-icons/react'
+import { Eye, HandWaving, ImageSquare, ListBullets, ListChecks, SlidersHorizontal, Sparkle, X } from '@phosphor-icons/react'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 
 type AdjustPhase = 'idle' | 'listening' | 'thinking' | 'writing'
 
-const KENCUR_ROW = GRANDKIDS_RECIPE_CONTEXT.ingredients.findIndex((ingredient) => ingredient.key === 'kencur')
+const rowOf = (key: string) => GRANDKIDS_RECIPE_CONTEXT.ingredients.findIndex((ingredient) => ingredient.key === key)
+const KENCUR_ROW = rowOf('kencur')
+const PORK_ROW = rowOf('pork')
+const SAMBAL_ROW = rowOf('sambal')
+
+// The Adjust menu's Modify rows.
+type ModKey = 'serves2' | 'mild' | 'chicken'
+const MODIFY: { key: ModKey; label: string; hint: string; on: string; off: string }[] = [
+  { key: 'serves2', label: 'Serves 2', hint: 'half of everything', on: 'Servings 4 → 2', off: 'Servings 2 → 4' },
+  { key: 'mild', label: 'Less spicy', hint: 'half the sambal', on: 'Less spicy', off: 'Spicy again' },
+  { key: 'chicken', label: 'Chicken', hint: 'instead of pork', on: 'Chicken instead of pork', off: 'Back to pork' },
+]
+// The Adjust menu blooms out of its button and folds back into it.
+const MENU_CLOSE_MS = 220
 
 // Scripted two-stage Adjust demo: what the grandkid says, then the pencil pass that follows.
 const ADJUST_SCRIPT = [
@@ -157,7 +170,15 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   }, [embedded])
 
   const [swap, setSwap] = useState(false)
+  // Overview (photo, summary, version history) or Steps; the round button by the title switches them.
+  const [view, setView] = useState<'over' | 'steps'>('over')
   const [serves2, setServes2] = useState(false)
+  const [mild, setMild] = useState(false)
+  const [chicken, setChicken] = useState(false)
+  // Tidy amounts: neat measures, or Popo's own words.
+  const [tidy, setTidy] = useState(true)
+  const [menu, setMenu] = useState<'closed' | 'open' | 'closing'>('closed')
+  const menuTimer = useRef<number | undefined>(undefined)
   const [rowsDone, setRowsDone] = useState(0)
   const [kencurSwap, setKencurSwap] = useState(false)
   const [phase, setPhase] = useState<AdjustPhase>('idle')
@@ -168,8 +189,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const voiceLevel = useRef<() => number>(() => 0)
   // With the clay look, the Adjust chip's blob turns teal once the teal has been mixed all the way through.
   const [blobTeal, setBlobTeal] = useState(false)
-  // Glance and Wave to start are two sides of one toggle.
-  const [seg, setSeg] = useState<'glance' | 'wave'>('glance')
+  // Glance: the whole recipe on one sheet (from the Adjust menu).
   const [glanceOpen, setGlanceOpen] = useState(false)
   // With the clay look, ingredients can be checked off.
   const [checked, setChecked] = useState<ReadonlySet<number>>(new Set())
@@ -178,7 +198,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     if (!next.delete(row)) next.add(row)
     return next
   })
-  // With the clay look, there's a version history under the recipe; each adjustment adds a version to it.
+  // The version history under the recipe: every change from Adjust or voice adds a version.
   const [versions, setVersions] = useState<VersionEntry[]>(initialVersions)
   const [penRow, setPenRow] = useState<number | null>(null)
   const [penPos, setPenPos] = useState<{ left: number; top: number } | null>(null)
@@ -190,11 +210,46 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const stage = useRef(0)
   const timers = useRef<number[]>([])
   const listRef = useRef<HTMLUListElement>(null)
-  const m = { serves2, mild: false, chicken: false }
+  const m = { serves2, mild, chicken }
 
   const later = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)) }
   const clearTimers = () => { timers.current.forEach((timer) => window.clearTimeout(timer)); timers.current = [] }
-  useEffect(() => clearTimers, [])
+  useEffect(() => () => { clearTimers(); window.clearTimeout(menuTimer.current) }, [])
+
+  const record = (what: string) => setVersions((current) => newVersion(current, what))
+
+  const closeMenu = () => {
+    if (menu !== 'open') return
+    setMenu('closing')
+    window.clearTimeout(menuTimer.current)
+    menuTimer.current = window.setTimeout(() => setMenu('closed'), MENU_CLOSE_MS)
+  }
+  const toggleMenu = () => {
+    if (menu === 'open') return closeMenu()
+    window.clearTimeout(menuTimer.current)
+    setMenu('open')
+  }
+  const modify = (key: ModKey) => {
+    const turnOn = !m[key]
+    if (key === 'serves2') {
+      setServes2(turnOn)
+      setRowsDone(turnOn ? ING.length : 0)
+    }
+    if (key === 'mild') setMild(turnOn)
+    if (key === 'chicken') setChicken(turnOn)
+    const row = MODIFY.find((r) => r.key === key)!
+    record(turnOn ? row.on : row.off)
+    setTidy(true)
+    closeMenu()
+  }
+  const toggleTidy = () => {
+    record(tidy ? 'Amounts in Popo’s words' : 'Tidied amounts')
+    setTidy((t) => !t)
+  }
+  const glance = () => {
+    setGlanceOpen((open) => !open)
+    closeMenu()
+  }
 
   useLayoutEffect(() => {
     if (penRow === null) return
@@ -273,11 +328,11 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
       setPhase('writing')
       setGlow('done')
       setResult(ADJUST_RESULTS[next - 1])
-      if (clay) setVersions((current) => [newVersion((current[0]?.version ?? 1) + 1, next === 1 ? 'Servings 4 → 2' : 'Kencur swapped out'), ...current])
+      record(next === 1 ? 'Servings 4 → 2' : 'Kencur swapped out')
       if (next === 1) setServes2(true)
       // "Done" shows for a moment in the island before the rows are marked.
       later(DONE_HOLD_MS, () => {
-        if (next === 1) runPencilPass((row) => setRowsDone(row + 1), 450)
+        if (next === 1) runPencilPass((row) => setRowsDone((done) => Math.max(done, row + 1)), 450)
         else runPencilPass((row) => { if (row === KENCUR_ROW) setKencurSwap(true) }, 300)
       })
     })
@@ -299,6 +354,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
   // Tapping anywhere outside the island while it's listening or thinking cancels.
   const tapAway = (event: React.PointerEvent) => {
+    // The Adjust menu closes when you tap anywhere else.
+    if (menu === 'open' && !(event.target as HTMLElement).closest('.hv-menu, .hv-adjust-btn')) closeMenu()
     if (phase !== 'listening' && phase !== 'thinking') return
     if ((event.target as HTMLElement).closest('.vn, .hv-talk')) return
     cancelVoice()
@@ -314,14 +371,6 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   // The island stays open until the clay leaves it: through "Done", closing as the clay hops out to the rows.
   const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? (penRow === null ? 'done' : 'idle') : glow
 
-  const adjustLabel = phase === 'listening'
-    ? 'Listening…'
-    : phase === 'thinking'
-      ? 'Thinking…'
-      : phase === 'writing'
-        ? 'Writing…'
-        : 'Adjust'
-
   const mins = 40 - (m.serves2 ? 10 : 0) - (m.chicken ? 5 : 0)
   const roll = (shown: boolean, from: number): CSSProperties => ({
     transform: `translateY(${shown ? 0 : from}px)`, filter: `blur(${shown ? 0 : 8}px)`, opacity: shown ? 1 : 0,
@@ -333,40 +382,72 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
         {/* The cards, as one layer, so they can ease back together while the voice glow has the focus. */}
         <div className="hv-content">
-        <section className="hv-card hv-recipe" aria-label="Recipe overview">
-          <div className="hv-recipe__inner">
-            <div className="hv-recipe__head">
-              <div style={{ minWidth: 0 }}>
-                <h1 className="hv-title">Lawar Bali</h1>
-              </div>
+        <section className="hv-card hv-recipe" aria-label="Recipe">
+          <div className="hv-recipe__head">
+            <div style={{ minWidth: 0 }}>
+              <h1 className="hv-title">Lawar Bali</h1>
+              <p className="hv-sub">Popo’s recipe</p>
             </div>
-
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="hv-photo hv-blurin" src="/assets/lelawar-oma.png" alt="Oma Lien holding a plate of lawar" />
-            <p className="hv-overview hv-blurin">
-              Balinese minced <Mark on={m.chicken}>{m.chicken ? 'chicken' : 'pork'}</Mark> with toasted coconut, fried in a{' '}
-              <Mark on={m.mild}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</Mark> and served on pandan rice.
-            </p>
-            {clay && <VersionHistory entries={versions} />}
+            {/* Overview ↔ Steps: it stays put; only its icon swaps. */}
+            <button type="button" className="hv-tap hv-round" aria-pressed={view === 'steps'} aria-label={view === 'over' ? 'Show the steps' : 'Show the overview'}
+              onClick={() => setView((v) => (v === 'over' ? 'steps' : 'over'))}>
+              {view === 'over' ? <ListBullets size={22} aria-hidden="true" /> : <ImageSquare size={22} aria-hidden="true" />}
+            </button>
           </div>
-            {clay ? (
-              <span className="hv-actions">
-                <span className="hv-seg" role="group" aria-label="How to follow the recipe">
-                  <button type="button" className={`hv-tap hv-seg__btn${seg === 'glance' ? ' is-on' : ''}`} aria-label="Glance at the recipe" aria-pressed={seg === 'glance'} onClick={() => { setSeg('glance'); setGlanceOpen(true) }}>
-                    <Eye size={22} aria-hidden="true" />
-                    <span className="hv-seg__label">Glance</span>
-                  </button>
-                  <button type="button" className={`hv-tap hv-seg__btn${seg === 'wave' ? ' is-on' : ''}`} aria-label="Wave to start" aria-pressed={seg === 'wave'} onClick={() => setSeg('wave')}>
-                    <HandWaving size={22} aria-hidden="true" />
-                    <span className="hv-seg__label">Wave to start</span>
-                  </button>
-                </span>
-              </span>
-            ) : (
-              <button type="button" className={`hv-tap hv-adjust is-${phase}`} aria-label="Adjust recipe by voice" aria-busy={phase !== 'idle'} onClick={beginAdjust}>
-                {adjustLabel}
+
+          {view === 'over' ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="hv-photo" src="/assets/lelawar-oma.png" alt="Oma Lien holding a plate of lawar" />
+              <p className="hv-overview">
+                Balinese minced <Mark on={m.chicken}>{m.chicken ? 'chicken' : 'pork'}</Mark> with toasted coconut, fried in a{' '}
+                <Mark on={m.mild}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</Mark> and served on pandan rice.
+              </p>
+              <VersionHistory entries={versions} />
+            </>
+          ) : (
+            <div className="hv-steps">
+              <ol>
+                {GLANCE_STEPS.map((step, i) => (
+                  <li key={step} className="hv-blurin" style={{ animationDelay: `${i * 0.05}s` }}>
+                    <span className="hv-steps__n">{i + 1}</span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+              <div aria-hidden="true" className="hv-steps__veil" />
+            </div>
+          )}
+
+          <div className="hv-recipe__foot">
+            {/* Waving is a gesture, not a button. */}
+            <span className="hv-wave-hint"><HandWaving size={20} aria-hidden="true" /> Wave to start</span>
+            <button type="button" className={`hv-tap hv-round hv-adjust-btn${menu === 'open' ? ' is-open' : ''}`} aria-label="Adjust the recipe" aria-haspopup="menu" aria-expanded={menu === 'open'} onClick={toggleMenu}>
+              <SlidersHorizontal size={22} aria-hidden="true" />
+            </button>
+          </div>
+
+          {menu !== 'closed' && (
+            <div className={`hv-menu${menu === 'closing' ? ' is-closing' : ''}`} role="menu" aria-label="Adjust the recipe" onKeyDown={(event) => { if (event.key === 'Escape') closeMenu() }}>
+              <button type="button" role="menuitemcheckbox" aria-checked={glanceOpen} className="hv-tap hv-menu__row hv-menu__row--glance" onClick={glance}>
+                <span className="hv-menu__label"><Eye size={20} aria-hidden="true" />Glance</span>
+                <span className="hv-menu__hint">Quick look</span>
               </button>
-            )}
+              <span aria-hidden="true" className="hv-menu__rule" />
+              <p className="hv-menu__title">Modify</p>
+              {MODIFY.map((row) => (
+                <button key={row.key} type="button" role="menuitemcheckbox" aria-checked={m[row.key]} className={`hv-tap hv-menu__row${m[row.key] ? ' is-on' : ''}`} onClick={() => modify(row.key)}>
+                  <span className="hv-menu__label">{row.label}</span>
+                  <span className="hv-menu__hint">{row.hint}</span>
+                </button>
+              ))}
+              <span aria-hidden="true" className="hv-menu__rule" />
+              <button type="button" role="menuitemcheckbox" aria-checked={tidy} className={`hv-tap hv-menu__row${tidy ? ' is-on' : ''}`} onClick={toggleTidy}>
+                <span className="hv-menu__label"><Sparkle size={18} aria-hidden="true" />Tidy amounts</span>
+                <span className="hv-menu__hint">{tidy ? 'On' : 'Popo’s words'}</span>
+              </button>
+            </div>
+          )}
         </section>
 
         <section className="hv-card hv-swap" aria-label={swap ? 'Tools: bowl, dry pan, blender, spatula and rice pot. Tap for cooking time' : `Cooking time ${mins} minutes. Tap for tools`}>
@@ -377,7 +458,6 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                 <span className="hv-mins"><Mark on={mins !== 40}>{mins}</Mark></span>
                 <span style={{ fontSize: 22 }}>mins</span>
               </span>
-              <span className="hv-wave">Wave to start</span>
             </span>
             <span className="hv-roll" style={roll(swap, 50)}>
               <span style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}><span className="hv-h">Tools</span><span className="hv-count">5</span></span>
@@ -408,9 +488,14 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
             {ING.map((r, i) => {
               const halved = serves2 && i < rowsDone
               const swapped = i === KENCUR_ROW && kencurSwap
+              const gentler = i === SAMBAL_ROW && mild
+              const meat = i === PORK_ROW && chicken
               let amt: string = halved ? r[3] : r[2]
+              if (gentler) amt = halved ? '¼ tbsp' : '½ tbsp'
               if (swapped) amt = halved ? '1 cm + zest' : '2 cm + zest'
-              const changed = (halved && r[2] !== r[3]) || swapped
+              // Tidy off: Popo's own words for each amount.
+              if (!tidy) amt = r[1]
+              const changed = tidy && ((halved && r[2] !== r[3]) || swapped || gentler)
               return (
                 <li
                   key={r[0]}
@@ -426,7 +511,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                     onKeyDown: (event: React.KeyboardEvent) => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); toggleChecked(i) } },
                   } : {})}
                 >
-                  <Mark on={swapped}>{swapped ? 'Ginger + lime zest' : r[0]}</Mark>
+                  <Mark on={swapped || meat}>{swapped ? 'Ginger + lime zest' : meat ? 'Chicken' : r[0]}</Mark>
                   <span className="hv-amt">
                     <span key={`${amt}-${changed}`} className={`hv-blurin${changed ? ' hv-mark' : ''}`}>{amt}</span>
                   </span>
@@ -442,12 +527,10 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         </section>
         </div>
 
-        {clay && glanceOpen && <GlanceSheet checked={checked} onToggle={toggleChecked} onClose={() => setGlanceOpen(false)} />}
+        {glanceOpen && <GlanceSheet checked={checked} onToggle={toggleChecked} onClose={() => setGlanceOpen(false)} />}
 
-        {clay && (
-          // The wake word, in the wireframe: an unmarked corner you can tap (or reach with the keyboard).
-          <button type="button" className="hv-talk" aria-label="Talk to Moldable" onClick={beginAdjust} />
-        )}
+        {/* The wake word, in the wireframe: an unmarked corner you can tap (or reach with the keyboard). */}
+        <button type="button" className="hv-talk" aria-label="Talk to Moldable" onClick={beginAdjust} />
 
         <SpeakingGlow state={glow} level={() => voiceLevel.current()} onDone={() => setGlow('idle')} />
         {/* The notification stays on "Done" with what changed until the pencil has finished writing it in. */}

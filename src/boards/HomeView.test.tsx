@@ -8,7 +8,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-const adjust = () => screen.getByRole('button', { name: 'Adjust recipe by voice' })
+const talk = () => screen.getByRole('button', { name: 'Talk to Moldable' })
 const advance = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
 const amountOf = (name: string) => screen.getByText(name).closest('li')?.querySelector('.hv-amt')
 
@@ -23,20 +23,17 @@ describe('HomeViewBoard scripted Adjust flow', () => {
     const notice = () => screen.getByRole('status')
     expect(glow()).toHaveAttribute('data-state', 'idle')
 
-    fireEvent.click(adjust())
-    expect(adjust()).toHaveTextContent('Listening…')
+    fireEvent.click(talk())
     expect(glow()).toHaveAttribute('data-state', 'listening')
     expect(notice()).toHaveTextContent('Listening…')
     advance(1500)
     expect(screen.getByText('“Actually, I just want two servings.”')).toBeInTheDocument()
     expect(glow()).toHaveAttribute('data-state', 'hearing')
     advance(3600)
-    expect(adjust()).toHaveTextContent('Thinking…')
     expect(glow()).toHaveAttribute('data-state', 'thinking')
     expect(notice()).toHaveTextContent('Thinking…')
 
     advance(800)
-    expect(adjust()).toHaveTextContent('Writing…')
     expect(glow()).toHaveAttribute('data-state', 'done')
     expect(notice()).toHaveTextContent('Halved everything for 2 servings.')
     expect(screen.getByText('Serves', { exact: false })).toHaveTextContent('Serves 2')
@@ -51,19 +48,21 @@ describe('HomeViewBoard scripted Adjust flow', () => {
     expect(glow()).toHaveAttribute('data-state', 'idle')
 
     advance(5200)
-    expect(adjust()).toHaveTextContent('Adjust')
     expect(document.querySelector('.vn')).toHaveAttribute('data-state', 'idle')
     expect(document.querySelector('.vn')).toHaveAttribute('aria-hidden', 'true')
     expect(screen.queryByRole('img', { name: /Moldable mascot writing/ })).not.toBeInTheDocument()
     expect(amountOf('Pork')).toHaveTextContent('250 g')
     expect(amountOf('Coconut')).toHaveTextContent('40 g')
+    // The voice change is in the version history, one version up.
+    expect(screen.getByLabelText('Current version 4')).toBeInTheDocument()
+    expect(screen.getByText('Servings 4 → 2')).toBeInTheDocument()
   })
 
   it('swaps kencur for ginger and lime zest on the second Adjust', () => {
     render(<HomeViewBoard />)
-    fireEvent.click(adjust())
+    fireEvent.click(talk())
     advance(5800 + 1200 + 5300)
-    fireEvent.click(adjust())
+    fireEvent.click(talk())
     advance(1500)
     expect(screen.getByText('“What can I use instead of kencur?”')).toBeInTheDocument()
 
@@ -140,5 +139,94 @@ describe('HomeViewBoard scripted Adjust flow', () => {
       const row = screen.getByText(ingredient.name).closest('li') as HTMLElement
       expect(row).toHaveAttribute('data-family-amount', ingredient.familyAmount)
     }
+  })
+})
+
+describe('HomeViewBoard board 11 layout', () => {
+  const menuRow = (name: RegExp | string) => screen.getByRole('menuitemcheckbox', { name })
+  const openMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Adjust the recipe' }))
+
+  it('lays out the recipe card: title row with the steps toggle, photo, summary, version history and the bottom row', () => {
+    render(<HomeViewBoard clay />)
+    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeInTheDocument()
+    expect(screen.getByText('Popo’s recipe')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Show the steps' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /holding a plate of lawar/ })).toBeInTheDocument()
+    expect(screen.getByLabelText('Version history')).toBeInTheDocument()
+    expect(screen.getByLabelText('Current version 3')).toBeInTheDocument()
+    expect(screen.getByText('Wave to start')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /wave/i })).not.toBeInTheDocument()
+    // No Steps / Serves / Spice row, no Glance/Wave toggle, no separate Adjust button.
+    expect(document.querySelector('.hv-stats, .hv-seg, .hv-actions, .hv-adjust')).not.toBeInTheDocument()
+    // Three versions shown, newest first.
+    expect(document.querySelectorAll('.vh__item')).toHaveLength(3)
+  })
+
+  it('switches Overview ↔ Steps with the round button; the photo and history hide in Steps, the bottom row stays', () => {
+    render(<HomeViewBoard clay />)
+    fireEvent.click(screen.getByRole('button', { name: 'Show the steps' }))
+    expect(screen.getByRole('button', { name: 'Show the overview' })).toHaveAttribute('aria-pressed', 'true')
+    expect(document.querySelectorAll('.hv-steps li').length).toBeGreaterThan(5)
+    expect(screen.queryByLabelText('Version history')).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /holding a plate of lawar/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Adjust the recipe' })).toBeInTheDocument()
+  })
+
+  it('opens the Adjust menu with Glance, Modify and Tidy, and each change adds a version', () => {
+    render(<HomeViewBoard clay />)
+    openMenu()
+    expect(screen.getByRole('menu', { name: 'Adjust the recipe' })).toBeInTheDocument()
+    expect(menuRow(/Glance/)).toBeInTheDocument()
+    expect(menuRow(/Serves 2/)).toBeInTheDocument()
+    expect(menuRow(/Less spicy/)).toBeInTheDocument()
+    expect(menuRow(/Chicken/)).toBeInTheDocument()
+    expect(menuRow(/Tidy amounts/)).toHaveAttribute('aria-checked', 'true')
+
+    // Less spicy: the summary and the sambal change (underlined), and a version is added.
+    fireEvent.click(menuRow(/Less spicy/))
+    expect(screen.getByText('gentle spice paste')).toHaveClass('hv-mark')
+    expect(amountOf('Sambal')).toHaveTextContent('½ tbsp')
+    expect(screen.getByLabelText('Current version 4')).toBeInTheDocument()
+    expect(screen.getByText('Less spicy', { selector: '.vh__what *, .vh__what' })).toBeInTheDocument()
+
+    // Serves 2: everything halved, header and minutes follow.
+    openMenu()
+    fireEvent.click(menuRow(/Serves 2/))
+    expect(document.querySelector('.hv-ingr .hv-count')).toHaveTextContent('Serves 2')
+    expect(amountOf('Pork')).toHaveTextContent('250 g')
+    expect(amountOf('Sambal')).toHaveTextContent('¼ tbsp')
+    expect(screen.getByLabelText('Current version 5')).toBeInTheDocument()
+
+    // Chicken: the meat row and the cooking time change.
+    openMenu()
+    fireEvent.click(menuRow(/Chicken/))
+    expect(screen.getByText('Chicken', { selector: 'li .hv-mark' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /Cooking time 25 minutes/ })).toBeInTheDocument()
+  })
+
+  it('Tidy amounts switches between neat amounts and Popo’s own words', () => {
+    render(<HomeViewBoard clay />)
+    openMenu()
+    fireEvent.click(menuRow(/Tidy amounts/))
+    expect(amountOf('Pork')).toHaveTextContent('½ kilo')
+    expect(menuRow(/Tidy amounts/)).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(menuRow(/Tidy amounts/))
+    expect(amountOf('Pork')).toHaveTextContent('500 g')
+  })
+
+  it('Glance opens the recipe at a glance', () => {
+    render(<HomeViewBoard clay />)
+    openMenu()
+    fireEvent.click(menuRow(/Glance/))
+    expect(screen.getByRole('dialog', { name: 'The recipe at a glance' })).toBeInTheDocument()
+  })
+
+  it('closes the menu when tapping elsewhere', () => {
+    vi.useFakeTimers()
+    render(<HomeViewBoard clay />)
+    openMenu()
+    fireEvent.pointerDown(screen.getByText('Ingredients'))
+    advance(300)
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 })
