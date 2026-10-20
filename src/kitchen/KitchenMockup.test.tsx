@@ -20,7 +20,7 @@ describe('KitchenMockup perspectives', () => {
 
     expect(stage).toHaveAttribute('data-perspective', 'grandkids')
     expect(screen.getByRole('button', { name: 'Grandkids' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeVisible()
 
     fireEvent.pointerDown(stage, { clientX: 120 })
     fireEvent.pointerUp(stage, { clientX: 520 })

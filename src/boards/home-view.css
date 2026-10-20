@@ -1,0 +1,94 @@
+/* 07b Recipe home view. Sits on the .hv-screen surface (which carries the voice glow's tokens), but white and in its own type. */
+.hv-screen.hm { --hm-ink: #1f1c19; --hm-muted: #6b665f; --hm-line: #efedea; background: #fff; color: var(--hm-ink); font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; }
+.hv-screen.hm::before { display: none; }
+.hm button, .hm a { font: inherit; }
+
+@keyframes hm-blurin { from { opacity: 0; filter: blur(10px); transform: translateY(8px); } to { opacity: 1; filter: none; transform: none; } }
+@keyframes hm-frost { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hm-center { from { opacity: 0; transform: scale(.88); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+.hm-blurin { animation: hm-blurin 500ms cubic-bezier(.22, 1, .36, 1) both; }
+.hm-mark { box-shadow: inset 0 -0.08em 0 #ec923b; }
+.hm-tap { cursor: pointer; transition: transform 140ms cubic-bezier(.2, .8, .2, 1), background-color 200ms ease; }
+.hm-tap:active { transform: scale(.96); }
+.hm-tap:focus-visible { outline: 2px solid var(--hm-ink); outline-offset: 2px; }
+a.hm-tap { text-decoration: none; }
+
+/* Title, sentence and tags. */
+.hm-over { position: absolute; top: 44px; right: 48px; left: 48px; }
+.hm-title { margin: 0; font-size: 60px; font-weight: 500; line-height: 64px; letter-spacing: -.03em; text-transform: none; }
+.hm-sentence { margin: 14px 0 0; font-size: 30px; line-height: 39px; letter-spacing: -.012em; text-wrap: pretty; }
+.hm-sentence strong { font-weight: 600; }
+.hm-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.hm-tag { display: inline-flex; height: 36px; box-sizing: border-box; align-items: center; gap: 7px; padding: 0 14px 0 12px; border: 0; border-radius: 999px; font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; transition: background-color .4s ease, color .4s ease; }
+.hm-tag--steps { padding: 0 10px 0 12px; background: var(--hm-ink); color: #fff; }
+.hm-tag__chev { display: inline-flex; opacity: .7; }
+
+/* The photo, with Adjust, Ingredients and Start cooking floating on it. */
+.hm-photo { position: absolute; top: 324px; right: 24px; bottom: 24px; left: 24px; padding: 0; overflow: hidden; border: 0; border-radius: 30px; background: #2a2622; cursor: zoom-in; }
+.hm-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.hm-float { position: absolute; right: 40px; bottom: 40px; left: 40px; display: flex; align-items: center; gap: 8px; }
+.hm-pill { display: flex; height: 48px; align-items: center; gap: 8px; padding: 0 18px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .78); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); color: var(--hm-ink); font-size: 17px; }
+.hm .hm-pill { font-size: 17px; }
+.hm-go { display: flex; height: 48px; box-sizing: border-box; align-items: center; gap: 8px; margin-left: auto; padding: 0 22px; border: 0; border-radius: 999px; background: var(--hm-ink); color: #fff; font-size: 17px; font-weight: 500; }
+.hm .hm-go { font-size: 17px; font-weight: 500; }
+.hm .hm-go--small { height: 44px; margin-left: 0; padding: 0 20px; font-size: 16px; }
+
+/* Cards: centred over a frosted screen. */
+.hm-frost { position: absolute; z-index: 5; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: rgba(255, 255, 255, .42); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); cursor: pointer; animation: hm-frost 350ms ease both; }
+.hm-center { position: absolute; z-index: 6; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.hm-card { box-sizing: border-box; border-radius: 32px; background: rgba(255, 255, 255, .9); box-shadow: 0 0 0 1px rgba(31, 28, 25, .05), 0 24px 60px rgba(31, 28, 25, .18); pointer-events: auto; animation: hm-center 420ms cubic-bezier(.2, 1.1, .3, 1) both; }
+.hm-card__title { margin: 0 0 4px; color: var(--hm-muted); font-size: 16px; line-height: 20px; }
+.hm-done { height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #f2f1ef; color: var(--hm-ink); font-size: 16px; }
+.hm .hm-done { font-size: 16px; }
+.hm-done--centre { align-self: center; margin-top: 14px; }
+
+.hm-card--steps { display: flex; width: 584px; max-height: 596px; flex-direction: column; padding: 22px 28px 18px; background: rgba(255, 255, 255, .92); }
+.hm-steps { flex: 1; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.hm-steps li { display: flex; align-items: baseline; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--hm-line); }
+.hm-steps__n { width: 18px; flex: none; color: #8a8580; font-size: 16px; font-variant-numeric: tabular-nums; }
+.hm-steps__text { font-size: 22px; line-height: 31px; letter-spacing: -.01em; }
+.hm-steps__text strong { font-weight: 600; }
+.hm-verb { display: inline-flex; align-items: center; gap: .14em; margin-right: .04em; padding: 0 .34em 0 .26em; border-radius: 999px; font-weight: 500; line-height: 1.2; white-space: nowrap; }
+.hm-verb svg { width: .62em; height: .62em; flex: none; }
+.hm-card__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+
+.hm-card--photo { width: 584px; height: 406px; padding: 0; overflow: hidden; border: 0; border-radius: 28px; background: #2a2622; box-shadow: 0 0 0 1px rgba(31, 28, 25, .05), 0 24px 60px rgba(31, 28, 25, .22); cursor: zoom-out; }
+.hm-card--photo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.hm-card--adj { display: flex; width: 420px; flex-direction: column; gap: 6px; padding: 26px 26px 20px; }
+.hm-card--adj .hm-card__title { margin: 0 4px 6px; }
+.hm-mod { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px 0 18px; border: 0; border-radius: 20px; background: #f4f3f1; color: var(--hm-ink); text-align: left; }
+.hm-mod.is-on { background: var(--hm-ink); color: #fff; }
+.hm-mod__text { display: flex; flex-direction: column; }
+.hm-mod__label { font-size: 24px; font-weight: 500; line-height: 30px; }
+.hm-mod__hint { font-size: 15px; line-height: 20px; opacity: .78; }
+.hm-mod__dot { display: flex; width: 26px; height: 26px; flex: none; align-items: center; justify-content: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #b5ada1; color: #fff; }
+.hm-mod.is-on .hm-mod__dot { background: #ec923b; box-shadow: inset 0 0 0 1.5px #ec923b; }
+
+.hm-card--ingr { display: flex; width: 552px; flex-direction: column; padding: 24px 30px 20px; }
+.hm-ingr__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.hm-ingr__head .hm-card__title { margin: 0; }
+.hm-seg { display: flex; padding: 3px; border-radius: 999px; background: #f2f1ef; }
+.hm-seg button { height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--hm-ink); font-size: 15px; }
+.hm .hm-seg button { font-size: 15px; }
+.hm-seg button[aria-pressed='true'] { background: #fff; box-shadow: 0 1px 3px rgba(31, 28, 25, .12); }
+.hm-ingr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; margin: 0; padding: 0; list-style: none; }
+.hm-ingr li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--hm-line); font-size: 21px; line-height: 27px; }
+.hm-ingr__amt { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hm-ingr__amt.is-raw { font-style: italic; }
+.hm-ingr__tools { margin: 14px 0 0; color: var(--hm-muted); font-size: 16px; line-height: 22px; }
+
+/* The voice view: a frosted screen, the clay in the middle, then one big line at a time. */
+.hm-voice { position: absolute; z-index: 9; inset: 0; display: flex; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 0 56px; background: rgba(255, 255, 255, .55); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); text-align: center; animation: hm-frost 350ms ease both; }
+.hm-voice__clay { display: block; width: 88px; height: 88px; }
+.hm-voice__lines { display: flex; flex-direction: column; gap: 12px; }
+.hm-voice__big { margin: 0; font-size: 44px; line-height: 52px; letter-spacing: -.02em; text-wrap: balance; }
+.hm-voice__small { margin: 0; color: var(--hm-muted); font-size: 17px; line-height: 22px; }
+
+/* Wireframe only: a hidden 20px spot that replays the voice view (top right; the talk corner keeps the top left). */
+.hm-replay { position: absolute; z-index: 10; top: 0; right: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-blurin, .hm-card, .hm-frost, .hm-voice { animation: hm-frost 150ms ease both; }
+  .hm-tag, .hm-tap { transition: none; }
+}

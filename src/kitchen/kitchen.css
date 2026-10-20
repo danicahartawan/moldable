@@ -116,31 +116,3 @@
 
 .kitchen__host.is-dragging { transition: none; }
 
-.kitchen__host--grandkids:not(.is-off) .hv-card { animation: paper-open-right 1100ms cubic-bezier(.22, .8, .22, 1) both; backface-visibility: hidden; }
-/* Like sheets of paper opening from the centre seam: the left card hinges on its right edge, the right cards on their left edge. */
-.kitchen__host--grandkids:not(.is-off) .hv-recipe { transform-origin: 100% 50%; animation-name: paper-open-left; animation-delay: 0ms; }
-.kitchen__host--grandkids:not(.is-off) .hv-swap { transform-origin: 0 50%; animation-delay: 160ms; }
-.kitchen__host--grandkids:not(.is-off) .hv-ingr { transform-origin: 0 50%; animation-delay: 300ms; }
-@keyframes paper-open-right {
-  from { opacity: 0; transform: perspective(1400px) rotateY(88deg); filter: brightness(.82); }
-  25% { opacity: 1; }
-  70% { transform: perspective(1400px) rotateY(-4deg); filter: brightness(1.02); }
-  to { opacity: 1; transform: perspective(1400px) rotateY(0); filter: brightness(1); }
-}
-@keyframes paper-open-left {
-  from { opacity: 0; transform: perspective(1400px) rotateY(-88deg); filter: brightness(.82); }
-  25% { opacity: 1; }
-  70% { transform: perspective(1400px) rotateY(4deg); filter: brightness(1.02); }
-  to { opacity: 1; transform: perspective(1400px) rotateY(0); filter: brightness(1); }
-}
-.kitchen__host--grandkids:not(.is-off) .hv-recipe > :not(.hv-menu),
-.kitchen__host--grandkids:not(.is-off) .hv-swap__btn,
-.kitchen__host--grandkids:not(.is-off) .hv-ingr > div,
-.kitchen__host--grandkids:not(.is-off) .hv-ingr li { animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both; }
-.kitchen__host--grandkids:not(.is-off) .hv-recipe > :nth-child(1) { animation-delay: 260ms; }
-.kitchen__host--grandkids:not(.is-off) .hv-recipe > :nth-child(2) { animation-delay: 340ms; }
-.kitchen__host--grandkids:not(.is-off) .hv-recipe > :nth-child(3) { animation-delay: 420ms; }
-.kitchen__host--grandkids:not(.is-off) .hv-swap__btn { animation-delay: 370ms; }
-.kitchen__host--grandkids:not(.is-off) .hv-ingr > div { animation-delay: 480ms; }
-.kitchen__host--grandkids:not(.is-off) .hv-ingr li { animation-delay: calc(540ms + var(--i, 0) * 45ms); }
-@media (prefers-reduced-motion: reduce) { .kitchen__host--grandkids .hv-card, .kitchen__host--grandkids .hv-card * { animation: none !important; } }

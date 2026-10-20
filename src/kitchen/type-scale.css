@@ -20,33 +20,16 @@
 .gm-kitchen textarea { font-family: inherit; }
 
 /* Titles */
-.gm-kitchen .hv-title,
 .gm-kitchen .gm-note__title { font-size: var(--type-title); line-height: 38px; letter-spacing: var(--type-tight); font-weight: var(--type-weight); }
 
 /* Headings */
-.gm-kitchen .hv-h,
 .gm-kitchen .gm-question { font-size: var(--type-heading); line-height: 28px; letter-spacing: var(--type-snug); font-weight: var(--type-weight); }
 
 /* Body: the text you read and tap */
-.gm-kitchen .hv-overview,
-.gm-kitchen .hv-count,
-.gm-kitchen .hv-swap__btn,
-.gm-kitchen .hv-wave,
-.gm-kitchen .hv-glance,
-.gm-kitchen .hv-ingr li,
-.gm-kitchen .hv-amt,
 .gm-kitchen .gm-story,
 .gm-kitchen .gm-note__body,
 .gm-kitchen .gm-controls--done button { font-size: var(--type-body); font-weight: var(--type-weight); }
-.gm-kitchen .hv-overview { line-height: 24px; }
 
 /* Small: supporting text */
-.gm-kitchen .vh__head,
-.gm-kitchen .vh__what,
 .gm-kitchen .gm-note__chip { font-size: var(--type-small); font-weight: var(--type-weight); }
-.gm-kitchen .vh__what strong { font-weight: 400; }
 
-/* Tiny: timestamps, tags, pills */
-.gm-kitchen .vh__time,
-.gm-kitchen .vh__tag,
-.gm-kitchen .vh__current { font-size: var(--type-tiny); }

@@ -1,167 +1,111 @@
-/* A flat white fridge door filling the 640px display, with a recipe card held up by magnets. */
-.fr-screen {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #fff;
-  color: #000;
-  font-family: var(--font-sans);
+/* 10 Fridge cookbooks: retro fridges, one per cookbook, with postcard notes held on by magnets. All sizes inside .fz-cam are world units. */
+@keyframes fz-in { from { opacity: 0; filter: blur(12px); transform: translateY(10px); } to { opacity: 1; filter: none; transform: none; } }
+@keyframes fz-pop { from { opacity: 0; transform: scale(.9); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+.fz-in { animation: fz-in .55s cubic-bezier(.22, 1, .36, 1) both; }
+.fz-in-late { animation: fz-in .5s cubic-bezier(.22, 1, .36, 1) .12s both; }
+.fz-pop { animation: fz-pop .7s cubic-bezier(.22, 1, .36, 1) both; }
+
+.fz { position: relative; width: 640px; height: 640px; overflow: hidden; background: #fff; color: #1f1c19; font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; }
+.fz button, .fz a { font: inherit; }
+.fz-tap { cursor: pointer; transition: transform .14s cubic-bezier(.2, .8, .2, 1), background-color .2s ease; }
+.fz-tap:active { transform: scale(.95); }
+.fz-tap:focus-visible, .fz-ghost:focus-visible { outline: 2px solid #1f1c19; outline-offset: 2px; }
+a.fz-tap { text-decoration: none; }
+
+/* The camera: one transform moves the whole world. */
+.fz-cam { position: absolute; top: 0; left: 0; width: 600px; height: 1240px; transform-origin: 0 0; transition: transform 1.15s cubic-bezier(.7, 0, .18, 1), opacity .6s ease, filter .6s ease; }
+.fz-book { position: absolute; top: 0; width: 600px; height: 1240px; transition: opacity .8s ease; }
+.fz-book__pick { position: absolute; z-index: 40; inset: 0; padding: 0; border: 0; border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; background: transparent; cursor: pointer; }
+
+/* The fridge body, in layers: rolled sides, domed top, darkening to the floor, freezer door, seal, hinge and ribbed base. */
+.fz-floor { position: absolute; right: -10px; bottom: -46px; left: -10px; height: 90px; border-radius: 50%; background: radial-gradient(closest-side, rgba(31, 28, 25, .38), rgba(31, 28, 25, 0)); }
+.fz-body { position: absolute; inset: 0; overflow: hidden; border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; box-shadow: 0 30px 60px rgba(31, 28, 25, .22); }
+.fz-body > div { position: absolute; right: 0; left: 0; }
+.fz-body__sides { top: 0; bottom: 0; background: linear-gradient(90deg, rgba(0, 0, 0, .42) 0%, rgba(0, 0, 0, .14) 3.5%, rgba(0, 0, 0, 0) 8%, rgba(255, 255, 255, .12) 10%, rgba(255, 255, 255, .34) 13%, rgba(255, 255, 255, .1) 16%, rgba(255, 255, 255, 0) 26%, rgba(0, 0, 0, 0) 66%, rgba(255, 255, 255, .1) 82%, rgba(255, 255, 255, .02) 88%, rgba(0, 0, 0, .2) 95%, rgba(0, 0, 0, .46) 100%); }
+.fz-body__dome { top: 0; height: 190px; background: radial-gradient(ellipse 62% 100% at 50% 0%, rgba(255, 255, 255, .38), rgba(255, 255, 255, 0) 72%); }
+.fz-body__shade { top: 0; bottom: 0; background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, 0) 32%, rgba(0, 0, 0, .06) 70%, rgba(0, 0, 0, .14) 100%); }
+.fz-body__freezer { top: 348px; height: 24px; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, .2)); }
+.fz-body__seal { top: 372px; height: 12px; background: linear-gradient(#0f0f10, #3b3b3e 45%, #18181a); box-shadow: 0 -2px 4px rgba(0, 0, 0, .3), 0 2px 0 rgba(255, 255, 255, .14); }
+.fz-body__door { top: 384px; height: 26px; background: linear-gradient(rgba(255, 255, 255, .26), rgba(255, 255, 255, 0)); }
+.fz-body > .fz-body__hinge { top: 367px; right: 8px; left: auto; width: 46px; height: 22px; border-radius: 4px; background: linear-gradient(#fafafa, #b9bdc2 50%, #e6e7e9 60%, #8c9097); box-shadow: 0 2px 3px rgba(0, 0, 0, .35); }
+.fz-body__ribs { top: 1150px; bottom: 0; background: repeating-linear-gradient(180deg, rgba(255, 255, 255, .3) 0 2px, rgba(255, 255, 255, 0) 2px 8px, rgba(0, 0, 0, .26) 8px 12px); box-shadow: inset 0 3px 4px rgba(0, 0, 0, .25); }
+
+/* The cookbook's name, embossed in chrome. */
+.fz-badge { position: absolute; top: 112px; right: 0; left: 0; margin: 0; padding-left: .55em; background: linear-gradient(#fff, #c3c6cb 48%, #f4f5f6 56%, #8b9097); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 38px; font-weight: 700; line-height: 44px; letter-spacing: .55em; text-align: center; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .4)); }
+
+.fz-handle { position: absolute; left: 64px; width: 268px; height: 40px; }
+.fz-handle--top { top: 304px; }
+.fz-handle--bottom { top: 408px; }
+.fz-handle__post { position: absolute; left: 0; width: 22px; height: 30px; border-radius: 6px; background: linear-gradient(90deg, #8c9097, #e8e9eb 40%, #a3a7ad); box-shadow: 0 6px 8px rgba(0, 0, 0, .35); }
+.fz-handle--top .fz-handle__post { top: 10px; }
+.fz-handle--bottom .fz-handle__post { top: 0; }
+.fz-handle__bar { position: absolute; right: 0; left: 6px; height: 30px; background: linear-gradient(180deg, #fff 0%, #dfe1e4 26%, #9aa0a7 50%, #eceef0 68%, #b3b7bd 100%); box-shadow: 0 10px 12px rgba(0, 0, 0, .32), inset 0 -2px 2px rgba(0, 0, 0, .18); }
+.fz-handle--top .fz-handle__bar { top: 0; border-radius: 12px 26px 18px 12px; }
+.fz-handle--bottom .fz-handle__bar { top: 8px; border-radius: 12px 18px 26px 12px; }
+.fz-handle__shine { position: absolute; right: 40px; left: 22px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .95); }
+.fz-handle--top .fz-handle__shine { top: 5px; }
+.fz-handle--bottom .fz-handle__shine { top: 13px; }
+
+/* Postcard notes: a darker top band with a pin dot, the title at the foot of the body, a lighter bottom band. */
+.fz-note { position: absolute; display: flex; width: 130px; height: 150px; box-sizing: border-box; flex-direction: column; padding: 0; overflow: visible; border: 0; border-radius: 2px; color: #1f1c19; text-align: left; touch-action: none; transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease, left .35s cubic-bezier(.22, 1, .36, 1), top .35s cubic-bezier(.22, 1, .36, 1); }
+.fz-note.fz-drag { transition: transform .15s ease, box-shadow .15s ease; }
+.fz-note:focus-visible { outline: 3px solid #1f1c19; outline-offset: 5px; }
+.fz-note:disabled { cursor: default; }
+.fz-note__top { position: relative; height: 22px; flex: none; border-radius: 2px 2px 0 0; }
+.fz-note__top span { position: absolute; top: 7px; left: 9px; width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, .55); box-shadow: inset 0 1px 1px rgba(0, 0, 0, .15); }
+.fz-note__body { position: relative; display: flex; flex: 1; flex-direction: column; justify-content: flex-end; padding: 0 11px 9px; }
+.fz-note__line { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 4px; }
+.fz-note__name { font-size: 14px; font-weight: 600; line-height: 15px; letter-spacing: -.025em; }
+.fz-note__mins { font-size: 6.5px; font-weight: 500; line-height: 8px; font-variant-numeric: tabular-nums; }
+.fz-note__owner { margin-top: 5px; font-size: 7px; line-height: 9px; opacity: .82; }
+.fz-note__new { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 6px; margin: 7px 8px 0; border: 1.2px dashed rgba(31, 28, 25, .32); border-radius: 3px; text-align: center; }
+.fz-note__plus { display: flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: #1f1c19; color: #fff; }
+.fz-note__new-title { font-size: 12px; font-weight: 600; line-height: 13px; letter-spacing: -.02em; }
+.fz-note__new-sub { font-size: 6.5px; line-height: 8px; opacity: .75; }
+.fz-note__foot { position: relative; display: flex; height: 20px; flex: none; align-items: center; gap: 4px; padding: 0 10px; border-radius: 0 0 2px 2px; font-size: 6.5px; font-weight: 500; line-height: 8px; }
+.fz-note__sheen { position: absolute; inset: 0; border-radius: 2px; background: linear-gradient(160deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, .06)); pointer-events: none; }
+.fz-note__magnet { position: absolute; top: -8px; right: 12px; width: 22px; height: 22px; border-radius: 50%; box-shadow: 0 4px 6px rgba(0, 0, 0, .38), inset 0 -2px 2px rgba(0, 0, 0, .25); }
+.fz-chili { position: absolute; top: -14px; right: -14px; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .35)); }
+
+/* The new-fridge slot: the same shape, dashed. */
+.fz-ghost { position: absolute; inset: 0; display: flex; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 0; border: 8px dashed rgba(31, 28, 25, .26); border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; background: rgba(31, 28, 25, .015); color: #1f1c19; cursor: pointer; transition: background-color .3s ease, border-color .3s ease; }
+.fz-ghost:hover { border-color: rgba(31, 28, 25, .42); background-color: rgba(31, 28, 25, .035); }
+.fz-ghost__plus { display: flex; width: 150px; height: 150px; align-items: center; justify-content: center; border-radius: 50%; background: #1f1c19; color: #fff; }
+.fz-ghost__title { font-size: 64px; font-weight: 500; line-height: 70px; letter-spacing: -.03em; }
+.fz-ghost__sub { max-width: 440px; color: #6b665f; font-size: 36px; line-height: 44px; text-align: center; }
+
+/* Dots and zoom. */
+.fz-dots { position: absolute; right: 0; bottom: 18px; left: 0; display: flex; justify-content: center; pointer-events: none; transition: opacity .3s ease; }
+.fz-dots nav { display: flex; padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); pointer-events: auto; }
+.fz-dots button { display: flex; width: 30px; height: 30px; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; }
+.fz-dot { display: block; height: 6px; border-radius: 3px; transition: width .4s cubic-bezier(.22, 1, .36, 1), background-color .4s ease; }
+.fz-zoom { position: absolute; right: 18px; bottom: 14px; display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #1f1c19; }
+
+/* Diving into a note: a clone of the paper grows to fill the screen, then the page blurs in. */
+.fz-fly { position: absolute; z-index: 20; box-shadow: 0 10px 24px rgba(31, 28, 25, .25); transition: transform .62s cubic-bezier(.65, 0, .2, 1), border-radius .62s ease; }
+.fz-page { position: absolute; z-index: 21; inset: 0; }
+.fz-back { position: absolute; z-index: 30; top: 20px; right: 20px; display: flex; width: 48px; height: 48px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(242, 241, 239, .86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 4px 14px rgba(31, 28, 25, .12); color: #1f1c19; }
+
+.fz-page__title { margin: 0; font-size: 60px; font-weight: 500; line-height: 64px; letter-spacing: -.03em; text-transform: none; }
+.fz-page__title--big { font-size: 64px; line-height: 68px; }
+.fz-page__lede { margin: 14px 0 0; font-size: 30px; line-height: 39px; letter-spacing: -.012em; }
+.fz-page__lede b { font-weight: 600; }
+.fz-new { position: absolute; top: 72px; right: 48px; left: 48px; }
+.fz-options { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
+.fz-option { display: flex; min-height: 76px; box-sizing: border-box; align-items: center; gap: 16px; padding: 0 22px; border: 0; border-radius: 22px; background: rgba(255, 255, 255, .7); color: #1f1c19; text-align: left; }
+.fz-option--dark { background: #1f1c19; color: #fff; }
+.fz-option__text { display: flex; flex-direction: column; }
+.fz-option__title { font-size: 24px; font-weight: 500; line-height: 30px; }
+.fz-option__sub { color: #57524c; font-size: 15px; line-height: 20px; }
+.fz-option--dark .fz-option__sub { color: inherit; opacity: .75; }
+.fz-paper { position: absolute; top: 96px; right: 48px; left: 48px; }
+.fz-paper .fz-page__lede { margin-top: 16px; line-height: 40px; }
+.fz-paper__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.fz-paper__tag { display: inline-flex; height: 36px; align-items: center; gap: 7px; padding: 0 14px 0 12px; border-radius: 999px; background: rgba(255, 255, 255, .6); font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.fz-paper__note { position: absolute; bottom: 40px; left: 48px; margin: 0; font-size: 17px; line-height: 22px; opacity: .7; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fz-in, .fz-in-late, .fz-pop { animation: fz-in-fade .2s ease both; }
+  .fz-cam, .fz-fly, .fz-note { transition: opacity .2s ease; }
+  @keyframes fz-in-fade { from { opacity: 0; } to { opacity: 1; } }
 }
-
-.fr-world { position: absolute; inset: 0; transform-origin: 0 0; }
-
-/* A stainless steel fridge wider than the screen, so the zoomed view is all metal. The zoom lands on the lower fridge door; the freezer door and its seam sit above the screen. */
-.fr-door {
-  position: absolute;
-  top: -612px;
-  left: -30px;
-  width: 700px;
-  height: 1650px;
-  border: 1px solid #7f858c;
-  border-radius: 46px 46px 10px 10px;
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, .16) 0 1px, rgba(0, 0, 0, .05) 1px 2px, rgba(255, 255, 255, .06) 2px 4px),
-    linear-gradient(105deg, rgba(255, 255, 255, 0) 16%, rgba(255, 255, 255, .62) 29%, rgba(255, 255, 255, 0) 41%),
-    linear-gradient(255deg, rgba(255, 255, 255, 0) 52%, rgba(255, 255, 255, .38) 65%, rgba(255, 255, 255, 0) 78%),
-    linear-gradient(90deg, #8f959c 0%, #c6cacf 10%, #e4e7ea 38%, #bfc4c9 68%, #9aa0a7 100%);
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -2px 0 rgba(0, 0, 0, .15), 0 30px 40px rgba(0, 0, 0, .14);
-}
-/* The gap between the two doors. */
-.fr-door::before { position: absolute; top: 445px; left: 0; width: 100%; height: 6px; background: linear-gradient(#5d6269, #8b9097); box-shadow: 0 2px 0 rgba(255, 255, 255, .55), inset 0 1px 2px rgba(0, 0, 0, .4); content: ''; }
-.fr-handle { position: absolute; left: 44px; width: 18px; border-radius: 9px; background: linear-gradient(90deg, #7d838a, #f6f7f8 42%, #b9bec4 70%, #6c7279); box-shadow: 3px 4px 8px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .8); }
-.fr-handle--top { top: 150px; height: 230px; }
-.fr-handle--bottom { top: 500px; height: 520px; }
-.fr-grille { position: absolute; bottom: 0; left: 0; width: 100%; height: 36px; background: repeating-linear-gradient(90deg, #4d5258 0 6px, #7f858c 6px 8px); border-radius: 0 0 10px 10px; }
-.fr-floor { position: absolute; top: 1010px; left: 10px; width: 620px; height: 70px; border-radius: 50%; background: radial-gradient(ellipse at 50% 40%, rgba(0, 0, 0, .3), transparent 70%); }
-
-/* It opens on the whole fridge, then zooms in on the door until the metal fills the screen. */
-.kitchen__host--grandkids:not(.is-off) .fr-world { animation: fr-zoom 2300ms cubic-bezier(.65, 0, .25, 1) both; }
-@keyframes fr-zoom {
-  0%, 34% { transform: translate(205px, 243px) scale(.36); }
-  100% { transform: none; }
-}
-@media (prefers-reduced-motion: reduce) { .kitchen__host--grandkids:not(.is-off) .fr-world { animation: none; } }
-
-.fr-drag {
-  --fr-x: 0px;
-  --fr-y: 0px;
-  position: absolute;
-  top: 238px;
-  left: 50%;
-  width: 180px;
-  cursor: grab;
-  touch-action: none;
-  transform: translate(calc(-50% + var(--fr-x)), var(--fr-y));
-  user-select: none;
-}
-.fr-drag.is-dragging { cursor: grabbing; }
-.fr-drag.is-dragging .fr-paper { box-shadow: 0 22px 30px rgba(0, 0, 0, .26), 0 2px 3px rgba(0, 0, 0, .14); }
-.fr-card {
-  position: relative;
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: inherit;
-  font: inherit;
-  text-align: left;
-  transform: rotate(-2deg);
-  transform-origin: 50% 0;
-}
-.fr-card:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
-
-.fr-paper {
-  position: relative;
-  display: flex;
-  height: 226px;
-  box-sizing: border-box;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow: hidden;
-  padding: 0 14px 44px;
-  background: #ff5a26;
-  box-shadow: 0 12px 20px rgba(0, 0, 0, .24), 0 2px 3px rgba(0, 0, 0, .14);
-  color: #000;
-  font-family: var(--font-sans);
-}
-/* Like the sticky note: a darker band across the top with two punched holes, and a lighter band at the foot. */
-.fr-paper__band { position: absolute; top: 0; left: 0; right: 0; height: 32px; background: rgba(0, 0, 0, .07); }
-.fr-paper__hole { position: absolute; top: 9px; width: 14px; height: 14px; border-radius: 50%; background: rgba(255, 255, 255, .55); }
-.fr-paper__hole:first-child { left: 20px; }
-.fr-paper__hole:last-child { right: 20px; }
-.fr-paper__title { display: block; font-size: 22px; font-weight: 400; letter-spacing: -.03em; line-height: 26px; white-space: nowrap; }
-.fr-paper__time { margin-left: 3px; font-size: 12px; font-weight: 400; letter-spacing: 0; }
-.fr-paper__sub { display: block; margin-top: 3px; font-size: 12px; font-weight: 300; line-height: 16px; }
-.fr-paper__footer { position: absolute; left: 0; right: 0; bottom: 0; display: flex; height: 34px; align-items: center; gap: 6px; padding: 0 14px; background: rgba(255, 255, 255, .22); font-size: 12px; font-weight: 300; }
-
-/* The magnet is pinned at the note's top right; the chilies hang from it, swinging on their own and when the note is dragged. */
-.fr-dangle { position: absolute; top: -20px; left: 128px; display: block; width: 62px; height: 131px; pointer-events: none; transform-origin: 70% 15%; }
-.fr-dangle__sway { display: block; width: 100%; height: 100%; transform-origin: 70% 15%; animation: fr-sway 3.8s ease-in-out infinite; }
-.fr-bunch { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 4px rgba(0, 0, 0, .28)); }
-@keyframes fr-sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
-@media (prefers-reduced-motion: reduce) { .fr-dangle__sway { animation: none; } }
-
-/* Tapping the note turns the fridge over like a page, hinged on its left edge, with the recipe underneath. */
-.kitchen__fridge-layer { position: absolute; inset: 0; z-index: 3; transform-origin: 0 50%; background: #fff; backface-visibility: hidden; }
-.kitchen__fridge-layer.is-leaving { pointer-events: none; animation: fr-turn 720ms cubic-bezier(.55, 0, .3, 1) both; }
-@keyframes fr-turn {
-  from { transform: perspective(1500px) rotateY(0); filter: brightness(1); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
-  60% { filter: brightness(.82); box-shadow: 30px 0 60px rgba(0, 0, 0, .28); }
-  to { transform: perspective(1500px) rotateY(-108deg); filter: brightness(.7); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
-}
-@media (prefers-reduced-motion: reduce) { .kitchen__fridge-layer.is-leaving { animation: none; opacity: 0; } }
-/* From the fridge the recipe is simply there under the turning page, so its cards don't open on their own. */
-.kitchen__grandkids-view--fridge .hv-card { animation: none !important; }
-
-@keyframes hv-clay-orb-bob {
-  0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; transform: scale(1, 1); }
-  50% { border-radius: 46% 54% 56% 44% / 44% 58% 42% 56%; transform: scale(1.06, .95); }
-}
-
-/* The Grandkids recipe: plain white screen, white cards with a thin warm-gray outline, no glass or glow. */
-.gm-kitchen .hv-screen { background: #fff; }
-.gm-kitchen .hv-screen::before { display: none; }
-.gm-kitchen .hv-screen .hv-card {
-  border: 1.5px solid #e6e3de;
-  background: #fff;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
-}
-.gm-kitchen .hv-title { font-size: 34px; line-height: 38px; letter-spacing: -.035em; }
-
-/* Card headings, as in the home view: "Cooking time", "Tools" and "Ingredients" up top, a small muted count on the right. */
-.gm-kitchen .hv-screen .hv-swap .hv-h,
-.gm-kitchen .hv-screen .hv-ingr .hv-h { font-size: 22px; font-weight: 500; line-height: 26px; letter-spacing: -.01em; }
-.gm-kitchen .hv-screen .hv-swap .hv-count,
-.gm-kitchen .hv-screen .hv-ingr .hv-count { color: #8a8580; font-size: 13px; line-height: 16px; }
-.gm-kitchen .hv-swap .hv-roll:first-child .hv-wave { display: none; }
-
-/* Cooking time: the heading up top, the big minutes low with "mins" beside them. */
-.gm-kitchen .hv-screen .hv-swap .hv-mins { font-size: 84px; font-weight: 500; line-height: 80px; letter-spacing: -.04em; }
-.gm-kitchen .hv-screen .hv-swap .hv-roll:first-child > span:nth-child(2) > span:last-child { font-size: 22px; font-weight: 400; }
-
-/* Tools: the heading up top, the five tools below it. */
-.gm-kitchen .hv-swap .hv-tools { gap: 4px 12px; }
-.gm-kitchen .hv-swap .hv-tool { font-size: 17px; line-height: 22px; gap: 8px; }
-.gm-kitchen .hv-swap .hv-tool__icon { width: 26px; height: 26px; }
-
-
-/* Ingredients: two columns of name and amount, the amount muted on the right. Tap a row to tick it off; ticked rows are struck through. */
-.gm-kitchen .hv-screen .hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; row-gap: 8px; }
-.gm-kitchen .hv-screen .hv-ingr li { display: flex; justify-content: space-between; gap: 6px; color: #1f1c19; font-size: 16px; font-weight: 400; line-height: 22px; white-space: nowrap; cursor: pointer; user-select: none; }
-.gm-kitchen .hv-screen .hv-ingr .hv-amt { color: #8a8580; font-variant-numeric: tabular-nums; }
-.gm-kitchen .hv-ingr li:focus-visible { border-radius: 4px; outline: 2px solid #1f1c19; outline-offset: 2px; }
-.gm-kitchen .hv-ingr li[aria-checked='true'] { color: #b5ada1; }
-.gm-kitchen .hv-ingr li[aria-checked='true'] > :first-child { text-decoration: line-through; }
-
-
-/* Board 11 in the kitchen: changed words get the ember underline; round buttons are soft grey. */
-.gm-kitchen .hv-mark { padding: 0; margin: 0; border-radius: 0; background: none; box-shadow: inset 0 -2px 0 var(--thermal-ember); }
-.gm-kitchen .hv-ingr li.is-voice-target { background: none; }
-.gm-kitchen .hv-tool__icon { background: none; box-shadow: none; }
-.gm-kitchen .hv-round { background: #f4f3f1; box-shadow: none; }
-.gm-kitchen .hv-adjust-btn.is-open { background: #1f1c19; color: #fff; }
-.gm-kitchen .hv-title { font-size: 34px; line-height: 38px; letter-spacing: -.035em; }
