@@ -88,6 +88,8 @@
 .kitchen .hv-stage { display: block; padding: 0; }
 .kitchen .hv-caption { display: none; }
 .kitchen .hv-screen { zoom: 1; border-radius: 0; box-shadow: none; }
+/* The display's own corner is rounder; the voice glow and notification follow it. */
+.kitchen .hv-screen { --sg-radius: 68px; --vn-radius: 52px; }
 .kitchen .ex-notch, .kitchen .ex-tools { display: none; }
 .kitchen .moldable-environment { width: 640px; height: 640px; min-height: 0; background: #fff; }
 .kitchen .moldable-display { width: 640px; height: 640px; border-radius: 0; box-shadow: none; }

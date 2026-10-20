@@ -1,6 +1,8 @@
 'use client'
 
-import { ClayBlob, ClayMix } from '@/kitchen/ClayMix'
+import { ClayBlob } from '@/kitchen/ClayMix'
+import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
+import { VoiceNotification } from '@/voice/VoiceNotification'
 import { VersionHistory, initialVersions, newVersion, type VersionEntry } from '@/kitchen/VersionHistory'
 import { Eye, HandWaving, ListChecks, X } from '@phosphor-icons/react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
@@ -14,6 +16,11 @@ const KENCUR_ROW = GRANDKIDS_RECIPE_CONTEXT.ingredients.findIndex((ingredient) =
 const ADJUST_SCRIPT = [
   'Actually, I just want two servings.',
   'What can I use instead of kencur?',
+] as const
+// What the notification says once each request has been carried out.
+const ADJUST_RESULTS = [
+  'Halved everything for 2 servings.',
+  'Swapped kencur for ginger and lime zest.',
 ] as const
 
 // [name, Oma's words, tidy amount, tidy amount for 2]
@@ -130,6 +137,11 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
   const [kencurSwap, setKencurSwap] = useState(false)
   const [phase, setPhase] = useState<AdjustPhase>('idle')
   const [heard, setHeard] = useState('')
+  // The speaking glow and its notification follow the Adjust flow: listening → hearing → thinking → done.
+  const [glow, setGlow] = useState<GlowState>('idle')
+  const [result, setResult] = useState('')
+  const voiceLevel = useRef<() => number>(() => 0)
+  const noticeRef = useRef<HTMLDivElement>(null)
   // With the clay look, the Adjust chip's blob turns teal once the teal has been mixed all the way through.
   const [blobTeal, setBlobTeal] = useState(false)
   // Glance and Wave to start are two sides of one toggle.
@@ -185,14 +197,20 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
     }
     const next = stage.current + 1
     setPhase('listening')
+    setGlow('listening')
     setHeard('')
+    setResult('')
     setBlobTeal(false)
+    // No microphone in the wireframe: loudness is a smoothed noise curve while the request is being spoken.
+    voiceLevel.current = createSimulatedLevel()
     later(CLAY_MIX_MS, () => setBlobTeal(true))
-    later(1400, () => setHeard(ADJUST_SCRIPT[next - 1]))
-    later(5000, () => setPhase('thinking'))
+    later(1400, () => { setHeard(ADJUST_SCRIPT[next - 1]); setGlow('hearing') })
+    later(5000, () => { setPhase('thinking'); setGlow('thinking') })
     later(5800, () => {
       stage.current = next
       setPhase('writing')
+      setGlow('done')
+      setResult(ADJUST_RESULTS[next - 1])
       if (clay) setVersions((current) => [newVersion((current[0]?.version ?? 1) + 1, next === 1 ? 'Servings 4 → 2' : 'Kencur swapped out'), ...current])
       if (next === 1) {
         setServes2(true)
@@ -218,8 +236,10 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
 
   return (
     <div className={embedded ? 'hv-embed' : 'hv-stage'} ref={embedRef}>
-      <div className={`hv-screen${embedded ? ' hv-screen--embedded' : ''}`} data-testid="grandkids-square" style={embedded ? { transform: `scale(${embedScale})` } : undefined}>
+      <div className={`hv-screen${embedded ? ' hv-screen--embedded' : ''}`} data-testid="grandkids-square" data-voice={glow === 'idle' || glow === 'done' ? undefined : 'on'} style={embedded ? { transform: `scale(${embedScale})` } : undefined}>
 
+        {/* The cards, as one layer, so they can ease back together while the voice glow has the focus. */}
+        <div className="hv-content">
         <section className="hv-card hv-recipe" aria-label="Recipe overview">
           <div className="hv-recipe__inner">
             <div className="hv-recipe__head">
@@ -327,6 +347,7 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
               style={{ left: penPos.left, top: penPos.top }} />
           )}
         </section>
+        </div>
 
         {clay && glanceOpen && <GlanceSheet checked={checked} onToggle={toggleChecked} onClose={() => setGlanceOpen(false)} />}
 
@@ -336,17 +357,9 @@ export function HomeViewBoard({ embedded = false, overlay = null, clay = false }
           </button>
         )}
 
-        <div className={`hv-fog${phase === 'listening' || phase === 'thinking' ? ' is-on' : ''}`} aria-hidden="true">
-          {clay ? (
-            phase !== 'idle' && <ClayMix />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img className="hv-fog__mascot" src="/assets/mascot-gradient.png" alt="" draggable={false} />
-          )}
-          <p className="hv-fog__heard" key={heard}>{heard ? `“${heard}”` : ''}</p>
-        </div>
-
-        <p className="hv-sr-only" role="status" aria-live="polite">{phase === 'idle' ? '' : adjustLabel}</p>
+        <SpeakingGlow state={glow} level={() => voiceLevel.current()} mirrorTo={noticeRef} onDone={() => setGlow('idle')} />
+        {/* The notification stays on "Done" with what changed until the pencil has finished writing it in. */}
+        <VoiceNotification ref={noticeRef} state={glow !== 'idle' ? glow : phase === 'writing' ? 'done' : 'idle'} heard={heard} result={result} teal={blobTeal} />
 
       </div>
       {embedded ? overlay : <p className="hv-caption">Grandkid home view, 640 × 640 for the 5.73 in display.</p>}

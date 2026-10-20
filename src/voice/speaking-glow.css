@@ -1,0 +1,113 @@
+/* SpeakingGlow: a soft multi-coloured glow around the screen's rounded edge while the voice assistant is active.
+   Every layer is clipped to a ring (mask "inset trick": content-box excluded from border-box), so the centre stays clear.
+   Only transform, opacity and filter animate. --sg-angle and --sg-level are written by the component each frame. */
+.sg {
+  --sg-level: 0;
+  --sg-angle: 0deg;
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  border-radius: var(--sg-radius, 36px);
+  opacity: 0;
+  pointer-events: none;
+  contain: strict;
+  transition: opacity 600ms ease;
+}
+.sg[data-state='listening'],
+.sg[data-state='hearing'],
+.sg[data-state='thinking'] { opacity: 1; transition: opacity 400ms cubic-bezier(.2, .8, .2, 1); }
+/* Done: stay lit for the sweep, then fade. */
+.sg[data-state='done'] { opacity: 0; transition: opacity 600ms ease 700ms; }
+
+.sg__bloom,
+.sg__reach,
+.sg__corners,
+.sg__band,
+.sg__sweep { position: absolute; inset: 0; border-radius: inherit; transition: transform 400ms cubic-bezier(.2, .8, .2, 1), opacity 400ms ease; }
+
+.sg__ring {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: inherit;
+  padding: var(--w);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.sg__ring--band { --w: 3px; }
+.sg__ring--bloom { --w: 22px; }
+.sg__ring--reach { --w: 30px; }
+.sg__ring--corner { --w: 34px; }
+.sg__ring--sweep { --w: 6px; }
+
+/* The colours: an oversized square with a conic gradient, turned by --sg-angle so the colours travel around the edge. */
+.sg__spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  rotate: var(--sg-angle);
+  background: conic-gradient(#ff5aa8, #ff8a3d 60deg, #ffd25a 110deg, #3fbfbd 175deg, #6a7bff 235deg, #a35cff 295deg, #ff5aa8);
+}
+
+/* Layer 2: the wide soft bloom. Blurred after the ring mask, so it bleeds inward softly. */
+.sg__bloom { filter: blur(14px) saturate(1.1); opacity: .6; }
+/* Layer 3: the voice reaching toward the centre. Louder pulls the ring inward and brightens it. */
+.sg__reach { filter: blur(22px) saturate(1.15); opacity: calc(var(--sg-level) * .6); transform: scale(calc(1 - .05 * var(--sg-level))); transition: none; }
+/* Corners: the colours again, only near the four corners, so they glow brighter than the edges. */
+.sg__corners { filter: blur(12px) saturate(1.15); opacity: .6; }
+.sg__cmask {
+  position: absolute;
+  inset: 0;
+  -webkit-mask:
+    radial-gradient(150px circle at 0 0, #000, transparent),
+    radial-gradient(150px circle at 100% 0, #000, transparent),
+    radial-gradient(150px circle at 0 100%, #000, transparent),
+    radial-gradient(150px circle at 100% 100%, #000, transparent);
+  mask:
+    radial-gradient(150px circle at 0 0, #000, transparent),
+    radial-gradient(150px circle at 100% 0, #000, transparent),
+    radial-gradient(150px circle at 0 100%, #000, transparent),
+    radial-gradient(150px circle at 100% 100%, #000, transparent);
+}
+/* Layer 1: the thin crisp band on the edge. */
+.sg__band { filter: saturate(1.25) brightness(1.05); }
+/* One bright pass when done. */
+.sg__sweep { filter: blur(5px); opacity: 0; }
+.sg__spin--sweep { rotate: 0deg; background: conic-gradient(transparent 0 290deg, rgba(255, 255, 255, .9) 345deg, transparent 360deg); }
+
+/* Idle: everything sits just past the edge, so turning on reads as rising in from the edges. */
+.sg[data-state='idle'] .sg__bloom,
+.sg[data-state='idle'] .sg__corners { transform: scale(1.08); }
+.sg[data-state='idle'] .sg__band { transform: scale(1.03); }
+
+/* Listening: the bloom breathes, about ±10% every 2 s. */
+.sg[data-state='listening'] .sg__bloom { animation: sg-breathe 2s ease-in-out infinite; }
+@keyframes sg-breathe {
+  0%, 100% { opacity: .54; transform: scale(1); }
+  50% { opacity: .66; transform: scale(.992); }
+}
+
+/* Hearing: brightness follows the voice; the reach layer does the rest. */
+.sg[data-state='hearing'] .sg__bloom { opacity: calc(.5 + .25 * var(--sg-level)); transition: none; }
+
+/* Thinking: the band narrows (pushed a little past the edge) and the bloom thins while the colours spin fast. */
+.sg[data-state='thinking'] .sg__band { transform: scale(1.005); }
+.sg[data-state='thinking'] .sg__bloom { opacity: .42; transform: scale(1.02); }
+
+/* Done: a single bright pass around the border. */
+.sg[data-state='done'] .sg__sweep { opacity: 1; transition: none; }
+.sg[data-state='done'] .sg__spin--sweep { animation: sg-sweep 700ms cubic-bezier(.45, 0, .25, 1) both; }
+@keyframes sg-sweep { from { rotate: 0turn; } to { rotate: 1turn; } }
+
+/* Reduced motion: no rotation, breathing, reach or sweep; a still glow that fades in and out. */
+@media (prefers-reduced-motion: reduce) {
+  .sg__bloom, .sg__corners, .sg__band, .sg__sweep { transform: none !important; animation: none !important; transition: opacity 400ms ease; }
+  .sg__reach, .sg__sweep { display: none; }
+  .sg[data-state='done'] { transition: opacity 600ms ease; }
+}
