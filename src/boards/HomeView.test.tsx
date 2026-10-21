@@ -41,7 +41,7 @@ describe('HomeViewBoard 07b layout', () => {
     render(<HomeViewBoard />)
     fireEvent.click(screen.getByRole('button', { name: /8 steps/ }))
     const card = screen.getByRole('dialog', { name: 'Steps' })
-    expect(card).toHaveTextContent('8 steps · about 40 min')
+    expect(card).toHaveTextContent('8 steps About 40 min')
     expect(card.querySelectorAll('li')).toHaveLength(8)
     expect([...card.querySelectorAll('.hm-verb')].map((v) => v.textContent)).toEqual(['Blend', 'Toast', 'Fry', 'Cook', 'Add', 'Stir', 'Squeeze', 'Serve'])
     fireEvent.click(within(card).getByRole('button', { name: 'Done' }))

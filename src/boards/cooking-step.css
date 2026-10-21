@@ -108,10 +108,9 @@
 .cs-ing-btn { display: inline-flex; white-space: nowrap; height: 44px; align-items: center; gap: 8px; padding: 0 18px; border: 0; border-radius: 999px; background: #f2f1ef; color: #57524c; font-size: 16px; line-height: 20px; cursor: pointer; }
 .cs .cs-ing-btn { font-size: 16px; }
 .cs-ing-btn svg { width: 16px; height: 16px; }
-/* Done: the one dark pill, on the last step only. */
-.cs-done { display: inline-flex; height: 44px; box-sizing: border-box; align-items: center; gap: 8px; padding: 0 20px 0 16px; border: 0; border-radius: 999px; background: #1f1c19; color: #fff; font-size: 16px; font-weight: 500; line-height: 20px; text-decoration: none; white-space: nowrap; cursor: pointer; }
+/* Done, on the last step only: the same dark pill as every other Done (see .hm-done). */
+.cs-done { display: inline-flex; height: 44px; box-sizing: border-box; align-items: center; padding: 0 24px; border: 0; border-radius: 999px; background: #1f1c19; color: #fff; font-size: 16px; font-weight: 500; line-height: 20px; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .cs .cs-done { font-size: 16px; }
-.cs-done svg { width: 16px; height: 16px; }
 
 /* Ingredients pop-up: the whole screen frosts, and a card blooms in the middle. */
 @keyframes cs-frost { from { opacity: 0; } to { opacity: 1; } }
@@ -132,11 +131,12 @@
 /* The pill gives itself to the liquid while the card is out. */
 .cs-ing-btn.is-poured { visibility: hidden; }
 .cs-pop__title { margin: 0 0 4px; color: #6b665f; font-size: 16px; line-height: 22px; }
+.cs-pop__title b { margin-right: 4px; color: #1f1c19; font-weight: 500; }
 .cs-pop__card ul { margin: 0; padding: 0; list-style: none; }
 .cs-pop__card li { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid #efedea; font-size: 24px; line-height: 30px; letter-spacing: -.01em; }
 .cs-pop__amt { font-weight: 600; font-variant-numeric: tabular-nums; }
-.cs-pop__done { display: block; height: 44px; margin: 18px auto 0; padding: 0 26px; border: 0; border-radius: 999px; background: var(--cs-ink); color: #fff; font-size: 16px; font-weight: 500; cursor: pointer; transition: scale 140ms cubic-bezier(.2, .8, .2, 1); }
-.cs .cs-pop__done { font-size: 16px; }
+.cs-pop__done { display: block; height: 44px; margin: 16px auto 0; padding: 0 24px; border: 0; border-radius: 999px; background: var(--cs-ink); color: #fff; font-size: 16px; font-weight: 500; line-height: 20px; cursor: pointer; transition: scale 140ms cubic-bezier(.2, .8, .2, 1); }
+.cs .cs-pop__done { font-size: 16px; font-weight: 500; }
 
 @media (prefers-reduced-motion: reduce) {
   .cs-step { transition: opacity 200ms ease; }

@@ -60,7 +60,7 @@ describe('KitchenMockup perspectives', () => {
     const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
     expect(within(board).queryByRole('dialog')).not.toBeInTheDocument()
     fireEvent.click(within(board).getByRole('button', { name: 'Ingredients' }))
-    const uses = within(board).getByRole('dialog', { name: 'Ingredients · Step 1' })
+    const uses = within(board).getByRole('dialog', { name: 'Ingredients Step 1' })
     for (const name of ['Onions', 'Garlic', 'Sambal', 'Kencur', 'Pepper', 'Lime leaves']) {
       expect(within(uses).getByText(name)).toBeInTheDocument()
     }

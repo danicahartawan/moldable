@@ -437,7 +437,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         {open === 'steps' && (
           <div className={`hm-center${closing ? ' is-closing' : ''}`}>
             <div className="hm-card hm-card--steps" {...dialog('Steps')}>
-              <p className="hm-card__title">8 steps · about {mins} min</p>
+              <p className="hm-card__title"><b>8 steps</b> About {mins} min</p>
               <ol className="hm-steps">
                 {STEPS.map((step, i) => {
                   const [verb, ...rest] = step(look)
@@ -458,10 +458,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                   )
                 })}
               </ol>
-              <div className="hm-card__foot">
-                <button type="button" className="hm-tap hm-done" onClick={close}>Done</button>
-                {startCooking('hm-tap hm-go hm-go--small', 16)}
-              </div>
+              <button type="button" className="hm-tap hm-done" onClick={close}>Done</button>
             </div>
           </div>
         )}
@@ -480,7 +477,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
             <div ref={ingrBlob} className="hm-blob" aria-hidden="true" />
             <div ref={ingrCard} className="hm-card hm-card--ingr" {...dialog('Ingredients')}>
               <div className="hm-ingr__head hm-pour" style={{ '--i': 0 } as React.CSSProperties}>
-                <p className="hm-card__title">Ingredients · serves {m.serves2 ? 2 : 4}</p>
+                <p className="hm-card__title"><b>Ingredients</b> Serves {m.serves2 ? 2 : 4}</p>
                 <GooSegmented className="hm-seg" buttonClassName="hm-tap" aria-label="How amounts are written"
                   options={AMOUNT_MODES} value={tidy ? 'tidy' : 'oma'} onChange={(v) => setAmounts(v === 'tidy')} />
               </div>
@@ -523,7 +520,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
               <span className="hm-ingr__edge hm-ingr__edge--top" aria-hidden="true" />
               <span className="hm-ingr__edge hm-ingr__edge--bottom" aria-hidden="true" />
               </div>
-              <button type="button" className="hm-tap hm-done hm-done--centre hm-pour" style={{ '--i': ING.length + TOOLS.length + 2 } as React.CSSProperties} onClick={close}>Done</button>
+              <button type="button" className="hm-tap hm-done hm-pour" style={{ '--i': ING.length + TOOLS.length + 2 } as React.CSSProperties} onClick={close}>Done</button>
             </div>
           </div>
         )}
@@ -531,9 +528,9 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         {open === 'versions' && (
           <div className={`hm-center${closing ? ' is-closing' : ''}`}>
             <div className="hm-card hm-card--versions" {...dialog('Version history')}>
-              <p className="hm-card__title">Version history · v{current}</p>
+              <p className="hm-card__title"><b>Version history</b> v{current}</p>
               <VersionList entries={versions} />
-              <button type="button" className="hm-tap hm-done hm-done--centre" onClick={close}>Done</button>
+              <button type="button" className="hm-tap hm-done" onClick={close}>Done</button>
             </div>
           </div>
         )}

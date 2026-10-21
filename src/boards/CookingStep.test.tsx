@@ -86,7 +86,7 @@ describe('CookingStepBoard', () => {
     }
     fireEvent.click(pill())
     expect(pill()).toHaveClass('is-poured')
-    const card = screen.getByRole('dialog', { name: 'Ingredients · Step 1' })
+    const card = screen.getByRole('dialog', { name: 'Ingredients Step 1' })
     expect(within(card).getByText('Lime leaves').closest('li')).toHaveTextContent('Lime leaves4')
     fireEvent.keyDown(screenEl(), { key: 'ArrowDown' })
     fireEvent.pointerDown(screenEl(), { clientX: 300, clientY: 400 })

@@ -333,15 +333,9 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
           <span className={`cs-slot cs-slot--done${isLast ? ' is-shown' : ''}`} aria-hidden={!isLast} inert={!isLast}>
             <span className="cs-slot__inner">
               {(() => {
-                const inner = (
-                  <>
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 10.5l3.2 3.2L15 6.8" /></svg>
-                    Done
-                  </>
-                )
                 return onDone
-                  ? <button type="button" className="cs-done" onClick={onDone}>{inner}</button>
-                  : <Link href="/boards/fridge" className="cs-done">{inner}</Link>
+                  ? <button type="button" className="cs-done" onClick={onDone}>Done</button>
+                  : <Link href="/boards/fridge" className="cs-done">Done</Link>
               })()}
             </span>
           </span>
@@ -352,7 +346,7 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
             <button type="button" className="cs-pop__backdrop" aria-label="Close ingredients" onClick={closeIng} tabIndex={ingOpen ? 0 : -1} />
             <div ref={blob} className="cs-pop__blob" aria-hidden="true" />
             <section ref={card} className="cs-pop__card" {...(ingOpen ? { role: 'dialog', 'aria-modal': true, 'aria-labelledby': 'cs-pop-title' } : { 'aria-hidden': true })}>
-              <p id="cs-pop-title" className="cs-pop__title cs-pop__item" style={{ '--i': 0 } as React.CSSProperties}>Ingredients · Step {i + 1}</p>
+              <p id="cs-pop-title" className="cs-pop__title cs-pop__item" style={{ '--i': 0 } as React.CSSProperties}><b>Ingredients</b> Step {i + 1}</p>
               <ul>
                 {step.ingredients.map(([name, amount], k) => (
                   <li key={name} className="cs-pop__item" style={{ '--i': k + 1 } as React.CSSProperties}><span>{name}</span><span className="cs-pop__amt">{amount}</span></li>

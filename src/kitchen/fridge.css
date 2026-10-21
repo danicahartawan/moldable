@@ -115,6 +115,13 @@ a.fz-tap { text-decoration: none; }
 .fz-back { position: absolute; z-index: 30; top: 20px; right: 48px; display: flex; }
 .fz-back__btn { display: flex; width: 48px; height: 48px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: #f2f1ef; color: #1f1c19; -webkit-tap-highlight-color: transparent; }
 .fz-back__btn svg { width: 20px; height: 20px; }
+/* While a card is open over the recipe (Ingredients, Steps…), the button sinks under the same frost as the page:
+   blurred and paled, not tappable (a tap there lands on the frost and closes the card). It clears as the frost does. */
+.fz-back__btn { transition: transform .14s cubic-bezier(.2, .8, .2, 1), filter .42s ease .12s, opacity .42s ease .12s; }
+.fz:has(.hm-frost) .fz-back { pointer-events: none; }
+.fz:has(.hm-frost) .fz-back__btn { filter: blur(6px); opacity: .45; pointer-events: none; transition: transform .14s cubic-bezier(.2, .8, .2, 1), filter .35s ease, opacity .35s ease; }
+.fz:has(.hm-frost.is-closing) .fz-back__btn { filter: none; opacity: 1; }
+.fz:has(.hm-frost.is-quick) .fz-back__btn { transition: filter .3s cubic-bezier(.4, 0, .7, .2), opacity .3s cubic-bezier(.4, 0, .7, .2); }
 .fz-back--main { top: 52px; }
 .fz-back--new { top: 80px; }
 .fz-back--paper { top: 106px; }

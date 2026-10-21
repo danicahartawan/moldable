@@ -118,7 +118,7 @@ export function GrandkidsPage() {
                   <span className="step-emoji" aria-hidden="true">{cookingSteps[step].emoji}</span>
                   <h2>{cookingSteps[step].title}</h2>
                   <p>{cookingSteps[step].instruction}</p>
-                  <small><span aria-hidden="true">🌺</span> tip from Popo · {cookingSteps[step].tip}</small>
+                  <small><span aria-hidden="true">🌺</span> Tip from Popo: {cookingSteps[step].tip}</small>
                 </article>
                 <div className="step-progress" aria-hidden="true">{cookingSteps.map((item, index) => <i key={item.title} data-active={index === step} />)}</div>
                 <button className="step-next" type="button" aria-label="Next step" disabled={step === cookingSteps.length - 1} onClick={nextStep}><ArrowRight weight="bold" /></button>
