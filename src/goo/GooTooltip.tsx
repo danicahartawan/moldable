@@ -5,6 +5,7 @@ import {
   createContext, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
   type ButtonHTMLAttributes, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode,
 } from 'react'
+import { aim, prefersReduced, settled, snap, spring, stepSprings, type Params } from './springs'
 
 /* A gooey tooltip for a row of pill buttons. The tooltip is a drop pulled out of the button it belongs to: it rises
    out of the button's top on a thick, melting neck (an SVG goo filter over the solid shapes), slides and resizes
@@ -30,16 +31,9 @@ const LABEL_IN_EMERGE_MS = 210
 const LABEL_IN_TRAVEL_MS = 60
 const LONG_PRESS_MS = 450
 
-type Spring = { x: number; v: number; to: number; k: number; c: number }
-type Params = { k: number; c: number }
 const TRAVEL: Params = { k: 380, c: 32 }
 const EMERGE: Params = { k: 300, c: 18 }
 const WIDTH_EMERGE: Params = { k: 300, c: 24 }
-
-const spring = (x: number): Spring => ({ x, v: 0, to: x, k: TRAVEL.k, c: TRAVEL.c })
-const aim = (s: Spring, to: number, p: Params) => { s.to = to; s.k = p.k; s.c = p.c }
-const snap = (s: Spring, x: number) => { s.x = x; s.v = 0; s.to = x }
-const settled = (s: Spring) => Math.abs(s.x - s.to) < 0.25 && Math.abs(s.v) < 4
 
 type Mode = 'hidden' | 'shown' | 'absorbing'
 type Box = { cx: number; cy: number; w: number; h: number }
@@ -54,8 +48,6 @@ type Group = {
   tipId: string
 }
 const GooContext = createContext<Group | null>(null)
-
-const prefersReduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 export type GooTooltipGroupProps = {
   children: ReactNode
@@ -210,15 +202,7 @@ export function GooTooltipGroup({
     last.current = now
     const g = geo.current
     const all = [g.cx, g.cy, g.w, g.h]
-    // Small fixed steps keep the stiffer springs stable.
-    for (let t = 0; t < dt; t += 1 / 240) {
-      const h = Math.min(1 / 240, dt - t)
-      for (const s of all) {
-        const a = -s.k * (s.x - s.to) - s.c * s.v
-        s.v += a * h
-        s.x += s.v * h
-      }
-    }
+    stepSprings(all, dt)
     paint()
     if (all.every(settled)) {
       all.forEach((s) => snap(s, s.to))

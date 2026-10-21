@@ -76,7 +76,7 @@ a.hm-tap { text-decoration: none; }
 .hm-seg { display: flex; padding: 3px; border-radius: 999px; background: #f2f1ef; }
 .hm-seg button { height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--hm-ink); font-size: 15px; }
 .hm .hm-seg button { font-size: 15px; }
-.hm-seg button[aria-pressed='true'] { background: #fff; box-shadow: 0 1px 3px rgba(31, 28, 25, .12); }
+/* The white thumb is drawn by GooSegmented as a liquid drop under the labels. */
 .hm-ingr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; margin: 0; padding: 0; list-style: none; }
 .hm-ingr li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--hm-line); font-size: 21px; line-height: 27px; }
 .hm-ingr__amt { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }

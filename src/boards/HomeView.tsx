@@ -8,6 +8,7 @@ import { VoiceNotification } from '@/voice/VoiceNotification'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 import { VersionList, initialVersions, newVersion, type VersionEntry } from './VersionHistory'
 import { canPour, pourClose, pourOpen, rectIn, type Rect } from './liquid'
+import { GooSegmented } from '@/goo/GooSegmented'
 import Link from 'next/link'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
@@ -95,6 +96,8 @@ const PASSES: Pass[] = [
   { kind: 'serves2', rows: ING.flatMap((r, i) => (r[2] !== r[3] ? [i] : [])) },
   { kind: 'kencur', rows: [KENCUR_ROW] },
 ]
+// How the amounts are written: tidied, or as Oma says them. The switch's thumb is liquid (GooSegmented).
+const AMOUNT_MODES = [{ value: 'tidy', label: 'Tidy' }, { value: 'oma', label: 'Oma’s words' }] as const
 // The card pours in (720ms) before the first hop; then one row at a time, and a moment on the last.
 const CARD_IN_MS = 760
 // The Ingredients pill and the card it pours into, as on the cooking step: the blob changes from one look to the other.
@@ -441,10 +444,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
             <div ref={ingrCard} className="hm-card hm-card--ingr" {...(ingrOut ? { 'aria-hidden': true, inert: true } : { role: 'dialog', 'aria-label': 'Ingredients' })}>
               <div className="hm-ingr__head hm-pour" style={{ '--i': 0 } as React.CSSProperties}>
                 <p className="hm-card__title">Ingredients · serves {m.serves2 ? 2 : 4}</p>
-                <div className="hm-seg" role="group" aria-label="How amounts are written">
-                  <button type="button" className="hm-tap" aria-pressed={tidy} onClick={() => setAmounts(true)}>Tidy</button>
-                  <button type="button" className="hm-tap" aria-pressed={!tidy} onClick={() => setAmounts(false)}>Oma’s words</button>
-                </div>
+                <GooSegmented className="hm-seg" buttonClassName="hm-tap" aria-label="How amounts are written"
+                  options={AMOUNT_MODES} value={tidy ? 'tidy' : 'oma'} onChange={(v) => setAmounts(v === 'tidy')} />
               </div>
               <ul className="hm-ingr">
                 {ING.map((r, i) => {
