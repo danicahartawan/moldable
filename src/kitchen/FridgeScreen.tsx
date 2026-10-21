@@ -54,7 +54,6 @@ const ICON = {
   plus: 'M10 4v12M4 10h12',
   zoomOut: 'M8.5 3a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z M12.5 12.5L17 17 M6 8.5h5',
   zoomIn: 'M8.5 3a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z M12.5 12.5L17 17 M6 8.5h5 M8.5 6v5',
-  back: 'M5 9l5-5 5 5M10 4v12',
   mic: 'M10 2.5a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-5 0V5A2.5 2.5 0 0 1 10 2.5z M5 9.5a5 5 0 0 0 10 0 M10 14.5V17.5',
   scan: 'M3.5 7V3.5H7M13 3.5h3.5V7M16.5 13v3.5H13M7 16.5H3.5V13 M3.5 10h13',
   pen: 'M4 16l.9-3.6L12.6 4.7a1.6 1.6 0 0 1 2.3 0l.4.4a1.6 1.6 0 0 1 0 2.3L7.6 15.1z M11.4 5.9l2.7 2.7',
@@ -90,6 +89,15 @@ function Icon({ d, size = 20, width = 1.8 }: { d: string; size?: number; width?:
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={width} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={d} />
+    </svg>
+  )
+}
+
+// Four corners turned inwards: the page shrinks back onto the fridge. Square ends and corners, as drawn.
+function ShrinkIcon() {
+  return (
+    <svg width={30} height={30} viewBox="350 275 628 628" fill="none" stroke="currentColor" strokeWidth={39} strokeLinecap="butt" strokeLinejoin="miter" aria-hidden="true">
+      <path d="M584.5 275V509.5H350 M743.5 275V509.5H978 M350 669.5H584.5V903 M978 669.5H743.5V903" />
     </svg>
   )
 }
@@ -638,9 +646,10 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       )}
 
       {shown && (
-        <div className={`fz-in-late fz-back${leaving}`}>
-          <GooTooltipGroup buttonColor="#f2f1ef" buttonTextColor="#1f1c19" side="bottom" align="end">
-            <GooButton tooltip="Back to the fridge" aria-label="Back to the fridge" className="fz-back__btn" icon={<Icon d={ICON.back} />} onClick={closeNote} />
+        <div className={`fz-in-late fz-back fz-back--${page?.kind}${leaving}`}>
+          {/* The tooltip rises into the empty corner rather than dropping over the lede. */}
+          <GooTooltipGroup buttonColor="#f2f1ef" buttonTextColor="#1f1c19" side="top" align="end">
+            <GooButton tooltip="Back to the fridge" aria-label="Back to the fridge" className="fz-back__btn" icon={<ShrinkIcon />} onClick={closeNote} />
           </GooTooltipGroup>
         </div>
       )}
