@@ -34,6 +34,8 @@ const KENCUR_ROW = rowOf('kencur')
 const ICON = {
   clock: 'M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M10 6.5V10l2.4 1.5',
   steps: 'M7 5h10M7 10h10M7 15h10M3 5h.1M3 10h.1M3 15h.1',
+  // A mixing bowl with a sprout: the Ingredients button, on its own.
+  ingredients: 'M3.5 10.5h13a6.5 6.5 0 0 1-13 0z M10 10.5V6 M10 6c0-2 1.4-3.3 3.6-3.3 0 2.1-1.4 3.3-3.6 3.3z M10 7.6C10 6 8.9 5 7.2 5c0 1.6 1.1 2.6 2.8 2.6z',
   serves: 'M7 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2.5 16c0-2.6 2-4.5 4.5-4.5s4.5 1.9 4.5 4.5 M14 8.5a2 2 0 1 0 0-4 M13.5 11.6c2.3.2 4 2 4 4.4',
   flame: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z',
   chevron: 'M8 4l6 6-6 6',
@@ -122,8 +124,22 @@ function offsetIn(el: HTMLElement, root: HTMLElement) {
     y += node.offsetTop
     node = node.offsetParent as HTMLElement | null
   }
+  // Less however far anything in between has been scrolled (the Ingredients card scrolls).
+  for (let up = el.parentElement; up && up !== root; up = up.parentElement) {
+    x -= up.scrollLeft
+    y -= up.scrollTop
+  }
   return { x, y }
 }
+
+// What the recipe needs besides ingredients, below them in the Ingredients card.
+const TOOLS: { name: string; icon: string }[] = [
+  { name: 'Bowl', icon: 'M3 10h14a7 7 0 0 1-14 0z M7.5 16.5h5' },
+  { name: 'Dry pan', icon: 'M2.5 10.5h11a4 4 0 0 1-4 4h-3a4 4 0 0 1-4-4z M13.5 11.5h4.5' },
+  { name: 'Blender', icon: 'M6 3h8l-1.2 9H7.2z M6.6 12h6.8l.6 5H6z M8.2 6.5h3.6' },
+  { name: 'Spatula', icon: 'M8.5 2.5h3v6.2l-1.5 1.8-1.5-1.8z M10 10.5v7' },
+  { name: 'Rice pot', icon: 'M4 9h12v6a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 4 15z M2.5 9h15 M8 6.5h4 M10 6.5V9' },
+]
 
 export type HomeViewHandle = {
   /** Start a voice session (the wake word, in the wireframe). */
@@ -321,6 +337,18 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const ingrCard = useRef<HTMLDivElement>(null)
   const ingrBlob = useRef<HTMLDivElement>(null)
   const ingrRect = useRef<Rect | null>(null)
+  // Whether there's more above or below in the card's scroll; the edges blur only where there is.
+  const ingrEdges = useRef<HTMLDivElement>(null)
+  const markEdges = (s: HTMLElement) => {
+    const v = ingrEdges.current
+    if (!v) return
+    v.dataset.above = String(s.scrollTop > 2)
+    v.dataset.below = String(s.scrollTop + s.clientHeight < s.scrollHeight - 2)
+  }
+  useLayoutEffect(() => {
+    const s = ingrEdges.current?.querySelector<HTMLElement>('.hm-ingr__scroll')
+    if (open === 'ingr' && s) markEdges(s)
+  }, [open])
   useLayoutEffect(() => {
     const r = screenRef.current
     const b = ingrBlob.current
@@ -399,8 +427,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
           </button>
 
           <div className="hm-float">
-            <button ref={ingrPill} type="button" className={`hm-tap hm-pill${open === 'ingr' ? ' is-poured' : ''}`} aria-haspopup="dialog" aria-expanded={open === 'ingr' && !closing} onClick={() => setOpen('ingr')}>
-              <Icon d={ICON.steps} width={1.7} />Ingredients
+            <button ref={ingrPill} type="button" className={`hm-tap hm-pill${open === 'ingr' ? ' is-poured' : ''}`} aria-haspopup="dialog" aria-expanded={open === 'ingr' && !closing} aria-label="Ingredients" title="Ingredients" onClick={() => setOpen('ingr')}>
+              <Icon d={ICON.ingredients} size={22} width={1.7} />
             </button>
             {startCooking('hm-tap hm-go', 18)}
           </div>
@@ -458,6 +486,9 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                 <GooSegmented className="hm-seg" buttonClassName="hm-tap" aria-label="How amounts are written"
                   options={AMOUNT_MODES} value={tidy ? 'tidy' : 'oma'} onChange={(v) => setAmounts(v === 'tidy')} />
               </div>
+              {/* Ingredients, and below them the tools: one scroll, whose rows blur as they pass under its edges. */}
+              <div ref={ingrEdges} className="hm-ingr__view">
+              <div className="hm-ingr__scroll" onScroll={(e) => markEdges(e.currentTarget)}>
               <ul className="hm-ingr">
                 {ING.map((r, i) => {
                   // While the clay is rewriting, a row it hasn't reached yet still shows how it was.
@@ -480,8 +511,21 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                   )
                 })}
               </ul>
-              <p className="hm-ingr__tools hm-pour" style={{ '--i': ING.length + 1 } as React.CSSProperties}>You’ll need a bowl, dry pan, blender, spatula and rice pot.</p>
-              <button type="button" className="hm-tap hm-done hm-done--centre hm-pour" style={{ '--i': ING.length + 2 } as React.CSSProperties} onClick={close}>Done</button>
+              <section className="hm-tools" aria-labelledby="hm-tools-title">
+                <p id="hm-tools-title" className="hm-card__title hm-pour" style={{ '--i': ING.length + 1 } as React.CSSProperties}>Tools you’ll need</p>
+                <ul className="hm-ingr hm-tools__list">
+                  {TOOLS.map((t, i) => (
+                    <li key={t.name} className="hm-pour" style={{ '--i': ING.length + 2 + i } as React.CSSProperties}>
+                      <span className="hm-tools__name"><Icon d={t.icon} size={20} width={1.7} />{t.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+              </div>
+              <span className="hm-ingr__edge hm-ingr__edge--top" aria-hidden="true" />
+              <span className="hm-ingr__edge hm-ingr__edge--bottom" aria-hidden="true" />
+              </div>
+              <button type="button" className="hm-tap hm-done hm-done--centre hm-pour" style={{ '--i': ING.length + TOOLS.length + 2 } as React.CSSProperties} onClick={close}>Done</button>
             </div>
           </div>
         )}

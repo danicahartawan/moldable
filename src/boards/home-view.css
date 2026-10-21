@@ -89,7 +89,26 @@ a.hm-tap { text-decoration: none; }
 /* The clay lands on an amount: it gives a little under the weight as it's rewritten. */
 @keyframes hm-hop-land { 0% { transform: none; } 30% { transform: translateY(2px) scale(1.04, .9); } 65% { transform: translateY(-1px) scale(.98, 1.04); } 100% { transform: none; } }
 .hm-ingr li.is-hop .hm-ingr__amt > span { animation: hm-hop-land 520ms cubic-bezier(.3, .7, .4, 1) 140ms both; }
-.hm-ingr__tools { margin: 14px 0 0; color: var(--hm-muted); font-size: 16px; line-height: 22px; }
+/* The card scrolls from the ingredients down to the tools. Rows blur and fade as they slide under its top and bottom
+   edges: a band of backdrop blur that grows towards the edge, over a fade, only where there's more to see. */
+.hm-ingr__view { position: relative; margin: 0 -30px; }
+.hm-ingr__scroll { max-height: 316px; overflow-y: auto; overscroll-behavior: contain; padding: 0 30px 6px; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to bottom, var(--hm-fade-top, #000) 0, #000 28px, #000 calc(100% - 36px), var(--hm-fade-bottom, #000) 100%);
+  mask-image: linear-gradient(to bottom, var(--hm-fade-top, #000) 0, #000 28px, #000 calc(100% - 36px), var(--hm-fade-bottom, #000) 100%); }
+.hm-ingr__scroll::-webkit-scrollbar { display: none; }
+.hm-ingr__view[data-above='true'] { --hm-fade-top: transparent; }
+.hm-ingr__view[data-below='true'] { --hm-fade-bottom: transparent; }
+.hm-ingr__edge { position: absolute; z-index: 1; right: 0; left: 0; height: 36px; pointer-events: none; opacity: 0; transition: opacity 200ms ease;
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
+.hm-ingr__edge--top { top: 0; -webkit-mask-image: linear-gradient(to bottom, #000, transparent); mask-image: linear-gradient(to bottom, #000, transparent); }
+.hm-ingr__edge--bottom { bottom: 0; -webkit-mask-image: linear-gradient(to top, #000, transparent); mask-image: linear-gradient(to top, #000, transparent); }
+.hm-ingr__view[data-above='true'] .hm-ingr__edge--top, .hm-ingr__view[data-below='true'] .hm-ingr__edge--bottom { opacity: 1; }
+.hm-tools { margin-top: 20px; }
+.hm-tools .hm-card__title { margin-bottom: 6px; }
+.hm-tools__name { display: inline-flex; align-items: center; gap: 10px; }
+.hm-tools__name svg { color: var(--hm-muted); }
+/* Ingredients, on its own: just the icon. */
+.hm-pill.hm-pill { width: 48px; padding: 0; justify-content: center; }
 
 .hm-card--versions { display: flex; width: 460px; max-height: 560px; flex-direction: column; padding: 24px 28px 20px; }
 .hm-versions { flex: 1; min-height: 0; margin: 4px 0 0; padding: 0; overflow-y: auto; list-style: none; }

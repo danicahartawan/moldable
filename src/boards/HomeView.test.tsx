@@ -51,12 +51,14 @@ describe('HomeViewBoard 07b layout', () => {
   it('Ingredients switches between tidy amounts and Oma’s words, with the tools underneath', () => {
     render(<HomeViewBoard />)
     const ingr = openIngredients()
-    expect(ingr.querySelectorAll('li')).toHaveLength(11)
+    expect(ingr.querySelectorAll('li[data-family-amount]')).toHaveLength(11)
+    // Scrolling down past the ingredients: the tools.
+    const tools = within(ingr).getByRole('region', { name: 'Tools you’ll need' })
+    expect([...tools.querySelectorAll('li')].map((li) => li.textContent)).toEqual(['Bowl', 'Dry pan', 'Blender', 'Spatula', 'Rice pot'])
     expect(amountOf(ingr, 'Pork')).toHaveTextContent('500 g')
     fireEvent.click(within(ingr).getByRole('button', { name: 'Oma’s words' }))
     expect(amountOf(ingr, 'Pork')).toHaveTextContent('½ kilo')
     expect(amountOf(ingr, 'Pork')).toHaveClass('is-raw')
-    expect(ingr).toHaveTextContent('You’ll need a bowl, dry pan, blender, spatula and rice pot.')
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
