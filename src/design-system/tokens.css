@@ -87,8 +87,8 @@
   --dur-slow: 900ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --font-display: "Inter Tight", "Archivo", "Helvetica Neue", system-ui, sans-serif;
-  --font-sans: "Inter Tight", "Archivo", "Helvetica Neue", system-ui, sans-serif;
+  --font-display: "Inter Tight", "interTight Fallback", "Archivo", "Helvetica Neue", system-ui, sans-serif;
+  --font-sans: "Inter Tight", "interTight Fallback", "Archivo", "Helvetica Neue", system-ui, sans-serif;
   /* Spec / technical labels, like Daisy's PP Neue Montreal Mono. */
   --font-mono: ui-monospace, "SF Mono", "Geist Mono", "JetBrains Mono", Menlo, monospace;
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Check, LinkSimple, MagicWand } from '@phosphor-icons/react'
+import Image from 'next/image'
 
 const fullStory = [
   'First, toast the coconut until properly golden. It should smell warm and nutty, like the edge of a coconut biscuit. While it cools, pound half the onions and garlic with sambal trassi, kencur, pepper and kaffir lime leaves. The paste should smell sharp, citrusy and a little funky, which means it has enough life.',
@@ -191,12 +192,13 @@ export function RecipeBook() {
             ))}
           </div>
         </div></>}
-        <img
+        <Image
           className="story-book__traveler"
           src="/assets/mascot-writer-blue.png"
           alt="Moldable character writing with a silver pencil"
-          width="1100"
-          height="950"
+          width={1100}
+          height={951}
+          sizes="440px"
         />
       </section>
       {copyState === 'error' ? <p className="story-book__status" role="status">Couldn’t copy the link. Try again.</p> : null}

@@ -10,8 +10,14 @@ import { transcribeAudio } from './transcribe'
 import { GuidingQuestionRail, guidingQuestions } from './GuidingQuestionRail'
 import { RollingTranscript } from './RollingTranscript'
 import { RecordingWaveform } from './RecordingWaveform'
-import { GrandmaTranscriptScreen } from './GrandmaTranscriptScreen'
+import dynamic from 'next/dynamic'
 import './grandma.css'
+import Image from 'next/image'
+
+// The transcript screen (and the recipe home view inside it) only shows once a recording ends, so it loads on its own;
+// recording starts fetching it, so it's there by the time Stop is pressed.
+const loadTranscriptScreen = () => import('./GrandmaTranscriptScreen')
+const GrandmaTranscriptScreen = dynamic(() => loadTranscriptScreen().then((m) => m.GrandmaTranscriptScreen))
 
 export const demoStorySegments = [
   'Take half an onion, garlic, chili, kencur, pepper, and lime leaves. [Blend] until it becomes a fine paste.',
@@ -113,6 +119,10 @@ export function GrandmaPage() {
     }
   }, [isRecording, isPaused])
 
+  useEffect(() => {
+    if (isRecording) void loadTranscriptScreen()
+  }, [isRecording])
+
   // With no spoken words to name from, the demo recording is named five seconds in.
   useEffect(() => {
     if (!isRecording) {
@@ -190,10 +200,15 @@ export function GrandmaPage() {
               <RecordingWaveform levelRef={recorder.levelRef} name={title || demoName || null} isNaming={isTitlePending} isPaused={isPaused} onTogglePause={recorder.togglePause} onStop={recorder.toggle} />
             )}
           </div>
-          <img
+          {/* Shown 104–116 px wide: next/image serves a small copy, not the 1024 px original. */}
+          <Image
             className="grandma-character"
             src="/assets/mascot-blue.png"
             alt="Grandma companion"
+            width={1024}
+            height={1024}
+            sizes="116px"
+            loading="eager"
             draggable={false}
           />
         </div>

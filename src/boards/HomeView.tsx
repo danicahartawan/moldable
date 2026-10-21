@@ -11,6 +11,7 @@ import { canPour, pourClose, pourOpen, rectIn, type Rect } from './liquid'
 import { GooSegmented } from '@/goo/GooSegmented'
 import Link from 'next/link'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import Image from 'next/image'
 
 /* 07b Recipe home view: the title, one sentence about the dish, a row of tags, and the photo with Ingredients and
    Start cooking floating on it. Steps, Ingredients, the versions and the photo open as centred cards over a frosted screen.
@@ -22,6 +23,9 @@ type Mods = Record<ModKey, boolean>
 type Popup = '' | 'steps' | 'ingr' | 'photo' | 'versions'
 
 const PHOTO = '/assets/lelawar-photo.png'
+// The photo's own size; next/image serves a copy sized to where it's shown (about 590 px wide), not the 1.4 MB original.
+const PHOTO_W = 1030
+const PHOTO_H = 716
 const PHOTO_ALT = 'Lelawar in a dark bowl on a banana leaf, topped with fried shallots'
 
 // [name, Oma's words, tidy for 4, tidy for 2]
@@ -420,8 +424,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
           </section>
 
           <button type="button" className="hm-tap hm-photo" aria-label="See the whole photo" data-haptics="open" onClick={() => setOpen('photo')}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={PHOTO} alt={PHOTO_ALT} />
+            <Image src={PHOTO} alt={PHOTO_ALT} width={PHOTO_W} height={PHOTO_H} sizes="592px" loading="eager" />
           </button>
 
           <div className="hm-float">
@@ -466,8 +469,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         {open === 'photo' && (
           <div className={`hm-center${closing ? ' is-closing' : ''}`}>
             <button type="button" className="hm-card hm-card--photo" aria-label="Close photo" onClick={close}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={PHOTO} alt={PHOTO_ALT} />
+              <Image src={PHOTO} alt={PHOTO_ALT} width={PHOTO_W} height={PHOTO_H} sizes="584px" />
             </button>
           </div>
         )}

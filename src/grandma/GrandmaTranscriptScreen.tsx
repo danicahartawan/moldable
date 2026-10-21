@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { HomeViewBoard } from '@/boards/HomeView'
+import Image from 'next/image'
 
 type GrandmaTranscriptScreenProps = {
   title: string
@@ -146,13 +147,11 @@ export function GrandmaTranscriptScreen({ title, transcript }: GrandmaTranscript
           </ol>
         )}
         {view === 'changes' && penRow !== null && penPos && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="hv-pen" src="/assets/grandma-writer.png" alt="Moldable mascot writing in the recipe" style={{ left: penPos.left, top: penPos.top }} />
+          <Image className="hv-pen" src="/assets/grandma-writer.png" alt="Moldable mascot writing in the recipe" width={1100} height={951} sizes="96px" style={{ left: penPos.left, top: penPos.top }} />
         )}
       </section>
       <div className={`hv-fog${tidying ? ' is-on' : ''}`} aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="hv-fog__mascot" src="/assets/mascot-gradient.png" alt="" draggable={false} />
+        <Image className="hv-fog__mascot" src="/assets/mascot-gradient.png" alt="" width={1024} height={1024} sizes="132px" draggable={false} />
         <p className="hv-fog__heard">Tidying up…</p>
       </div>
     </div>

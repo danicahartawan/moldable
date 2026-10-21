@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { SpeakingGlow, createSimulatedLevel, type GlowState } from './SpeakingGlow'
 import { VoiceNotification } from './VoiceNotification'
 import './glow-demo.css'
+import Image from 'next/image'
 
 const STATES: GlowState[] = ['idle', 'listening', 'hearing', 'thinking', 'done']
 // The same timing as the home view's Adjust flow.
@@ -37,8 +38,7 @@ export function GlowDemo() {
         <div className="gd__content">
           <section className="gd__card gd__recipe">
             <h1>Lawar Bali</h1>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/lelawar-oma.png" alt="Oma Lien holding a plate of lawar" />
+            <Image src="/assets/lelawar-oma.png" alt="Oma Lien holding a plate of lawar" width={318} height={328} />
             <p>Balinese minced pork with toasted coconut, fried in a fresh spice paste and served on pandan rice.</p>
           </section>
           <section className="gd__card gd__time">

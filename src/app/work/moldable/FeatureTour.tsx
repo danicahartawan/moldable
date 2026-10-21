@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 type Feature = { title: string; body: string; image: string; alt: string; pin: { x: number; y: number } }
 
@@ -88,8 +89,8 @@ export function FeatureTour() {
                     <div className="ft-dev__bezel">
                       <div className="ft-dev__screen">
                         {list.map((item, i) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img key={item.image} src={item.image} alt={item.alt} className={i === shown ? 'is-on' : ''} aria-hidden={i !== shown} />
+                          // The phone screen is at most 330 px wide: a sized copy, not the 1280 px screenshot.
+                          <Image key={item.image} src={item.image} alt={item.alt} fill sizes="330px" className={i === shown ? 'is-on' : ''} aria-hidden={i !== shown} />
                         ))}
                         {pinned ? <span className="ft-pin" style={{ left: `${feature.pin.x}%`, top: `${feature.pin.y}%` }} aria-hidden="true">{active + 1}</span> : null}
                       </div>

@@ -48,6 +48,9 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPe
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  // Nothing in the room moves and neither do the lights (only the camera does), so the shadows are drawn once.
+  renderer.shadowMap.autoUpdate = false
+  renderer.shadowMap.needsUpdate = true
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 0.8
   renderer.outputColorSpace = THREE.SRGBColorSpace
@@ -288,7 +291,11 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPe
   window.addEventListener('pointermove', onMove)
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+  // The scene only changes when the parallax is still easing, the rooms are crossfading, or the window resized:
+  // otherwise the frame is skipped, instead of redrawing the whole room with its depth-of-field pass 60 times a second.
+  let dirty = true
   const resize = () => {
+    dirty = true
     const w = window.innerWidth
     const h = window.innerHeight
     renderer.setSize(w, h, false)
@@ -309,8 +316,19 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPe
     const amt = reduce ? 0 : 1
     mouse.sx += (mouse.x - mouse.sx) * Math.min(1, dt * 3)
     mouse.sy += (mouse.y - mouse.sy) * Math.min(1, dt * 3)
+    // Within a thousandth the parallax is far under a pixel: land on it, so the easing doesn't keep drawing for seconds.
+    const near = Math.abs(mouse.x - mouse.sx) < 1e-3 && Math.abs(mouse.y - mouse.sy) < 1e-3
+    if (near) { mouse.sx = mouse.x; mouse.sy = mouse.y }
     const roomTarget = getPerspective() === 'grandma' ? 1 : 0
+    const still = near && Math.abs(roomTarget - grandmaMix) < 1e-3
+    if (still && !dirty) {
+      raf = requestAnimationFrame(frame)
+      return
+    }
+    dirty = false
     grandmaMix += (roomTarget - grandmaMix) * Math.min(1, dt * (reduce ? 100 : 2.8))
+    // Land exactly, so the frame drawn before the loop goes quiet isn't left a hair short of either room.
+    if (Math.abs(roomTarget - grandmaMix) < 1e-3) grandmaMix = roomTarget
     grandmaRoomMaterial.opacity = grandmaMix
     roomMaterial.opacity = 1 - grandmaMix
     camera.position.set(target.x + mouse.sx * 2.6 * amt, target.y + 4.5 - mouse.sy * 1.4 * amt, target.z + d)

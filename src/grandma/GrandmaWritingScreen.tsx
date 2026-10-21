@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Check, LinkSimple, MagicWand } from '@phosphor-icons/react'
+import Image from 'next/image'
 
 const emptyTranscript = 'No transcript was captured in this browser.'
 
@@ -91,7 +92,7 @@ export function GrandmaWritingScreen({ title, transcript }: { title: string; tra
             {story.slice(splitAt).map((paragraph, index) => <WrittenLine text={paragraph} index={index + splitAt + 1} writingTime={writingTime} key={paragraph} />)}
           </div>
         </div>
-        <img className="story-book__traveler" src="/assets/mascot-writer-blue.png" alt="Moldable character writing with a silver pencil" width="1100" height="950" />
+        <Image className="story-book__traveler" src="/assets/mascot-writer-blue.png" alt="Moldable character writing with a silver pencil" width={1100} height={951} sizes="440px" />
       </section>
       {copyState === 'error' ? <p className="story-book__status" role="status">Couldn’t copy the link. Try again.</p> : null}
     </article>

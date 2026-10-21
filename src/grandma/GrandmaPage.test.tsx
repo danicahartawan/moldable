@@ -64,7 +64,7 @@ describe('GrandmaPage', () => {
     expect(document.querySelector('.grandma-homeview')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Record' })).toHaveClass('grandma-recorder-card__idle')
     expect(screen.getByRole('button', { name: 'Record' })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute('src', '/assets/mascot-blue.png')
+    expect(screen.getByRole('img', { name: 'Grandma companion' })).toHaveAttribute('src', expect.stringContaining(encodeURIComponent('/assets/mascot-blue.png')))
     expect(screen.getByTestId('grandma-header')).toHaveClass('grandma-header--right')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Guiding questions' })).not.toBeInTheDocument()
@@ -89,7 +89,7 @@ describe('GrandmaPage', () => {
 
     expect(await screen.findByRole('main', { name: 'Grandma story HomeView' })).toBeInTheDocument()
     expect(document.querySelector('.grandma-handoff')).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Transcript' })).toHaveTextContent('Grandma toasted the spices slowly.')
+    expect(await screen.findByRole('region', { name: 'Transcript' })).toHaveTextContent('Grandma toasted the spices slowly.')
     expect(screen.getByRole('button', { name: 'Tidy' })).toHaveAttribute('aria-pressed', 'false')
     fireEvent.click(screen.getByRole('button', { name: 'Recipe change' }))
     expect(screen.getByRole('region', { name: 'Recipe' })).toHaveTextContent('Toast the grated coconut')

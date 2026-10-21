@@ -2,25 +2,27 @@ import { notFound } from 'next/navigation'
 import { BoardShell } from '@/boards/BoardShell'
 import { BOARDS, type BoardSlug } from '@/boards/boards'
 import { AnatomyBoard } from '@/boards/Anatomy'
-import { HomeViewBoard } from '@/boards/HomeView'
 import { RecordBoard } from '@/boards/Record'
 import { RecipeBoard } from '@/boards/Recipe'
 import { StepBoard } from '@/boards/Step'
 import { WeighBoard } from '@/boards/Weigh'
 
-const VIEWS: Record<BoardSlug, React.ComponentType> = {
+// /boards/home has its own route (app/boards/home), which wins over this one, so the home view isn't listed here:
+// importing it would ship its client code with every other board for nothing.
+type Slug = Exclude<BoardSlug, 'home'>
+const VIEWS: Record<Slug, React.ComponentType> = {
   recipe: RecipeBoard,
   step: StepBoard,
   weigh: WeighBoard,
   record: RecordBoard,
   anatomy: AnatomyBoard,
-  home: HomeViewBoard,
 }
+const isSlug = (s: string): s is Slug => Object.prototype.hasOwnProperty.call(VIEWS, s)
 
 export const dynamicParams = false
 
 export function generateStaticParams() {
-  return BOARDS.map((b) => ({ board: b.slug }))
+  return BOARDS.filter((b) => isSlug(b.slug)).map((b) => ({ board: b.slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ board: string }> }) {
@@ -31,10 +33,10 @@ export async function generateMetadata({ params }: { params: Promise<{ board: st
 
 export default async function BoardPage({ params }: { params: Promise<{ board: string }> }) {
   const { board } = await params
-  if (!BOARDS.some((b) => b.slug === board)) notFound()
-  const View = VIEWS[board as BoardSlug]
+  if (!isSlug(board)) notFound()
+  const View = VIEWS[board]
   return (
-    <BoardShell current={board as BoardSlug}>
+    <BoardShell current={board}>
       <View />
     </BoardShell>
   )

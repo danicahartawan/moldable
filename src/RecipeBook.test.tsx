@@ -19,7 +19,7 @@ describe('RecipeBook writing screen', () => {
     )
     expect(screen.getByRole('img', { name: 'Moldable character writing with a silver pencil' })).toHaveAttribute(
       'src',
-      '/assets/mascot-writer-blue.png',
+      expect.stringContaining(encodeURIComponent('/assets/mascot-writer-blue.png')),
     )
     expect(screen.queryByRole('heading', { name: 'Soto Ayam' })).not.toBeInTheDocument()
     expect(screen.queryByText("Grandma's story")).not.toBeInTheDocument()

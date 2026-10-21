@@ -9,9 +9,10 @@
   --type-weight: 300;
   --type-tight: -.035em;
   --type-snug: -.02em;
-  /* Archivo throughout the grandma / grandkids kitchen (self-hosted in /fonts, see design-system/fonts.css). */
-  --font-sans: "Archivo", "Helvetica Neue", system-ui, sans-serif;
-  --font-display: "Archivo", "Helvetica Neue", system-ui, sans-serif;
+  /* Archivo throughout the grandma / grandkids kitchen (self-hosted by next/font, see design-system/fonts.ts).
+     "archivo Fallback" is Arial sized to Archivo's metrics, so text doesn't jump when the font arrives. */
+  --font-sans: "Archivo", "archivo Fallback", "Helvetica Neue", system-ui, sans-serif;
+  --font-display: "Archivo", "archivo Fallback", "Helvetica Neue", system-ui, sans-serif;
   font-family: var(--font-sans);
   font-weight: var(--type-weight);
 }
