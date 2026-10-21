@@ -2,7 +2,6 @@
 
 import './fridge.css'
 import { HomeViewBoard } from '@/boards/HomeView'
-import { GooButton, GooTooltipGroup } from '@/goo/GooTooltip'
 import Link from 'next/link'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 
@@ -670,10 +669,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
       {shown && (
         <div className={`fz-in-late fz-back fz-back--${page?.kind}${leaving}`}>
-          {/* The tooltip rises into the empty corner rather than dropping over the lede. */}
-          <GooTooltipGroup buttonColor="#f2f1ef" buttonTextColor="#1f1c19" side="top" align="end">
-            <GooButton tooltip="Back to the fridge" aria-label="Back to the fridge" className="fz-back__btn" icon={<ShrinkIcon />} onClick={() => closeNote(true)} />
-          </GooTooltipGroup>
+          <button type="button" className="fz-tap fz-back__btn" aria-label="Back to the fridge" onClick={() => closeNote(true)}><ShrinkIcon /></button>
         </div>
       )}
     </div>
