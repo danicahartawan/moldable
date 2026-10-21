@@ -382,7 +382,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
             </div>
           </section>
 
-          <button type="button" className="hm-tap hm-photo" aria-label="See the whole photo" onClick={() => setOpen('photo')}>
+          <button type="button" className="hm-tap hm-photo" aria-label="See the whole photo" data-haptics="open" onClick={() => setOpen('photo')}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={PHOTO} alt={PHOTO_ALT} />
           </button>
