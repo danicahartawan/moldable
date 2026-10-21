@@ -4,7 +4,7 @@ import './fridge.css'
 import { HomeViewBoard } from '@/boards/HomeView'
 import { GooButton, GooTooltipGroup } from '@/goo/GooTooltip'
 import Link from 'next/link'
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 
 /* 10 Fridge cookbooks. Each cookbook is a retro fridge; its recipes are postcard notes held on by magnets.
    You see a fridge whole, then the camera zooms in until the door fills the screen. Swipe between fridges,
@@ -117,13 +117,32 @@ function ChiliMagnet() {
   )
 }
 
+// Every copy of a card face (the note on the door, and the card that grows out of it) moves in step,
+// all timed from when the first one appeared, so opening a note never makes its face jump.
+let faceEpoch: CSSNumberish | null = null
+function useInStep() {
+  const ref = useRef<SVGSVGElement>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el?.getAnimations) return
+    for (const a of el.getAnimations({ subtree: true })) {
+      faceEpoch ??= document.timeline.currentTime
+      a.startTime = faceEpoch
+    }
+  }, [])
+  return ref
+}
+
 // The Lawar Bali card's face: the dots, then the name big at the foot. Drawn on the note, and on the card that grows out of it.
+// Each dot fades between white and apricot in turn, a slow ripple across the grid; it starts on the drawn pattern.
 function LawarFace({ name, mins, owner, foot }: { name: string; mins: number; owner: string; foot: string }) {
+  const dots = useInStep()
   return (
     <>
-      <svg className="fz-lawar__dots" viewBox="0 0 130 128" aria-hidden="true">
+      <svg ref={dots} className="fz-lawar__dots" viewBox="0 0 130 128" aria-hidden="true">
         {LAWAR_DOTS.flatMap((row, r) => row.map((white, col) => (
-          <circle key={`${r}-${col}`} cx={24.2 + col * 40.3} cy={30.2 + r * 37.3} r="14.3" fill={white ? '#ffffff' : '#ffa24f'} />
+          <circle key={`${r}-${col}`} cx={24.2 + col * 40.3} cy={30.2 + r * 37.3} r="14.3" fill={white ? '#ffffff' : '#ffa24f'}
+            style={{ animationDelay: `${-((white ? 0 : 4) + (r + col) * 0.4)}s` }} />
         )))}
       </svg>
       <span className="fz-lawar__name">{name}</span>
@@ -135,21 +154,22 @@ function LawarFace({ name, mins, owner, foot }: { name: string; mins: number; ow
 }
 
 // Make your own's face: a white ring held by four corner brackets, an orange dot on it, the name big, and a foot band
-// that starts the recording. Drawn in the design's own px (1387 wide), scaled to the 130-wide card.
+// that starts the recording. Drawn in the design's own px (1387 wide), scaled to the 130-wide card. The dot travels round the ring.
 function MakeFace({ owner, foot }: { owner: string; foot: string }) {
+  const art = useInStep()
   const bars = (x: number) => [
     <rect key={`v${x}t`} x={x} y="172" width="63" height="200" />, <rect key={`v${x}b`} x={x} y="1101" width="63" height="182" />,
   ]
   return (
     <>
-      <svg className="fz-make__art" viewBox="0 0 1387 1400" aria-hidden="true">
+      <svg ref={art} className="fz-make__art" viewBox="0 0 1387 1400" aria-hidden="true">
         <g fill="#ffffff">
           <circle cx="693" cy="741" r="484.25" fill="none" stroke="#ffffff" strokeWidth="208.5" />
           {bars(247)}{bars(1077)}
           <rect x="130" y="290" width="200" height="63" /><rect x="1057" y="290" width="200" height="63" />
           <rect x="130" y="1101" width="200" height="63" /><rect x="1057" y="1101" width="200" height="63" />
         </g>
-        <circle cx="213" cy="845" r="32" fill="#ff4a00" />
+        <circle className="fz-make__dot" cx="213" cy="845" r="32" fill="#ff4a00" />
       </svg>
       <span className="fz-make__title">Make your own</span>
       <span className="fz-make__owner">{owner.replace('recipe', 'Recipe')}</span>
