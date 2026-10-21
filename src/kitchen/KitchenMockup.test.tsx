@@ -1,3 +1,4 @@
+import { Profiler } from 'react'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { KitchenMockup } from './KitchenMockup'
@@ -75,5 +76,25 @@ describe('KitchenMockup perspectives', () => {
     expect(document.querySelector('.kitchen__grandkids-view--in')).toBe(board)
     expect(within(board).getByRole('button', { name: 'Step 8' })).toHaveAttribute('aria-current', 'step')
     expect(screen.queryByRole('button', { name: 'Next instruction' })).not.toBeInTheDocument()
+  })
+
+  it('follows a swipe without re-rendering the kitchen on every move', () => {
+    let commits = 0
+    render(<Profiler id="kitchen" onRender={() => { commits++ }}><KitchenMockup /></Profiler>)
+    fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
+    const stage = screen.getByTestId('kitchen-perspective-stage')
+    const host = screen.getByTestId('kitchen-grandkids')
+    commits = 0
+
+    fireEvent.pointerDown(stage, { clientX: 100 })
+    for (let x = 101; x <= 140; x++) fireEvent.pointerMove(stage, { clientX: x })
+    expect(host).toHaveStyle({ transform: 'translateX(40px)' })
+    expect(host).toHaveClass('is-dragging')
+    fireEvent.pointerUp(stage, { clientX: 140 })
+
+    expect(host.style.transform).toBe('')
+    expect(host).not.toHaveClass('is-dragging')
+    // One render as the drag starts, one as it ends.
+    expect(commits).toBeLessThanOrEqual(2)
   })
 })
