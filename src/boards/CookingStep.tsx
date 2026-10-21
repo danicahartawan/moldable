@@ -81,9 +81,11 @@ type CookingStepProps = {
   recipe?: Recipe
   /** Sentence alignment: centred (default) or left. */
   align?: 'center' | 'left'
+  /** Rises in like the first lyric line when it appears. Off for a copy that's on its way out. */
+  enter?: boolean
 }
 
-export function CookingStepBoard({ embedded = false, step: hostStep, onStepChange, recipe = LELAWAR_BALI, align = 'center' }: CookingStepProps = {}) {
+export function CookingStepBoard({ embedded = false, step: hostStep, onStepChange, recipe = LELAWAR_BALI, align = 'center', enter = true }: CookingStepProps = {}) {
   const { steps } = recipe
   const [own, setOwn] = useState(0)
   const i = Math.min(Math.max(hostStep ?? own, 0), steps.length - 1)
@@ -101,14 +103,21 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
     setSizes((prev) => (prev && prev.block.join() === block.join() && prev.sentence.join() === sentence.join() ? prev : { block, sentence }))
   }, [steps])
 
+  // Until the steps have their real heights (fonts loaded), they're placed without animating, so nothing glides into place.
+  const [settled, setSettled] = useState(false)
   useLayoutEffect(() => {
     measure()
     let gone = false
-    document.fonts?.ready.then(() => { if (!gone) measure() })
-    if (typeof ResizeObserver === 'undefined') return () => { gone = true }
+    let frame = 0
+    Promise.resolve(document.fonts?.ready).then(() => {
+      if (gone) return
+      measure()
+      frame = requestAnimationFrame(() => { frame = requestAnimationFrame(() => setSettled(true)) })
+    })
+    if (typeof ResizeObserver === 'undefined') return () => { gone = true; cancelAnimationFrame(frame) }
     const ro = new ResizeObserver(measure)
     blocks.current.forEach((el) => el && ro.observe(el))
-    return () => { gone = true; ro.disconnect() }
+    return () => { gone = true; cancelAnimationFrame(frame); ro.disconnect() }
   }, [measure])
 
   // Lay the steps out around the current one: centred on y = 300, the rest 64px apart above and below.
@@ -191,7 +200,8 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
     <div className={embedded ? 'hv-embed' : 'hv-stage'}>
       <div
         ref={root}
-        className={`st-screen cs${embedded ? ' st-screen--embedded' : ''}`}
+        className={`st-screen cs${embedded ? ' st-screen--embedded' : ''}${enter ? ' is-entering' : ''}`}
+        data-settled={settled || undefined}
         data-align={align}
         tabIndex={0}
         aria-label={`${recipe.cook}’s recipe, step ${i + 1} of ${steps.length}`}

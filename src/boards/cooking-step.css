@@ -10,6 +10,14 @@
 .cs-track { position: absolute; inset: 0; }
 .cs-step { position: absolute; top: 0; right: 48px; left: 48px; transition: transform 750ms cubic-bezier(.22, 1, .36, 1), filter 750ms cubic-bezier(.22, 1, .36, 1), opacity 750ms cubic-bezier(.22, 1, .36, 1); will-change: transform, filter, opacity; }
 .cs-step[data-state='near'] { opacity: .28; filter: blur(8px); }
+/* Until the real heights are in, steps are placed without animating, so nothing glides into place. */
+.cs:not([data-settled]) .cs-step, .cs:not([data-settled]) .cs-label { transition: none; }
+
+/* Arriving: the steps rise in like the first lyric line; the step bars and Ingredients follow a moment later. */
+@keyframes cs-enter { from { opacity: 0; transform: translateY(40px); filter: blur(12px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes cs-enter-soft { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: none; } }
+.cs.is-entering .cs-track { animation: cs-enter 800ms cubic-bezier(.22, 1, .36, 1) both; }
+.cs.is-entering .cs-bars, .cs.is-entering .cs-ing-btn { animation: cs-enter-soft 500ms ease 250ms both; }
 .cs-step[data-state='far'] { opacity: 0; filter: blur(16px); pointer-events: none; }
 
 /* "Step N", 14px above the sentence, moving with it; only the current step shows it. */
@@ -75,4 +83,5 @@
   .cs-step { transition: opacity 200ms ease; }
   .cs-label, .cs-bar, .cs-bar span { transition: none; }
   .cs-orb span, .cs-quote, .cs-pop__backdrop, .cs-pop__card { animation: none; }
+  .cs.is-entering .cs-track, .cs.is-entering .cs-bars, .cs.is-entering .cs-ing-btn { animation: cs-enter-soft 200ms ease both; }
 }

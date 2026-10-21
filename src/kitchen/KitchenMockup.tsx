@@ -122,13 +122,11 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   // The grandma screen can hand over straight to the recipe: the fridge is rebuilt already open on it.
   const [recipeHandover, setRecipeHandover] = useState(0)
   const [leavingStep, setLeavingStep] = useState<number | null>(null)
-  const [slideBack, setSlideBack] = useState(false)
   const [dragX, setDragX] = useState(0)
   const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
 
-  const goToStep = (next: number | null, back = false) => {
-    setSlideBack(back)
+  const goToStep = (next: number | null) => {
     setLeavingStep(instructionStep)
     setInstructionStep(next)
     window.setTimeout(() => setLeavingStep(null), 940)
@@ -178,7 +176,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
     setDragX(0)
     if (perspective === 'grandkids' && instructionStep !== null) {
       // The step screen moves between steps itself (up and down); a swipe to the right goes back to the recipe.
-      if (distance > 56) goToStep(null, true)
+      if (distance > 56) goToStep(null)
       return
     }
     if (perspective === 'grandkids' && distance < -56 && !fridge) {
@@ -215,12 +213,12 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
               )}
             </div>
             {leavingStep !== null && (
-              <div className={`kitchen__grandkids-view kitchen__grandkids-view--out${slideBack ? ' is-back' : ''}`} key={`out-${leavingStep}`} aria-hidden="true">
-                <CookingStepBoard embedded step={leavingStep - 1} />
+              <div className="kitchen__grandkids-view kitchen__grandkids-view--out" key={`out-${leavingStep}`} aria-hidden="true">
+                <CookingStepBoard embedded step={leavingStep - 1} enter={false} />
               </div>
             )}
             {instructionStep !== null && (
-              <div className={`kitchen__grandkids-view kitchen__grandkids-view--in${slideBack ? ' is-back' : ''}`} key="steps">
+              <div className="kitchen__grandkids-view kitchen__grandkids-view--in" key="steps">
                 <CookingStepBoard embedded step={instructionStep - 1} onStepChange={(n) => setInstructionStep(n + 1)} />
               </div>
             )}

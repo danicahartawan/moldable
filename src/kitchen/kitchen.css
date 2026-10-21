@@ -19,12 +19,14 @@
 .kitchen__host--grandma.is-off { opacity: 0; filter: blur(9px); transform: translateX(-42px) scale(.985); pointer-events: none; }
 .kitchen__host--explore.is-off { opacity: 0; filter: blur(9px); transform: translateX(42px) scale(.985); pointer-events: none; }
 .kitchen__host--grandkids.is-off { opacity: 0; filter: blur(9px); transform: translateX(42px) scale(.985); pointer-events: none; }
-.kitchen__grandkids-view { position: absolute; inset: 0; transition: transform 900ms cubic-bezier(.32, .72, 0, 1), opacity 900ms ease; }
-.kitchen__grandkids-view.is-off { opacity: .4; transform: translateX(-34%); pointer-events: none; }
-.kitchen__grandkids-view--in { animation: kitchen-swipe-in 900ms cubic-bezier(.32, .72, 0, 1) both; box-shadow: -18px 0 40px rgba(0, 0, 0, .08); }
-.kitchen__grandkids-view--out { animation: kitchen-swipe-out 900ms cubic-bezier(.32, .72, 0, 1) both; pointer-events: none; }
-@keyframes kitchen-swipe-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
-@keyframes kitchen-swipe-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-34%); opacity: .4; } }
+.kitchen__grandkids-view { position: absolute; inset: 0; transition: transform 700ms cubic-bezier(.22, 1, .36, 1), opacity 500ms ease, filter 600ms ease; }
+/* Home → cooking step is a blur crossfade, not a sideways push: the home view eases back and blurs away
+   while the step screen fades in and its first step rises into place. */
+.kitchen__grandkids-view.is-off { opacity: 0; filter: blur(10px); transform: scale(.96); pointer-events: none; }
+.kitchen__grandkids-view--in { animation: kitchen-step-in 500ms ease both; }
+.kitchen__grandkids-view--out { animation: kitchen-step-out 520ms cubic-bezier(.4, 0, .2, 1) both; pointer-events: none; }
+@keyframes kitchen-step-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kitchen-step-out { from { opacity: 1; filter: none; transform: none; } to { opacity: 0; filter: blur(10px); transform: translateY(24px); } }
 .kitchen__edge-next { position: absolute; z-index: 4; top: 0; right: 0; width: 58px; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .kitchen__edge-next:focus-visible { outline: 3px solid rgba(88, 64, 52, 0.7); outline-offset: -7px; }
 .kitchen__glare { position: absolute; inset: 0; border-radius: 68px; pointer-events: none; background: linear-gradient(150deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 30%); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 0 36px rgba(40, 24, 10, 0.06); }
@@ -107,12 +109,13 @@
 .kitchen__loading.is-gone { opacity: 0; pointer-events: none; }
 
 @media (max-width: 520px) { .kitchen__hint { font-size: 12px; } }
-@media (prefers-reduced-motion: reduce) { .kitchen__host { transition: none; } .kitchen__grandkids-view--in, .kitchen__grandkids-view--out { animation: none; } }
-
-.kitchen__grandkids-view--in.is-back { animation-name: kitchen-swipe-in-back; box-shadow: none; }
-.kitchen__grandkids-view--out.is-back { animation-name: kitchen-swipe-out-back; }
-@keyframes kitchen-swipe-in-back { from { transform: translateX(-34%); opacity: .4; } to { transform: translateX(0); opacity: 1; } }
-@keyframes kitchen-swipe-out-back { from { transform: translateX(0); box-shadow: -18px 0 40px rgba(0, 0, 0, .08); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .kitchen__host { transition: none; }
+  .kitchen__grandkids-view { transition: opacity 200ms ease; }
+  .kitchen__grandkids-view.is-off { filter: none; transform: none; }
+  .kitchen__grandkids-view--in, .kitchen__grandkids-view--out { animation: kitchen-step-in 200ms ease both; }
+  .kitchen__grandkids-view--out { animation-direction: reverse; }
+}
 
 .kitchen__host.is-dragging { transition: none; }
 
