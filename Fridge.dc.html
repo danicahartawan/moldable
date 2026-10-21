@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fridge cookbooks</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@keyframes fzIn{from{opacity:0;filter:blur(12px);transform:translateY(10px)}to{opacity:1;filter:none;transform:none}}
+@keyframes fzPop{from{opacity:0;transform:scale(.9);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+.fz-in{animation:fzIn .55s cubic-bezier(.22,1,.36,1) both}
+.fz-in-late{animation:fzIn .5s cubic-bezier(.22,1,.36,1) .12s both}
+.fz-pop{animation:fzPop .7s cubic-bezier(.22,1,.36,1) both}
+.fz-cam{transition:transform 1.15s cubic-bezier(.7,0,.18,1),opacity .6s ease,filter .6s ease}
+.fz-fly{transition:transform .62s cubic-bezier(.65,0,.2,1),border-radius .62s ease}
+.fz-note{transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s ease,left .35s cubic-bezier(.22,1,.36,1),top .35s cubic-bezier(.22,1,.36,1)}
+.fz-note.fz-drag{transition:transform .15s ease,box-shadow .15s ease}
+.fz-note:focus-visible{outline:3px solid #1f1c19;outline-offset:5px}
+.fz-ghost{transition:background-color .3s ease,border-color .3s ease}
+.fz-ghost:hover{background-color:rgba(31,28,25,.035);border-color:rgba(31,28,25,.42)}
+.fz-dot{transition:width .4s cubic-bezier(.22,1,.36,1),background-color .4s ease,color .4s ease}
+.fz-tap{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .2s ease}
+.fz-tap:active{transform:scale(.95)}
+.fz-tap:focus-visible,.fz-ghost:focus-visible{outline:2px solid #1f1c19;outline-offset:2px}
+a.fz-tap{text-decoration:none}
+@media (prefers-reduced-motion: reduce){.fz-in,.fz-in-late,.fz-pop{animation:none}.fz-cam,.fz-fly,.fz-note{transition:opacity .2s ease}}
+</style>
+</helmet>
+<div ref="{{rootRef}}" onPointerDown="{{onDown}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onUp}}" onWheel="{{onWheel}}" style="position: relative; width: 640px; height: 640px; background: #ffffff; font-family: ABC Arizona Sans, system-ui, sans-serif; color: #1f1c19; overflow: hidden; touch-action: none; user-select: none">
+
+  <div class="fz-cam" style="position: absolute; left: 0; top: 0; width: 600px; height: 1240px; transform-origin: 0 0; transform: translate({{cam.tx}}px, {{cam.ty}}px) scale({{cam.k}}); opacity: {{cam.op}}; filter: blur({{cam.blur}}px)">
+    <sc-for list="{{books}}" as="b" hint-placeholder-count="2">
+      <div class="{{b.enter}}" style="position: absolute; left: {{b.ox}}px; top: 0; width: 600px; height: 1240px; opacity: {{b.op}}; transition: opacity .8s ease">
+        <div aria-hidden="true" style="position: absolute; left: -10px; right: -10px; bottom: -46px; height: 90px; border-radius: 50%; background: radial-gradient(closest-side, rgba(31,28,25,.38), rgba(31,28,25,0))"></div>
+
+        <div aria-hidden="true" style="position: absolute; inset: 0; border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; background: {{b.base}}; overflow: hidden; box-shadow: 0 30px 60px rgba(31,28,25,.22)">
+          <div style="position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,.14) 3.5%, rgba(0,0,0,0) 8%, rgba(255,255,255,.12) 10%, rgba(255,255,255,.34) 13%, rgba(255,255,255,.1) 16%, rgba(255,255,255,0) 26%, rgba(0,0,0,0) 66%, rgba(255,255,255,.1) 82%, rgba(255,255,255,.02) 88%, rgba(0,0,0,.2) 95%, rgba(0,0,0,.46) 100%)"></div>
+          <div style="position: absolute; left: 0; right: 0; top: 0; height: 190px; background: radial-gradient(ellipse 62% 100% at 50% 0%, rgba(255,255,255,.38), rgba(255,255,255,0) 72%)"></div>
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,0) 32%, rgba(0,0,0,.06) 70%, rgba(0,0,0,.14) 100%)"></div>
+          <div style="position: absolute; left: 0; right: 0; top: 348px; height: 24px; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.2))"></div>
+          <div style="position: absolute; left: 0; right: 0; top: 372px; height: 12px; background: linear-gradient(#0f0f10, #3b3b3e 45%, #18181a); box-shadow: 0 -2px 4px rgba(0,0,0,.3), 0 2px 0 rgba(255,255,255,.14)"></div>
+          <div style="position: absolute; left: 0; right: 0; top: 384px; height: 26px; background: linear-gradient(rgba(255,255,255,.26), rgba(255,255,255,0))"></div>
+          <div style="position: absolute; right: 8px; top: 367px; width: 46px; height: 22px; border-radius: 4px; background: linear-gradient(#fafafa, #b9bdc2 50%, #e6e7e9 60%, #8c9097); box-shadow: 0 2px 3px rgba(0,0,0,.35)"></div>
+          <div style="position: absolute; left: 0; right: 0; top: 1150px; bottom: 0; background: repeating-linear-gradient(180deg, rgba(255,255,255,.3) 0 2px, rgba(255,255,255,0) 2px 8px, rgba(0,0,0,.26) 8px 12px); box-shadow: inset 0 3px 4px rgba(0,0,0,.25)"></div>
+        </div>
+
+        <p aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 112px; margin: 0; text-align: center; font-size: 38px; line-height: 44px; font-weight: 700; letter-spacing: 0.55em; padding-left: 0.55em; background: linear-gradient(#ffffff, #c3c6cb 48%, #f4f5f6 56%, #8b9097); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 1px rgba(0,0,0,.4))">{{b.badge}}</p>
+
+        <div aria-hidden="true" style="position: absolute; left: 64px; top: 304px; width: 268px; height: 40px">
+          <div style="position: absolute; left: 0; top: 10px; width: 22px; height: 30px; border-radius: 6px; background: linear-gradient(90deg, #8c9097, #e8e9eb 40%, #a3a7ad); box-shadow: 0 6px 8px rgba(0,0,0,.35)"></div>
+          <div style="position: absolute; left: 6px; right: 0; top: 0; height: 30px; border-radius: 12px 26px 18px 12px; background: linear-gradient(180deg, #ffffff 0%, #dfe1e4 26%, #9aa0a7 50%, #eceef0 68%, #b3b7bd 100%); box-shadow: 0 10px 12px rgba(0,0,0,.32), inset 0 -2px 2px rgba(0,0,0,.18)"></div>
+          <div style="position: absolute; left: 22px; right: 40px; top: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.95)"></div>
+        </div>
+        <div aria-hidden="true" style="position: absolute; left: 64px; top: 408px; width: 268px; height: 40px">
+          <div style="position: absolute; left: 0; top: 0; width: 22px; height: 30px; border-radius: 6px; background: linear-gradient(90deg, #8c9097, #e8e9eb 40%, #a3a7ad); box-shadow: 0 6px 8px rgba(0,0,0,.35)"></div>
+          <div style="position: absolute; left: 6px; right: 0; top: 8px; height: 30px; border-radius: 12px 18px 26px 12px; background: linear-gradient(180deg, #ffffff 0%, #dfe1e4 26%, #9aa0a7 50%, #eceef0 68%, #b3b7bd 100%); box-shadow: 0 10px 12px rgba(0,0,0,.32), inset 0 -2px 2px rgba(0,0,0,.18)"></div>
+          <div style="position: absolute; left: 22px; right: 40px; top: 13px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.95)"></div>
+        </div>
+
+        <sc-if value="{{b.isNeighbour}}" hint-placeholder-val="{{false}}">
+          <button type="button" onClick="{{b.pick}}" aria-label="{{b.aria}}" style="position: absolute; inset: 0; z-index: 40; border: 0; padding: 0; background: transparent; cursor: pointer; border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px"></button>
+        </sc-if>
+
+        <sc-for list="{{b.notes}}" as="n" hint-placeholder-count="2">
+          <button type="button" class="fz-note {{n.cls}}" onPointerDown="{{n.down}}" onClick="{{n.click}}" disabled="{{b.locked}}" aria-label="{{n.aria}}" style="position: absolute; left: {{n.x}}px; top: {{n.y}}px; z-index: {{n.z}}; width: 130px; height: 150px; box-sizing: border-box; padding: 0; border: 0; border-radius: 2px; background: {{n.base}}; color: #1f1c19; text-align: left; font: inherit; cursor: {{n.cursor}}; transform: rotate({{n.r}}deg) scale({{n.lift}}); box-shadow: {{n.shadow}}; visibility: {{n.vis}}; touch-action: none; display: flex; flex-direction: column; overflow: visible">
+            <span aria-hidden="true" style="position: relative; flex: none; height: 22px; border-radius: 2px 2px 0 0; background: {{n.top}}">
+              <span style="position: absolute; left: 9px; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.55); box-shadow: inset 0 1px 1px rgba(0,0,0,.15)"></span>
+            </span>
+            <sc-if value="{{n.isNew}}" hint-placeholder-val="{{false}}">
+              <span style="position: relative; flex: 1; margin: 7px 8px 0; border: 1.2px dashed rgba(31,28,25,.32); border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center">
+                <span aria-hidden="true" style="width: 26px; height: 26px; border-radius: 50%; background: #1f1c19; color: #ffffff; display: flex; align-items: center; justify-content: center">
+                  <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M10 4v12M4 10h12"></path></svg>
+                </span>
+                <span style="font-size: 12px; line-height: 13px; font-weight: 600; letter-spacing: -0.02em">Make your own</span>
+                <span style="font-size: 6.5px; line-height: 8px; opacity: .75">Record, scan or write it</span>
+              </span>
+            </sc-if>
+            <sc-if value="{{n.isRecipe}}" hint-placeholder-val="{{true}}">
+              <span style="position: relative; flex: 1; padding: 0 11px 9px; display: flex; flex-direction: column; justify-content: flex-end">
+                <span style="display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 4px"><span style="font-size: 14px; line-height: 15px; font-weight: 600; letter-spacing: -0.025em">{{n.name}}</span><span style="font-size: 6.5px; line-height: 8px; font-weight: 500; font-variant-numeric: tabular-nums">{{n.mins}} mins</span></span>
+                <span style="margin-top: 5px; font-size: 7px; line-height: 9px; opacity: .82">{{n.owner}}</span>
+              </span>
+            </sc-if>
+            <span style="position: relative; flex: none; height: 20px; margin-top: {{n.footGap}}px; padding: 0 10px; border-radius: 0 0 2px 2px; background: {{n.bottom}}; display: flex; align-items: center; gap: 4px; font-size: 6.5px; line-height: 8px; font-weight: 500">
+              <svg width="8" height="8" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{n.footIcon}}"></path></svg>{{n.foot}}
+            </span>
+            <span aria-hidden="true" style="position: absolute; inset: 0; border-radius: 2px; background: linear-gradient(160deg, rgba(255,255,255,.18), rgba(255,255,255,0) 35%, rgba(0,0,0,0) 75%, rgba(0,0,0,.06)); pointer-events: none"></span>
+            <sc-if value="{{n.chili}}" hint-placeholder-val="{{false}}">
+              <svg width="40" height="58" viewBox="0 0 40 58" aria-hidden="true" style="position: absolute; top: -14px; right: -14px; filter: drop-shadow(0 3px 2px rgba(0,0,0,.35))">
+                <path d="M14 4c3 2 9 2 12 0 M16 3l3 9 M24 3l-3 9" fill="none" stroke="#a07a45" stroke-width="1.6" stroke-linecap="round"></path>
+                <circle cx="20" cy="10" r="3.4" fill="#2b2a2a"></circle>
+                <path d="M18.5 14c-5 6-8.5 16-11.5 30 3.5-3.5 8-13 12.5-29z" fill="#c8161d"></path>
+                <path d="M20 15c-1.5 11-3 22-4.5 37 3.8-6 6-19 6-36z" fill="#a30f16"></path>
+                <path d="M21.5 14c4 6 7.5 15 11 27-4-3-7.8-11-12-26z" fill="#d7261f"></path>
+                <path d="M20.8 15c2.6 9 4.2 19 4.6 31-2.8-5-4.4-16-5.4-30z" fill="#b5161a"></path>
+                <path d="M12 26c-1.5 3-2.6 6.5-3.4 10 M18.4 24c-.6 5-1.2 10-1.6 15 M26 25c1.4 3.5 2.6 7 3.6 11" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1" stroke-linecap="round"></path>
+                <path d="M17 14.5l1.8-2 M20 15l0-2.6 M22.6 14.4l-1.6-2" fill="none" stroke="#3f6b2a" stroke-width="2" stroke-linecap="round"></path>
+              </svg>
+            </sc-if>
+            <sc-if value="{{n.round}}" hint-placeholder-val="{{true}}">
+              <span aria-hidden="true" style="position: absolute; top: -8px; right: 12px; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, {{n.magHi}}, {{n.mag}} 52%, {{n.magLo}}); box-shadow: 0 4px 6px rgba(0,0,0,.38), inset 0 -2px 2px rgba(0,0,0,.25)"></span>
+            </sc-if>
+          </button>
+        </sc-for>
+      </div>
+    </sc-for>
+
+    <div style="position: absolute; left: {{ghost.ox}}px; top: 0; width: 600px; height: 1240px; opacity: {{ghost.op}}; transition: opacity .8s ease">
+      <button type="button" class="fz-ghost" onClick="{{ghost.click}}" aria-label="{{ghost.aria}}" style="position: absolute; inset: 0; box-sizing: border-box; padding: 0; border: 8px dashed rgba(31,28,25,.26); border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; background: rgba(31,28,25,.015); color: #1f1c19; font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
+        <span aria-hidden="true" style="width: 150px; height: 150px; border-radius: 50%; background: #1f1c19; color: #ffffff; display: flex; align-items: center; justify-content: center">
+          <svg width="70" height="70" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 3.5v13M3.5 10h13"></path></svg>
+        </span>
+        <span style="font-size: 64px; line-height: 70px; font-weight: 500; letter-spacing: -0.03em">New fridge</span>
+        <span style="font-size: 36px; line-height: 44px; color: #6b665f; max-width: 440px; text-align: center">A cookbook for someone else in the family</span>
+      </button>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 18px; display: flex; justify-content: center; pointer-events: none; opacity: {{chromeOp}}; transition: opacity .3s ease">
+    <nav aria-label="Cookbooks" style="pointer-events: auto; display: flex; padding: 0 6px; border-radius: 999px; background: rgba(255,255,255,.62); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px)">
+      <sc-for list="{{dots}}" as="d" hint-placeholder-count="3">
+        <button type="button" class="fz-tap" onClick="{{d.pick}}" aria-label="{{d.aria}}" aria-current="{{d.cur}}" title="{{d.aria}}" style="width: 30px; height: 30px; padding: 0; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: {{d.bg}}">
+          <sc-if value="{{d.isBook}}" hint-placeholder-val="{{true}}">
+            <span class="fz-dot" style="display: block; width: {{d.w}}px; height: 6px; border-radius: 3px; background: {{d.bg}}"></span>
+          </sc-if>
+          <sc-if value="{{d.isAdd}}" hint-placeholder-val="{{false}}">
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M10 3v14M3 10h14"></path></svg>
+          </sc-if>
+        </button>
+      </sc-for>
+    </nav>
+  </div>
+
+  <sc-if value="{{showZoom}}" hint-placeholder-val="{{true}}">
+    <button type="button" class="fz-tap" onClick="{{toggleView}}" aria-label="{{viewAria}}" title="{{viewAria}}" style="position: absolute; right: 18px; bottom: 14px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255,255,255,.62); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); color: #1f1c19; cursor: pointer; display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{viewIcon}}"></path></svg>
+    </button>
+  </sc-if>
+
+  <sc-if value="{{flying}}" hint-placeholder-val="{{false}}">
+    <div class="fz-fly" aria-hidden="true" style="position: absolute; z-index: 20; left: {{fly.left}}px; top: {{fly.top}}px; width: {{fly.w}}px; height: {{fly.h}}px; border-radius: {{fly.rad}}px; background: {{fly.paper}}; transform: {{fly.tf}}; box-shadow: 0 10px 24px rgba(31,28,25,.25)"></div>
+  </sc-if>
+
+  <sc-if value="{{homeOn}}" hint-placeholder-val="{{false}}">
+    <div class="fz-in" style="position: absolute; z-index: 21; inset: 0; background: #ffffff">
+      <dc-import name="HomeAlt" hint-size="640px,640px"></dc-import>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{newOn}}" hint-placeholder-val="{{false}}">
+    <article class="fz-in" aria-label="New recipe" style="position: absolute; z-index: 21; inset: 0; background: {{page.paper}}">
+      <section style="position: absolute; left: 48px; right: 48px; top: 72px">
+        <h1 style="margin: 0; font-size: 60px; line-height: 64px; font-weight: 500; letter-spacing: -0.03em">New recipe</h1>
+        <p style="margin: 14px 0 0; font-size: 30px; line-height: 39px; letter-spacing: -0.012em">For <b style="font-weight: 600">{{page.book}}</b>. How do you want to save it?</p>
+        <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 10px">
+          <a href="Record.dc.html" class="fz-tap" style="display: flex; align-items: center; gap: 16px; min-height: 76px; padding: 0 22px; border-radius: 22px; background: #1f1c19; color: #ffffff">
+            <svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-5 0V5A2.5 2.5 0 0 1 10 2.5z M5 9.5a5 5 0 0 0 10 0 M10 14.5V17.5"></path></svg>
+            <span style="display: flex; flex-direction: column"><span style="font-size: 24px; line-height: 30px; font-weight: 500">Record her telling it</span><span style="font-size: 15px; line-height: 20px; opacity: .75">Her words stay as she says them</span></span>
+          </a>
+          <button type="button" class="fz-tap" style="display: flex; align-items: center; gap: 16px; min-height: 76px; padding: 0 22px; border: 0; border-radius: 22px; background: rgba(255,255,255,.7); color: #1f1c19; font: inherit; text-align: left; cursor: pointer">
+            <svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7V3.5H7M13 3.5h3.5V7M16.5 13v3.5H13M7 16.5H3.5V13 M3.5 10h13"></path></svg>
+            <span style="display: flex; flex-direction: column"><span style="font-size: 24px; line-height: 30px; font-weight: 500">Scan a card</span><span style="font-size: 15px; line-height: 20px; color: #57524c">Hold her recipe card flat</span></span>
+          </button>
+          <button type="button" class="fz-tap" style="display: flex; align-items: center; gap: 16px; min-height: 76px; padding: 0 22px; border: 0; border-radius: 22px; background: rgba(255,255,255,.7); color: #1f1c19; font: inherit; text-align: left; cursor: pointer">
+            <svg width="26" height="26" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16l.9-3.6L12.6 4.7a1.6 1.6 0 0 1 2.3 0l.4.4a1.6 1.6 0 0 1 0 2.3L7.6 15.1z M11.4 5.9l2.7 2.7"></path></svg>
+            <span style="display: flex; flex-direction: column"><span style="font-size: 24px; line-height: 30px; font-weight: 500">Write it yourself</span><span style="font-size: 15px; line-height: 20px; color: #57524c">Type it in, step by step</span></span>
+          </button>
+        </div>
+      </section>
+    </article>
+  </sc-if>
+
+  <sc-if value="{{paperOn}}" hint-placeholder-val="{{false}}">
+    <article class="fz-in" aria-label="{{page.name}}" style="position: absolute; z-index: 21; inset: 0; background: {{page.paper}}">
+      <section style="position: absolute; left: 48px; right: 48px; top: 96px">
+        <h1 style="margin: 0; font-size: 64px; line-height: 68px; font-weight: 500; letter-spacing: -0.03em">{{page.name}}</h1>
+        <p style="margin: 16px 0 0; font-size: 30px; line-height: 40px; letter-spacing: -0.012em">From <b style="font-weight: 600">{{page.from}}</b>.</p>
+        <div style="margin-top: 22px; display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{page.tags}}" as="t" hint-placeholder-count="2">
+            <span style="display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px 0 12px; border-radius: 999px; background: rgba(255,255,255,.6); font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums">
+              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.icon}}"></path></svg>{{t.label}}
+            </span>
+          </sc-for>
+        </div>
+      </section>
+      <p style="position: absolute; left: 48px; bottom: 40px; margin: 0; font-size: 17px; line-height: 22px; opacity: .7">Placeholder recipe in the wireframe</p>
+    </article>
+  </sc-if>
+
+  <sc-if value="{{pageOn}}" hint-placeholder-val="{{false}}">
+    <button type="button" class="fz-tap fz-in-late" onClick="{{closeNote}}" aria-label="Back to the fridge" title="Back to the fridge" style="position: absolute; z-index: 30; top: 20px; right: 20px; width: 48px; height: 48px; border: 0; border-radius: 50%; background: rgba(242,241,239,.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); color: #1f1c19; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(31,28,25,.12)">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l5-5 5 5M10 4v12"></path></svg>
+    </button>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":640,"height":640}}'>
+var W = 600, H = 1240, GAP = 300, NW = 130, NH = 150;
+// Camera: the whole fridge, or zoomed in until the door fills the screen.
+var VIEWS = { over: { k: 0.48, fx: 300, fy: 630 }, door: { k: 1.6, fx: 300, fy: 632 } };
+var START = [
+  { badge: 'OMA LIEN', label: 'Oma Lien’s cookbook', from: 'Oma Lien’s cards', owner: 'Oma Lien’s recipe', base: '#c42b22',
+    recipes: [['Lelawar Bali', 40, 'Hard']] },
+  { badge: 'TANTE ANI', label: 'Tante Ani’s cookbook', from: 'Tante Ani’s notebook', owner: 'Tante Ani’s recipe', base: '#e4a0b1',
+    recipes: [['Klepon', 45, 'Easy'], ['Kue lapis', 90, 'Medium']] }
+];
+var NEW_COLOURS = ['#8fc6ba', '#e8d9b8', '#86a3d8', '#f0b54a'];
+// Where cards sit on the door, by how many cards the fridge has (the last is always Make your own).
+var LAYOUTS = {
+  1: [[200, 520, 2]],
+  2: [[122, 500, -4], [318, 522, 3]],
+  3: [[118, 470, -4], [300, 458, 3], [212, 652, 2]],
+  4: [[118, 470, -4], [300, 458, 3], [126, 650, 2], [306, 640, -3]]
+};
+// Postcard colours: [card, top band, bottom band].
+var CARDS = [['#f6c945', '#e7b82e', '#f9da7a'], ['#86cfab', '#70bd97', '#a9e0c4'], ['#86a9ef', '#7095e0', '#a9c3f6'], ['#efe6d2', '#e2d6bc', '#f7f0e2']];
+var NEWCARD = ['#fbf8f1', '#eee8dc', '#f3eee4'];
+var MAGS = [['#7a7570', '#1f1c19', '#000000'], ['#ffd27a', '#e0a21c', '#8a5a00'], ['#9fb7ff', '#3546a8', '#1d2a6b'], ['#a8e0b0', '#2c6a39', '#143a1c']];
+var ICON = {
+  clock: 'M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M10 6.5V10l2.4 1.5', level: 'M4 15v-3M8 15V9M12 15V6M16 15V3',
+  history: 'M3.5 10a6.5 6.5 0 1 0 2-4.7 M3 3v3.5h3.5 M10 6.5V10l2.4 1.5', plus: 'M10 4v12M4 10h12'
+};
+function itemsOf(b) { return b.recipes.map(function (r) { return { kind: 'recipe', r: r }; }).concat([{ kind: 'new' }]); }
+function layoutFor(n) { return LAYOUTS[Math.min(4, n)].map(function (s) { return [s[0], s[1], s[2]]; }); }
+function cardFor(bi, k, kind) {
+  if (kind === 'new') return { paper: NEWCARD[0], top: NEWCARD[1], bottom: NEWCARD[2] };
+  if (bi === 0 && k === 0) return { paper: '#f4511e', top: '#e0431a', bottom: '#ff7a4e' };
+  var c = CARDS[(bi * 2 + k) % CARDS.length];
+  return { paper: c[0], top: c[1], bottom: c[2] };
+}
+function camFor(view, i) {
+  var v = VIEWS[view], ox = i * (W + GAP);
+  return { k: v.k, tx: 320 - (ox + v.fx) * v.k, ty: 320 - v.fy * v.k };
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var books = START.map(function (b) { return Object.assign({}, b, { recipes: b.recipes.slice() }); });
+    this.state = {
+      books: books, i: 0, view: 'over', ready: false, fresh: -1,
+      pos: books.map(function (b) { return layoutFor(itemsOf(b).length); }),
+      order: books.map(function (b) { return itemsOf(b).map(function (_, k) { return k; }); }),
+      dragging: null, open: null, phase: 0
+    };
+    this.lock = 0; this.acc = 0; this.root = null;
+    this.rootRef = (el) => { this.root = el; };
+  }
+  componentDidMount() {
+    this.t0 = setTimeout(() => this.setState({ ready: true }), 60);
+    this.tz = setTimeout(() => this.setState({ view: 'door' }), 1500);
+  }
+  componentWillUnmount() { [this.t0, this.tz, this.t1, this.t2, this.t3, this.ts1, this.ts2, this.accT].forEach(clearTimeout); }
+  // Every fridge is seen whole first: zoom out, slide over, then zoom into its door.
+  go(i) {
+    if (this.state.open) return;
+    var last = this.state.books.length;
+    i = Math.max(0, Math.min(last, i));
+    if (i === this.state.i) return;
+    clearTimeout(this.tz); clearTimeout(this.ts1); clearTimeout(this.ts2);
+    this.lock = Date.now() + 2700;
+    var wasDoor = this.state.view === 'door', wait = wasDoor ? 800 : 0;
+    this.setState({ view: 'over' });
+    this.ts1 = setTimeout(() => this.setState({ i: i }), wait);
+    if (i < last) this.ts2 = setTimeout(() => this.setState({ view: 'door' }), wait + 1700);
+  }
+  step(d) { if (Date.now() < this.lock) return; this.go(this.state.i + d); }
+  addFridge() {
+    var s = this.state, n = s.books.length;
+    var b = { badge: 'NEW BOOK', label: 'New cookbook', from: 'your new cookbook', owner: 'Your recipe', base: NEW_COLOURS[(n - 2) % NEW_COLOURS.length], recipes: [] };
+    this.setState({
+      books: s.books.concat([b]), fresh: n,
+      pos: s.pos.concat([layoutFor(1)]), order: s.order.concat([[0]]), i: n, view: 'over'
+    });
+    this.lock = Date.now() + 1800;
+    clearTimeout(this.ts2); this.ts2 = setTimeout(() => this.setState({ view: 'door', fresh: -1 }), 1100);
+  }
+  unit() { var r = this.root ? this.root.getBoundingClientRect() : null; return (r && r.width ? r.width / 640 : 1) * VIEWS[this.state.view].k; }
+  startDrag(e, bi, k) {
+    if (this.state.open || bi !== this.state.i) return;
+    e.stopPropagation();
+    var p = this.state.pos[bi][k];
+    this.drag = { bi: bi, k: k, sx: e.clientX, sy: e.clientY, ox: p[0], oy: p[1], moved: false, u: this.unit() };
+    var order = this.state.order.slice(); order[bi] = order[bi].filter(function (x) { return x !== k; }).concat([k]);
+    this.setState({ order: order, dragging: [bi, k] });
+  }
+  clickNote(bi, k) {
+    if (this.suppress) { this.suppress = false; return; }
+    if (bi === this.state.i) this.openNote(k);
+  }
+  openNote(k) {
+    if (this.state.open) return;
+    this.setState({ open: { b: this.state.i, k: k }, phase: 0, dragging: null });
+    this.t1 = setTimeout(() => this.setState({ phase: 1 }), 30);
+    this.t2 = setTimeout(() => this.setState({ phase: 2 }), 640);
+  }
+  closeNote() {
+    if (!this.state.open) return;
+    this.setState({ phase: 1 });
+    this.t1 = setTimeout(() => this.setState({ phase: 0 }), 40);
+    this.t3 = setTimeout(() => this.setState({ open: null }), 720);
+  }
+  renderVals() {
+    var s = this.state, self = this, o = s.open, last = s.books.length;
+    var cam = camFor(s.view, s.i);
+    var books = s.books.map(function (b, bi) {
+      var d = bi - s.i, cur = d === 0, order = s.order[bi];
+      return {
+        ox: bi * (W + GAP), op: cur ? 1 : Math.abs(d) === 1 ? 0.6 : 0, enter: bi === s.fresh ? 'fz-pop' : '',
+        isNeighbour: Math.abs(d) === 1 && !o, locked: !cur || !!o,
+        aria: 'Go to ' + b.label, pick: function () { self.go(bi); },
+        badge: b.badge, base: b.base,
+        notes: itemsOf(b).map(function (it, k) {
+          var p = s.pos[bi][k], c = cardFor(bi, k, it.kind), m = MAGS[(bi + k) % MAGS.length];
+          var isNew = it.kind === 'new', main = bi === 0 && k === 0;
+          var dragging = s.dragging && s.dragging[0] === bi && s.dragging[1] === k;
+          return {
+            x: Math.round(p[0]), y: Math.round(p[1]), r: dragging ? 0 : p[2], lift: dragging ? 1.06 : 1,
+            z: 10 + order.indexOf(k), cls: dragging ? 'fz-drag' : '',
+            shadow: dragging ? '0 22px 30px rgba(31,28,25,.34)' : '0 6px 10px rgba(31,28,25,.24), 0 1px 2px rgba(31,28,25,.2)',
+            cursor: cur ? (dragging ? 'grabbing' : 'grab') : 'default',
+            base: c.paper, top: c.top, bottom: c.bottom, magHi: m[0], mag: m[1], magLo: m[2],
+            chili: main, round: !main, isNew: isNew, isRecipe: !isNew, owner: b.owner,
+            name: isNew ? '' : it.r[0], mins: isNew ? '' : it.r[1],
+            foot: isNew ? 'New recipe' : 'Version 1', footIcon: isNew ? ICON.plus : ICON.history, footGap: isNew ? 7 : 0,
+            aria: isNew ? 'Make your own recipe. Drag to move, tap to start.' : it.r[0] + ', ' + it.r[1] + ' minutes. Drag to move, tap to open.',
+            vis: o && o.b === bi && o.k === k ? 'hidden' : 'visible',
+            down: function (e) { self.startDrag(e, bi, k); },
+            click: function () { self.clickNote(bi, k); }
+          };
+        })
+      };
+    });
+    var gd = last - s.i;
+    var ghost = { ox: last * (W + GAP), op: gd === 0 ? 1 : gd === 1 ? 0.6 : 0,
+      aria: gd === 0 ? 'Build a new fridge for another cookbook' : 'Go to New fridge',
+      click: function () { if (self.state.open) return; if (self.state.i === self.state.books.length) self.addFridge(); else self.go(self.state.books.length); } };
+    var fly = { left: 0, top: 0, w: 0, h: 0, rad: 2, paper: '#fff', tf: 'none' };
+    var page = { name: '', from: '', book: '', paper: '#fff', tags: [] }, kind = '';
+    if (o) {
+      var ob = s.books[o.b], it = itemsOf(ob)[o.k], oc = camFor(s.view, o.b), p = s.pos[o.b][o.k], c = cardFor(o.b, o.k, it.kind);
+      var w = NW * oc.k, h = NH * oc.k, left = oc.tx + (o.b * (W + GAP) + p[0]) * oc.k, top = oc.ty + p[1] * oc.k;
+      var dx = 320 - (left + w / 2), dy = 320 - (top + h / 2), S = Math.max(640 / w, 640 / h) * 1.2;
+      fly = { left: Math.round(left), top: Math.round(top), w: Math.round(w), h: Math.round(h), paper: c.paper, rad: s.phase > 0 ? 0 : 2,
+        tf: s.phase > 0 ? 'translate(' + dx + 'px, ' + dy + 'px) rotate(0deg) scale(' + S.toFixed(3) + ')' : 'rotate(' + p[2] + 'deg)' };
+      kind = it.kind === 'new' ? 'new' : (o.b === 0 && o.k === 0 ? 'main' : 'paper');
+      page = it.kind === 'new'
+        ? { name: 'New recipe', book: ob.label, paper: c.paper, from: '', tags: [] }
+        : { name: it.r[0], from: ob.from, book: ob.label, paper: c.paper, tags: [{ icon: ICON.clock, label: it.r[1] + ' min' }, { icon: ICON.level, label: it.r[2] }] };
+    }
+    var shown = !!o && s.phase === 2;
+    return {
+      rootRef: this.rootRef,
+      cam: { tx: Math.round(cam.tx), ty: Math.round(cam.ty), k: cam.k, op: s.ready ? 1 : 0, blur: s.ready ? (o && s.phase > 0 ? 6 : 0) : 14 },
+      books: books, ghost: ghost,
+      dots: s.books.map(function (b, bi) { var on = bi === s.i; return { isBook: true, isAdd: false, w: on ? 22 : 6, bg: on ? '#1f1c19' : '#a9a39b', cur: on ? 'true' : 'false', aria: b.label, pick: function () { self.go(bi); } }; })
+        .concat([{ isBook: false, isAdd: true, w: 0, bg: s.i === last ? '#1f1c19' : '#a9a39b', cur: s.i === last ? 'true' : 'false', aria: 'New fridge', pick: function () { self.go(last); } }]),
+      chromeOp: o ? 0 : 1,
+      showZoom: !o && s.i < last,
+      toggleView: () => this.setState({ view: s.view === 'door' ? 'over' : 'door' }),
+      viewAria: s.view === 'door' ? 'See the whole fridge' : 'Zoom in to the door',
+      viewIcon: s.view === 'door' ? 'M8.5 3a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z M12.5 12.5L17 17 M6 8.5h5' : 'M8.5 3a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z M12.5 12.5L17 17 M6 8.5h5 M8.5 6v5',
+      flying: !!o && s.phase < 2, fly: fly,
+      pageOn: shown, homeOn: shown && kind === 'main', newOn: shown && kind === 'new', paperOn: shown && kind === 'paper', page: page,
+      closeNote: () => this.closeNote(),
+      onDown: (e) => { this.down = { x: e.clientX, y: e.clientY }; },
+      onMove: (e) => {
+        var d = this.drag; if (!d) return;
+        var dx = (e.clientX - d.sx) / d.u, dy = (e.clientY - d.sy) / d.u;
+        if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+        d.moved = true;
+        var pos = this.state.pos.slice(); pos[d.bi] = pos[d.bi].slice();
+        var cur = pos[d.bi][d.k];
+        pos[d.bi][d.k] = [Math.max(-20, Math.min(W - NW + 20, d.ox + dx)), Math.max(20, Math.min(1140 - NH, d.oy + dy)), cur[2]];
+        this.setState({ pos: pos });
+      },
+      onUp: (e) => {
+        var d = this.drag;
+        if (d) {
+          this.drag = null;
+          if (d.moved) { this.suppress = true; setTimeout(() => { this.suppress = false; }, 0); }
+          this.setState({ dragging: null });
+          return;
+        }
+        var dn = this.down; this.down = null; if (!dn || this.state.open || e.type === 'pointerleave') return;
+        var dx = e.clientX - dn.x;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(e.clientY - dn.y) * 1.3) this.step(dx < 0 ? 1 : -1);
+      },
+      onWheel: (e) => {
+        if (this.state.open || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+        this.acc += e.deltaX;
+        clearTimeout(this.accT); this.accT = setTimeout(() => { this.acc = 0; }, 200);
+        if (Math.abs(this.acc) > 40) { var dir = this.acc > 0 ? 1 : -1; this.acc = 0; this.step(dir); }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
