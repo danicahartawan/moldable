@@ -75,6 +75,11 @@ function camFor(view: View, i: number, doorFy: number = DOOR_FY) {
   const ox = i * (W + GAP)
   return { k: v.k, tx: 320 - (ox + v.fx) * v.k, ty: 320 - fy * v.k }
 }
+const camTransform = (c: { k: number; tx: number; ty: number }) => `translate(${Math.round(c.tx)}px, ${Math.round(c.ty)}px) scale(${c.k})`
+// Notes stay on the main door: below the freezer seal, above the ribbed base, inside the fridge's sides.
+const DOOR_TOP = 396
+const DOOR_BOTTOM = 1138
+const DOOR_SIDE = 14
 
 function Icon({ d, size = 20, width = 1.8 }: { d: string; size?: number; width?: number }) {
   return (
@@ -141,19 +146,40 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const [books, setBooks] = useState<Book[]>(() => START.map((b) => ({ ...b, recipes: b.recipes.slice() })))
   const [i, setI] = useState(0)
   const [view, setView] = useState<View>(startOpen ? 'door' : 'over')
-  // Where the door view is scrolled to (its centre, in world units), and whether it's following a finger or wheel right now.
-  const [doorFy, setDoorFy] = useState(DOOR_FY)
+  // Where the door view is scrolled to (its centre, in world units). A scroll writes the camera straight to the DOM,
+  // so the door stays under the finger; React only re-renders as a scroll starts and once it settles.
   const fyRef = useRef(DOOR_FY)
-  fyRef.current = doorFy
+  const fyTarget = useRef(DOOR_FY)
+  const camEl = useRef<HTMLDivElement>(null)
   const [panning, setPanning] = useState(false)
+  const panningRef = useRef(false)
   const panIdle = useRef<number | undefined>(undefined)
-  const scrollTo = (fy: number) => {
-    const next = clampFy(fy)
-    fyRef.current = next
-    setDoorFy(next)
-    setPanning(true)
+  const glide = useRef(0)
+  const resetFy = () => { cancelAnimationFrame(glide.current); glide.current = 0; fyRef.current = DOOR_FY; fyTarget.current = DOOR_FY }
+  const settle = () => {
     window.clearTimeout(panIdle.current)
-    panIdle.current = window.setTimeout(() => setPanning(false), 160)
+    panIdle.current = window.setTimeout(() => {
+      if (glide.current) return settle()
+      panningRef.current = false
+      setPanning(false)
+    }, 160)
+  }
+  // A finger moves the door 1:1; a wheel glides it the rest of the way, a little each frame.
+  const scrollTo = (fy: number, smooth = false) => {
+    fyTarget.current = clampFy(fy)
+    if (!panningRef.current) { panningRef.current = true; setPanning(true) }
+    const paint = () => { if (camEl.current) camEl.current.style.transform = camTransform(camFor('door', i, fyRef.current)) }
+    const follow = () => {
+      const gap = fyTarget.current - fyRef.current
+      fyRef.current = Math.abs(gap) < 0.5 ? fyTarget.current : fyRef.current + gap * 0.3
+      paint()
+      glide.current = fyRef.current === fyTarget.current ? 0 : requestAnimationFrame(follow)
+    }
+    cancelAnimationFrame(glide.current)
+    glide.current = 0
+    if (smooth) glide.current = requestAnimationFrame(follow)
+    else { fyRef.current = fyTarget.current; paint() }
+    settle()
   }
   const [ready, setReady] = useState(startOpen)
   const [fresh, setFresh] = useState(-1)
@@ -179,6 +205,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     Object.values(timers.current).forEach((t) => window.clearTimeout(t))
     window.clearTimeout(accT.current)
     window.clearTimeout(panIdle.current)
+    cancelAnimationFrame(glide.current)
   }, [])
 
   // On first showing: the world fades in, whole, then zooms to the door.
@@ -209,7 +236,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     lock.current = Date.now() + 2700
     const wait = view === 'door' ? 800 : 0
     setView('over')
-    later('slide', wait, () => { setI(n); setDoorFy(DOOR_FY) })
+    later('slide', wait, () => { resetFy(); setI(n) })
     if (n < last) later('zoom', wait + 1700, () => setView('door'))
   }
   const step = (d: number) => { if (Date.now() >= lock.current) go(i + d) }
@@ -222,7 +249,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setPos((cur) => [...cur, layoutFor(1)])
     setOrder((cur) => [...cur, [0]])
     setI(n)
-    setDoorFy(DOOR_FY)
+    resetFy()
     setView('over')
     lock.current = Date.now() + 1800
     later('zoom', 1100, () => { setView('door'); setFresh(-1) })
@@ -290,8 +317,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return
     d.moved = true
     const h = noteH(d.bi, d.k)
-    const x = Math.max(-20, Math.min(W - NW + 20, d.ox + dx))
-    const y = Math.max(20, Math.min(1140 - h, d.oy + dy))
+    const x = Math.max(DOOR_SIDE, Math.min(W - NW - DOOR_SIDE, d.ox + dx))
+    const y = Math.max(DOOR_TOP, Math.min(DOOR_BOTTOM - h, d.oy + dy))
     setPos((cur) => cur.map((spots, b) => (b === d.bi ? spots.map((s, k) => (k === d.k ? [x, y, s[2]] as Spot : s)) : spots)))
     // Carrying a note past the top or bottom of the screen scrolls the fridge with it.
     if (view === 'door') {
@@ -320,7 +347,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
       if (view !== 'door') return
       event.preventDefault()
-      scrollTo(fyRef.current + event.deltaY / unit())
+      scrollTo(fyTarget.current + event.deltaY / unit(), true)
       return
     }
     acc.current += event.deltaX
@@ -344,9 +371,9 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     return () => el.removeEventListener('wheel', listen)
   }, [])
 
-  const cam = camFor(view, i, doorFy)
+  const cam = camFor(view, i, fyRef.current)
   const camStyle: CSSProperties = {
-    transform: `translate(${Math.round(cam.tx)}px, ${Math.round(cam.ty)}px) scale(${cam.k})`,
+    transform: camTransform(cam),
     opacity: ready ? 1 : 0,
     filter: `blur(${ready ? (open && phase > 0 ? 6 : 0) : 14}px)`,
   }
@@ -357,7 +384,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   if (open) {
     const ob = books[open.b]
     const it = itemsOf(ob)[open.k]
-    const oc = camFor(view, open.b, doorFy)
+    const oc = camFor(view, open.b, fyRef.current)
     const p = pos[open.b][open.k]
     const c = cardFor(open.b, open.k, it.kind)
     const w = NW * oc.k
@@ -382,7 +409,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     <div ref={root} className="fz" aria-label="Fridge cookbooks"
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
 
-      <div className={`fz-cam${panning ? ' is-panning' : ''}`} style={camStyle}>
+      <div ref={camEl} className={`fz-cam${panning ? ' is-panning' : ''}`} style={camStyle}>
         {books.map((b, bi) => {
           const d = bi - i
           const cur = d === 0

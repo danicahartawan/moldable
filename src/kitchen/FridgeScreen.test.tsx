@@ -111,10 +111,14 @@ describe('FridgeScreen', () => {
     advance(1600)
     const ty = () => Number(/translate\(-?\d+px, (-?\d+)px\)/.exec(cam())?.[1])
     const start = ty()
+    // The wheel glides the door there over a few frames.
     act(() => { root().dispatchEvent(new WheelEvent('wheel', { deltaY: 160, bubbles: true, cancelable: true })) })
+    expect(ty()).toBeGreaterThan(start - 160)
+    advance(500)
     expect(ty()).toBe(start - 160)
     // Far down: it stops with the bottom of the fridge at the bottom of the screen.
     act(() => { root().dispatchEvent(new WheelEvent('wheel', { deltaY: 5000, bubbles: true, cancelable: true })) })
+    advance(500)
     expect(ty()).toBe(640 - 1240 * 1.6)
     // Dragging the door down scrolls back up.
     fireEvent.pointerDown(root(), { clientX: 300, clientY: 100 })
@@ -135,5 +139,18 @@ describe('FridgeScreen', () => {
     fireEvent.pointerUp(root(), { clientX: 100, clientY: 600 })
     expect(cam()).not.toBe(start)
     expect(Number(lawar.style.top.replace('px', ''))).toBeGreaterThan(700)
+  })
+
+  it('keeps a note on the main door: not past its sides, the freezer seal or the ribbed base', () => {
+    render(<FridgeScreen />)
+    advance(1600)
+    const lawar = note(/Lawar Bali, 40/)
+    const at = () => [lawar.style.left, lawar.style.top].map((v) => Number(v.replace('px', '')))
+    fireEvent.pointerDown(lawar, { clientX: 300, clientY: 300 })
+    fireEvent.pointerMove(root(), { clientX: -3000, clientY: -3000 })
+    expect(at()).toEqual([14, 396])
+    fireEvent.pointerMove(root(), { clientX: 3000, clientY: 3000 })
+    fireEvent.pointerUp(root(), { clientX: 3000, clientY: 3000 })
+    expect(at()).toEqual([600 - 130 - 14, 1138 - 188])
   })
 })

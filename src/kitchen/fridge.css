@@ -15,7 +15,8 @@ a.fz-tap { text-decoration: none; }
 /* The camera: one transform moves the whole world. */
 .fz-cam { position: absolute; top: 0; left: 0; width: 600px; height: 1240px; transform-origin: 0 0; transition: transform 1.15s cubic-bezier(.7, 0, .18, 1), opacity .6s ease, filter .6s ease; }
 /* Following a finger or the wheel up and down the door: the camera keeps up instead of easing for a second. */
-.fz-cam.is-panning { transition: transform 90ms linear, opacity .6s ease, filter .6s ease; }
+/* Scrolling: the script moves the camera each frame, so the transform doesn't also ease behind it. */
+.fz-cam.is-panning { transition: opacity .6s ease, filter .6s ease; will-change: transform; }
 .fz-book { position: absolute; top: 0; width: 600px; height: 1240px; transition: opacity .8s ease; }
 .fz-book__pick { position: absolute; z-index: 40; inset: 0; padding: 0; border: 0; border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; background: transparent; cursor: pointer; }
 
