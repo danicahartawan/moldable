@@ -153,6 +153,23 @@ describe('FridgeScreen', () => {
     expect(Number(lawar.style.top.replace('px', ''))).toBeGreaterThan(700)
   })
 
+  it('zooms in onto the main card, wherever it has been moved to', () => {
+    render(<FridgeScreen />)
+    advance(1600)
+    const ty = () => Number(/translate\(-?\d+px, (-?\d+)px\)/.exec(cam())?.[1])
+    // The door view opens centred on Lawar Bali.
+    const lawar = note(/Lawar Bali, 40/)
+    const centre = () => Number(lawar.style.top.replace('px', '')) + 188 / 2
+    expect(ty()).toBe(Math.round(320 - centre() * 1.6))
+    // Moved far down the door, then zoomed out and back in: the camera comes back onto it.
+    fireEvent.pointerDown(lawar, { clientX: 300, clientY: 300 })
+    fireEvent.pointerMove(root(), { clientX: 300, clientY: 3000 })
+    fireEvent.pointerUp(root(), { clientX: 300, clientY: 3000 })
+    fireEvent.click(screen.getByRole('button', { name: 'See the whole fridge' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in to the door' }))
+    expect(ty()).toBe(Math.round(320 - Math.min(centre(), 1240 - 200) * 1.6))
+  })
+
   it('keeps a note on the main door: not past its sides, the freezer seal or the ribbed base', () => {
     render(<FridgeScreen />)
     advance(1600)

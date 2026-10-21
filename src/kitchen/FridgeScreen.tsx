@@ -38,6 +38,8 @@ const LAYOUTS: Record<number, Spot[]> = {
   3: [[118, 470, -4], [300, 458, 3], [212, 652, 2]],
   4: [[118, 470, -4], [300, 458, 3], [126, 650, 2], [306, 640, -3]],
 }
+// Where Oma Lien's main card starts: the door view first opens on it.
+const START_SPOT = LAYOUTS[2][0]
 // Postcard colours: [card, top band, bottom band].
 const CARDS = [['#f6c945', '#e7b82e', '#f9da7a'], ['#86cfab', '#70bd97', '#a9e0c4'], ['#86a9ef', '#7095e0', '#a9c3f6'], ['#efe6d2', '#e2d6bc', '#f7f0e2']]
 const NEWCARD = ['#fbf8f1', '#eee8dc', '#f3eee4']
@@ -165,14 +167,22 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const [view, setView] = useState<View>(startOpen ? 'door' : 'over')
   // Where the door view is scrolled to (its centre, in world units). A scroll writes the camera straight to the DOM,
   // so the door stays under the finger; React only re-renders as a scroll starts and once it settles.
-  const fyRef = useRef(DOOR_FY)
-  const fyTarget = useRef(DOOR_FY)
+  const fyRef = useRef(clampFy(START_SPOT[1] + noteH(0, 0) / 2))
+  const fyTarget = useRef(fyRef.current)
   const camEl = useRef<HTMLDivElement>(null)
   const [panning, setPanning] = useState(false)
   const panningRef = useRef(false)
   const panIdle = useRef<number | undefined>(undefined)
   const glide = useRef(0)
-  const resetFy = () => { cancelAnimationFrame(glide.current); glide.current = 0; fyRef.current = DOOR_FY; fyTarget.current = DOOR_FY }
+  // Zooming in aims the door view at the fridge's main card (its first), wherever it has been moved to.
+  const aimAt = (bi: number) => {
+    cancelAnimationFrame(glide.current)
+    glide.current = 0
+    const spot = posRef.current[bi]?.[0] ?? layoutFor(1)[0]
+    fyRef.current = fyTarget.current = clampFy(spot[1] + noteH(bi, 0) / 2)
+  }
+  const aimRef = useRef(aimAt)
+  aimRef.current = aimAt
   const settle = () => {
     window.clearTimeout(panIdle.current)
     panIdle.current = window.setTimeout(() => {
@@ -201,6 +211,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const [ready, setReady] = useState(startOpen)
   const [fresh, setFresh] = useState(-1)
   const [pos, setPos] = useState<Spot[][]>(() => START.map((b) => layoutFor(itemsOf(b).length)))
+  const posRef = useRef(pos)
+  posRef.current = pos
   const [order, setOrder] = useState<number[][]>(() => START.map((b) => itemsOf(b).map((_, k) => k)))
   const [dragging, setDragging] = useState<[number, number] | null>(null)
   const [open, setOpen] = useState<Open | null>(startOpen ? { b: 0, k: 0 } : null)
@@ -232,7 +244,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     started.current = true
     let shown = false
     const ready = window.setTimeout(() => { shown = true; setReady(true) }, 60)
-    timers.current.zoom = window.setTimeout(() => setView('door'), 1500)
+    timers.current.zoom = window.setTimeout(() => { aimRef.current(0); setView('door') }, 1500)
     return () => {
       // Torn down before it showed (e.g. React's dev double-run): let the next run start it again.
       if (shown) return
@@ -253,7 +265,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     lock.current = Date.now() + 2700
     const wait = view === 'door' ? 800 : 0
     setView('over')
-    later('slide', wait, () => { resetFy(); setI(n) })
+    later('slide', wait, () => { aimAt(n); setI(n) })
     if (n < last) later('zoom', wait + 1700, () => setView('door'))
   }
   const step = (d: number) => { if (Date.now() >= lock.current) go(i + d) }
@@ -266,7 +278,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setPos((cur) => [...cur, layoutFor(1)])
     setOrder((cur) => [...cur, [0]])
     setI(n)
-    resetFy()
+    aimAt(n)
     setView('over')
     lock.current = Date.now() + 1800
     later('zoom', 1100, () => { setView('door'); setFresh(-1) })
@@ -529,7 +541,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       </div>
 
       {!open && i < last && (
-        <button type="button" className="fz-tap fz-zoom" aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} onClick={() => setView((v) => (v === 'door' ? 'over' : 'door'))}>
+        <button type="button" className="fz-tap fz-zoom" aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} onClick={() => { if (view !== 'door') aimAt(i); setView(view === 'door' ? 'over' : 'door') }}>
           <Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} width={1.7} />
         </button>
       )}
