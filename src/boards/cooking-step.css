@@ -105,11 +105,22 @@
 
 /* Ingredients pop-up: the whole screen frosts, and a card blooms in the middle. */
 @keyframes cs-frost { from { opacity: 0; } to { opacity: 1; } }
-@keyframes cs-card-in { from { opacity: 0; transform: scale(.88); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes cs-frost-out { from { opacity: 1; } to { opacity: 0; } }
 .cs-pop { position: absolute; z-index: 10; inset: 0; display: grid; place-items: center; }
 .cs-pop__backdrop { position: absolute; inset: 0; padding: 0; border: 0; background: rgba(255, 255, 255, .42); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); cursor: default; animation: cs-frost 350ms ease both; }
 .cs .cs-pop__backdrop:focus-visible { outline: none; }
-.cs-pop__card { position: relative; width: 400px; box-sizing: border-box; padding: 26px 30px 22px; border-radius: 32px; background: rgba(255, 255, 255, .88); box-shadow: 0 0 0 1px rgba(31, 28, 25, .05), 0 24px 60px rgba(31, 28, 25, .18); animation: cs-card-in 420ms cubic-bezier(.2, 1.1, .3, 1) both; }
+.cs-pop.is-closing .cs-pop__backdrop { animation: cs-frost-out 420ms ease 120ms both; }
+/* The liquid: one shape that pours out of the Ingredients pill into the card (its size, radius and fill set by script). */
+.cs-pop__blob { position: absolute; z-index: 0; box-sizing: border-box; border-radius: 32px; background: rgba(255, 255, 255, .88); box-shadow: 0 0 0 1px rgba(31, 28, 25, .05), 0 24px 60px rgba(31, 28, 25, .18); pointer-events: none; }
+.cs-pop.is-closing .cs-pop__blob { animation: cs-frost-out 120ms ease 450ms both; }
+.cs-pop__card { position: relative; z-index: 1; width: 400px; box-sizing: border-box; padding: 26px 30px 22px; }
+/* The contents flow in after the liquid, one row at a time, and drain out first on the way back. */
+@keyframes cs-flow-in { from { opacity: 0; transform: translateY(14px) scale(.98); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes cs-flow-out { from { opacity: 1; transform: none; filter: none; } to { opacity: 0; transform: translateY(8px); filter: blur(4px); } }
+.cs-pop__item { animation: cs-flow-in 520ms cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(260ms + var(--i, 0) * 45ms); }
+.cs-pop.is-closing .cs-pop__item { animation: cs-flow-out 160ms ease both; animation-delay: 0ms; }
+/* The pill gives itself to the liquid while the card is out. */
+.cs-ing-btn.is-poured { visibility: hidden; }
 .cs-pop__title { margin: 0 0 4px; color: #6b665f; font-size: 16px; line-height: 22px; }
 .cs-pop__card ul { margin: 0; padding: 0; list-style: none; }
 .cs-pop__card li { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid #efedea; font-size: 24px; line-height: 30px; letter-spacing: -.01em; }
@@ -121,6 +132,8 @@
   .cs-step { transition: opacity 200ms ease; }
   .cs-label, .cs-bar, .cs-bar span { transition: none; }
   .cs-orb span, .cs-quote, .cs-pop__backdrop, .cs-pop__card { animation: none; }
+  .cs-pop__item { animation: cs-frost 150ms ease both; }
+  .cs-pop.is-closing .cs-pop__item, .cs-pop.is-closing .cs-pop__backdrop, .cs-pop.is-closing .cs-pop__blob { animation: cs-frost-out 150ms ease both; }
   .cs.is-entering .cs-track, .cs.is-entering .cs-bars, .cs.is-entering .cs-foot, .cs-done { animation: cs-enter-soft 200ms ease both; }
   .cs-tag svg * { animation: none !important; }
 }

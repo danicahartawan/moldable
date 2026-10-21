@@ -74,8 +74,18 @@ describe('CookingStepBoard', () => {
   })
 
   it('opens the ingredients pop-up, which blocks step changes and closes with Done, the backdrop or Escape', () => {
+    vi.useFakeTimers()
     render(<CookingStepBoard />)
-    fireEvent.click(screen.getByRole('button', { name: 'Ingredients' }))
+    const pill = () => screen.getByRole('button', { name: 'Ingredients' })
+    const closed = () => {
+      // Pouring back: no longer a dialog at once, and gone from the page once the liquid is back in the pill.
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      act(() => { vi.advanceTimersByTime(600) })
+      expect(document.querySelector('.cs-pop')).not.toBeInTheDocument()
+      expect(pill()).not.toHaveClass('is-poured')
+    }
+    fireEvent.click(pill())
+    expect(pill()).toHaveClass('is-poured')
     const card = screen.getByRole('dialog', { name: 'Ingredients · Step 1' })
     expect(within(card).getByText('Lime leaves').closest('li')).toHaveTextContent('Lime leaves4')
     fireEvent.keyDown(screenEl(), { key: 'ArrowDown' })
@@ -84,13 +94,13 @@ describe('CookingStepBoard', () => {
     expect(current()).toHaveTextContent('Step 1')
 
     fireEvent.click(within(card).getByRole('button', { name: 'Done' }))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Ingredients' }))
+    closed()
+    fireEvent.click(pill())
     fireEvent.click(screen.getByRole('button', { name: 'Close ingredients' }))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Ingredients' }))
+    closed()
+    fireEvent.click(pill())
     fireEvent.keyDown(screenEl(), { key: 'Escape' })
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    closed()
   })
 
   it('hides Ingredients on steps without any', () => {

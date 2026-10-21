@@ -2,6 +2,7 @@
 
 import './cooking-step.css'
 import Link from 'next/link'
+import { pourClose, pourOpen, rectIn, type Rect } from './liquid'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 /* One recipe step at a time, as one big sentence. Steps move like song lyrics: the current one sharp in the middle,
@@ -55,6 +56,9 @@ const WHEEL_STEP = 40
 const WHEEL_IDLE_MS = 200
 const WHEEL_LOCK_MS = 650
 const SWIPE = 50
+// The Ingredients pill and the card it pours into: the blob changes from one look to the other on the way.
+const PILL_LOOK = { radius: 22, fill: 'rgb(242, 241, 239)', shadow: '0 0 0 0 rgba(31,28,25,0), 0 0 0 0 rgba(31,28,25,0)' }
+const CARD_LOOK = { radius: 32, fill: 'rgba(255, 255, 255, 0.88)', shadow: '0 0 0 1px rgba(31,28,25,.05), 0 24px 60px rgba(31,28,25,.18)' }
 
 function Sentence({ text }: { text: string }) {
   return <>{text.split('**').map((part, j) => (j % 2 ? <strong key={j}>{part}</strong> : part))}</>
@@ -116,7 +120,10 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
   const i = Math.min(Math.max(hostStep ?? own, 0), steps.length - 1)
   const step = steps[i]
   const [quoteOpen, setQuoteOpen] = useState(false)
-  const [ingOpen, setIngOpen] = useState(false)
+  // The ingredients pop-up: open, or pouring back into its pill before it's removed.
+  const [pop, setPop] = useState<'closed' | 'open' | 'closing'>('closed')
+  const ingOpen = pop === 'open'
+  const closeIng = useCallback(() => setPop((p) => (p === 'open' ? 'closing' : p)), [])
 
   // Real heights of each step block (sentence + quote) and of its sentence alone, measured after fonts load.
   const blocks = useRef<(HTMLDivElement | null)[]>([])
@@ -155,11 +162,11 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
   const go = useCallback((next: number) => {
     const n = Math.min(Math.max(next, 0), steps.length - 1)
     setQuoteOpen(false)
-    setIngOpen(false)
+    closeIng()
     if (n === i) return
     if (hostStep === undefined) setOwn(n)
     onStepChange?.(n)
-  }, [hostStep, i, onStepChange, steps.length])
+  }, [closeIng, hostStep, i, onStepChange, steps.length])
 
   // Latest state for the native wheel listener.
   const live = useRef({ i, go, ingOpen })
@@ -203,7 +210,7 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
-      if (ingOpen || quoteOpen) { setIngOpen(false); setQuoteOpen(false); event.preventDefault() }
+      if (ingOpen || quoteOpen) { closeIng(); setQuoteOpen(false); event.preventDefault() }
       return
     }
     if (ingOpen) return
@@ -220,6 +227,26 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
     else if (wasOpen.current) root.current?.focus()
     wasOpen.current = ingOpen
   }, [ingOpen])
+
+  // Opening, the pill stretches up and pours into the card; closing, the card pours back into the pill.
+  const pill = useRef<HTMLButtonElement>(null)
+  const card = useRef<HTMLElement>(null)
+  const blob = useRef<HTMLDivElement>(null)
+  const cardRect = useRef<Rect | null>(null)
+  useLayoutEffect(() => {
+    const r = root.current
+    const b = blob.current
+    if (pop === 'open' && r && b && card.current) {
+      const to = rectIn(card.current, r)
+      cardRect.current = to
+      pourOpen(b, pill.current ? rectIn(pill.current, r) : to, to, PILL_LOOK, CARD_LOOK)
+    }
+    if (pop !== 'closing') return
+    const from = cardRect.current
+    const poured = r && b && from && pill.current ? pourClose(b, from, rectIn(pill.current, r), CARD_LOOK, PILL_LOOK) : null
+    const gone = window.setTimeout(() => setPop('closed'), poured ? 540 : 180)
+    return () => window.clearTimeout(gone)
+  }, [pop])
 
   return (
     <div className={embedded ? 'hv-embed' : 'hv-stage'}>
@@ -287,7 +314,8 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
 
         <div className="cs-foot" inert={ingOpen}>
           {step.ingredients.length > 0 && (
-            <button type="button" className="cs-ing-btn" aria-haspopup="dialog" aria-expanded={ingOpen} onClick={() => { setQuoteOpen(false); setIngOpen(true) }}>
+            <button ref={pill} type="button" className={`cs-ing-btn${pop === 'closed' ? '' : ' is-poured'}`} aria-haspopup="dialog" aria-expanded={ingOpen}
+              onClick={() => { if (pop !== 'closed') return; setQuoteOpen(false); setPop('open') }}>
               <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
                 <path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h9M3.5 5.5h.01M3.5 10h.01M3.5 14.5h.01" />
               </svg>
@@ -308,17 +336,18 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
           })()}
         </div>
 
-        {ingOpen && (
-          <div className="cs-pop">
-            <button type="button" className="cs-pop__backdrop" aria-label="Close ingredients" onClick={() => setIngOpen(false)} />
-            <section className="cs-pop__card" role="dialog" aria-modal="true" aria-labelledby="cs-pop-title">
-              <p id="cs-pop-title" className="cs-pop__title">Ingredients · Step {i + 1}</p>
+        {pop !== 'closed' && (
+          <div className={`cs-pop${pop === 'closing' ? ' is-closing' : ''}`}>
+            <button type="button" className="cs-pop__backdrop" aria-label="Close ingredients" onClick={closeIng} tabIndex={ingOpen ? 0 : -1} />
+            <div ref={blob} className="cs-pop__blob" aria-hidden="true" />
+            <section ref={card} className="cs-pop__card" {...(ingOpen ? { role: 'dialog', 'aria-modal': true, 'aria-labelledby': 'cs-pop-title' } : { 'aria-hidden': true })}>
+              <p id="cs-pop-title" className="cs-pop__title cs-pop__item" style={{ '--i': 0 } as React.CSSProperties}>Ingredients · Step {i + 1}</p>
               <ul>
-                {step.ingredients.map(([name, amount]) => (
-                  <li key={name}><span>{name}</span><span className="cs-pop__amt">{amount}</span></li>
+                {step.ingredients.map(([name, amount], k) => (
+                  <li key={name} className="cs-pop__item" style={{ '--i': k + 1 } as React.CSSProperties}><span>{name}</span><span className="cs-pop__amt">{amount}</span></li>
                 ))}
               </ul>
-              <button ref={done} type="button" className="cs-pop__done" onClick={() => setIngOpen(false)}>Done</button>
+              <button ref={done} type="button" className="cs-pop__done cs-pop__item" style={{ '--i': step.ingredients.length + 1 } as React.CSSProperties} onClick={closeIng}>Done</button>
             </section>
           </div>
         )}
