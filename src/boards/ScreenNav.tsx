@@ -3,7 +3,6 @@ import Link from 'next/link'
 const SCREENS = [
   { href: '/boards/fridge', label: 'Fridge cookbooks' },
   { href: '/boards/home', label: '07 Home view' },
-  { href: '/boards/explore', label: '08 Explore recipes' },
   { href: '/boards/cooking', label: '09 Cooking step' },
   { href: '/boards/story', label: '10 Oma’s story' },
   { href: '/boards/glow', label: 'Speaking glow' },

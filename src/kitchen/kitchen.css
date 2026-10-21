@@ -1,4 +1,4 @@
-/* The display on a wooden kitchen table, with the home view and Explore live on its screen. */
+/* The display on a wooden kitchen table, with the grandma and grandkids screens live on it. */
 .kitchen {
   --room: #3a2a1f;
   --glass: color-mix(in srgb, var(--flour-raised) 74%, transparent);
@@ -17,7 +17,6 @@
 .kitchen__screen { position: absolute; left: 0; top: 0; width: 640px; height: 640px; overflow: hidden; border-radius: 68px; background: #fff; transform-origin: 0 0; pointer-events: auto; }
 .kitchen__host { position: absolute; inset: 0; transition: opacity 520ms cubic-bezier(.2,.8,.2,1), filter 520ms ease, transform 520ms cubic-bezier(.2,.8,.2,1); }
 .kitchen__host--grandma.is-off { opacity: 0; filter: blur(9px); transform: translateX(-42px) scale(.985); pointer-events: none; }
-.kitchen__host--explore.is-off { opacity: 0; filter: blur(9px); transform: translateX(42px) scale(.985); pointer-events: none; }
 .kitchen__host--grandkids.is-off { opacity: 0; filter: blur(9px); transform: translateX(42px) scale(.985); pointer-events: none; }
 .kitchen__grandkids-view { position: absolute; inset: 0; transition: transform 700ms cubic-bezier(.22, 1, .36, 1), opacity 500ms ease, filter 600ms ease; }
 /* Home → cooking step is a blur crossfade, not a sideways push: the home view eases back and blurs away
@@ -91,7 +90,6 @@
 .kitchen .hv-screen { zoom: 1; border-radius: 0; box-shadow: none; }
 /* The display's own corner is rounder; the voice glow and notification follow it. */
 .kitchen .hv-screen { --sg-radius: 68px; --vn-radius: 52px; }
-.kitchen .ex-notch, .kitchen .ex-tools { display: none; }
 .kitchen .moldable-environment { width: 640px; height: 640px; min-height: 0; background: #fff; }
 .kitchen .moldable-display { width: 640px; height: 640px; border-radius: 0; box-shadow: none; }
 

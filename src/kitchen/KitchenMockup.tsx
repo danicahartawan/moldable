@@ -2,14 +2,13 @@
 
 import { BowlFood, Drop, Grains, Jar, JarLabel, Leaf, Orange, OrangeSlice, Pepper, PiggyBank, Plant, TreePalm, type Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { ExploreBoard } from '@/boards/Explore'
 import { CookingStepBoard } from '@/boards/CookingStep'
 import { HomeViewBoard } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { FridgeScreen } from './FridgeScreen'
 import { GrandmaReply } from './GrandmaReply'
 
-type Perspective = 'grandma' | 'grandkids' | 'explore'
+type Perspective = 'grandma' | 'grandkids'
 
 type Instruction = {
   step: number
@@ -229,9 +228,6 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
               <button type="button" className="kitchen__edge-next" aria-label="Open step 1" onClick={() => goToStep(1)} />
             )}
           </div>
-          <div data-testid="kitchen-explore" className={`kitchen__host kitchen__host--explore${perspective === 'explore' ? '' : ' is-off'}`} aria-hidden={perspective !== 'explore'} inert={perspective !== 'explore'}>
-            <ExploreBoard onOpenRecipe={() => { setInstructionStep(null); setLeavingStep(null); setPerspective('grandkids') }} />
-          </div>
           <div className="kitchen__glare" aria-hidden="true" />
         </div>
       </div>
@@ -241,8 +237,6 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
           <button type="button" aria-pressed={perspective === 'grandma'} onClick={() => setPerspective('grandma')}>Grandma</button>
           <span aria-hidden="true" />
           <button type="button" aria-pressed={perspective === 'grandkids'} onClick={() => setPerspective('grandkids')}>Grandkids</button>
-          <span aria-hidden="true" />
-          <button type="button" aria-pressed={perspective === 'explore'} onClick={() => setPerspective('explore')}>Explore</button>
         </div>
       </div>
 
