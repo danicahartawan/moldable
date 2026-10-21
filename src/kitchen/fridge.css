@@ -5,7 +5,7 @@
 .fz-in-late { animation: fz-in .5s cubic-bezier(.22, 1, .36, 1) .12s both; }
 .fz-pop { animation: fz-pop .7s cubic-bezier(.22, 1, .36, 1) both; }
 
-.fz { position: relative; width: 640px; height: 640px; overflow: hidden; overflow: clip; background: #fff; color: #1f1c19; font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; }
+.fz { position: relative; width: 640px; height: 640px; overflow: hidden; overflow: clip; background: #fff; color: #1f1c19; font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .fz button, .fz a { font: inherit; }
 .fz-tap { cursor: pointer; transition: transform .14s cubic-bezier(.2, .8, .2, 1), background-color .2s ease; }
 .fz-tap:active { transform: scale(.95); }
@@ -80,8 +80,8 @@ a.fz-tap { text-decoration: none; }
 .fz-ghost { position: absolute; inset: 0; display: flex; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 0; border: 8px dashed rgba(31, 28, 25, .26); border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; background: rgba(31, 28, 25, .015); color: #1f1c19; cursor: pointer; transition: background-color .3s ease, border-color .3s ease; }
 .fz-ghost:hover { border-color: rgba(31, 28, 25, .42); background-color: rgba(31, 28, 25, .035); }
 .fz-ghost__plus { display: flex; width: 150px; height: 150px; align-items: center; justify-content: center; border-radius: 50%; background: #1f1c19; color: #fff; }
-.fz-ghost__title { font-size: 64px; font-weight: 500; line-height: 70px; letter-spacing: -.03em; }
-.fz-ghost__sub { max-width: 440px; color: #6b665f; font-size: 36px; line-height: 44px; text-align: center; }
+.fz-ghost__title { font-size: 64px; font-weight: 500; line-height: 70px; letter-spacing: -.03em; text-wrap: balance; }
+.fz-ghost__sub { max-width: 440px; color: #6b665f; font-size: 36px; line-height: 44px; text-align: center; text-wrap: balance; }
 
 /* Dots and zoom: both 28px clear of the screen's edges, their centres on one line 50px up. */
 .fz-dots { position: absolute; right: 0; bottom: 35px; left: 0; display: flex; justify-content: center; pointer-events: none; transition: opacity .3s ease; }

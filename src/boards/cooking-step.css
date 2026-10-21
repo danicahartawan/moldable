@@ -1,6 +1,6 @@
 /* 09 Cooking step, 5.73 in: one step at a time as one big sentence, moving like song lyrics.
    Shares the 640 × 640 .st-screen surface with Oma's story. */
-.cs { --cs-ink: #1f1c19; --cs-align: center; background: #fff; color: var(--cs-ink); font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; }
+.cs { --cs-ink: #1f1c19; --cs-align: center; background: #fff; color: var(--cs-ink); font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .cs[data-align='left'] { --cs-align: left; }
 .cs:focus { outline: none; }
 .cs button { font: inherit; }
@@ -98,8 +98,10 @@
 .cs-slot { display: grid; grid-template-columns: 0fr; transition: grid-template-columns 560ms cubic-bezier(.22, 1, .36, 1); }
 .cs-slot.is-shown { grid-template-columns: 1fr; }
 .cs-slot__inner { display: flex; min-width: 0; overflow: hidden; padding: 4px 0; margin: -4px 0; }
-.cs-slot__inner > * { flex: none; opacity: 0; filter: blur(6px); transform: scale(.9); transition: opacity 220ms ease, filter 220ms ease, transform 300ms ease; }
-.cs-slot.is-shown .cs-slot__inner > * { opacity: 1; filter: none; transform: none; transition: opacity 360ms ease 140ms, filter 360ms ease 140ms, transform 520ms cubic-bezier(.34, 1.4, .64, 1) 140ms; }
+.cs-slot__inner > * { flex: none; opacity: 0; filter: blur(6px); transform: scale(.9); transition: opacity 220ms ease, filter 220ms ease, transform 300ms ease, scale 140ms cubic-bezier(.2, .8, .2, 1); }
+.cs-slot.is-shown .cs-slot__inner > * { opacity: 1; filter: none; transform: none; transition: opacity 360ms ease 140ms, filter 360ms ease 140ms, transform 520ms cubic-bezier(.34, 1.4, .64, 1) 140ms, scale 140ms cubic-bezier(.2, .8, .2, 1); }
+/* Press: `scale`, not `transform`, so it never fights the slot's glide in. */
+.cs-ing-btn:active, .cs-done:active, .cs-pop__done:active { scale: .96; }
 /* With Ingredients beside it, Done keeps an 8px gap. */
 .cs-foot.has-ing .cs-slot--done .cs-done { margin-left: 8px; }
 .cs-foot > * { pointer-events: auto; }
@@ -133,7 +135,7 @@
 .cs-pop__card ul { margin: 0; padding: 0; list-style: none; }
 .cs-pop__card li { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid #efedea; font-size: 24px; line-height: 30px; letter-spacing: -.01em; }
 .cs-pop__amt { font-weight: 600; font-variant-numeric: tabular-nums; }
-.cs-pop__done { display: block; height: 44px; margin: 18px auto 0; padding: 0 26px; border: 0; border-radius: 999px; background: #f2f1ef; color: var(--cs-ink); font-size: 16px; cursor: pointer; }
+.cs-pop__done { display: block; height: 44px; margin: 18px auto 0; padding: 0 26px; border: 0; border-radius: 999px; background: #f2f1ef; color: var(--cs-ink); font-size: 16px; cursor: pointer; transition: scale 140ms cubic-bezier(.2, .8, .2, 1); }
 .cs .cs-pop__done { font-size: 16px; }
 
 @media (prefers-reduced-motion: reduce) {
