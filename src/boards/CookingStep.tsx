@@ -60,14 +60,36 @@ function Sentence({ text }: { text: string }) {
   return <>{text.split('**').map((part, j) => (j % 2 ? <strong key={j}>{part}</strong> : part))}</>
 }
 
+// Each verb's icon acts out the verb on the current step: the pan tosses the coconut, the flame flickers, the spoon stirs.
+function VerbIcon({ verb, icon }: { verb: string; icon: string }) {
+  if (verb === 'Toast') {
+    return (
+      <>
+        <path className="vi-pan" d={icon} />
+        <circle className="vi-flake" cx="6" cy="9.4" r=".9" fill="currentColor" stroke="none" />
+        <circle className="vi-flake vi-flake--late" cx="9.2" cy="9" r=".8" fill="currentColor" stroke="none" />
+      </>
+    )
+  }
+  if (verb === 'Serve') {
+    return (
+      <>
+        <path className="vi-lid" d="M4.5 14a5.5 5.5 0 0 1 11 0 M10 7v1.5" />
+        <path d="M3 14h14 M2 16.5h16" />
+      </>
+    )
+  }
+  return <path className={`vi-${verb.toLowerCase()}`} d={icon} />
+}
+
 function VerbTag({ verb }: { verb: string }) {
   const tag = TAGS[verb] ?? TAGS.Add
   return (
-    <span className="cs-tag" style={{ background: tag.bg, color: tag.ink }}>
+    <span className="cs-tag" data-verb={verb} style={{ background: tag.bg, color: tag.ink }}>
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d={tag.icon} />
+        <VerbIcon verb={verb} icon={tag.icon} />
       </svg>
-      {verb}
+      <span>{verb}</span>
     </span>
   )
 }
