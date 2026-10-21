@@ -17,7 +17,8 @@ const NW = 130
 const NH = 150
 // Lawar Bali, the featured recipe, is its own taller card: a grid of dots, the name big at the foot.
 const LAWAR_NH = 188
-const noteH = (bi: number, k: number) => (bi === 0 && k === 0 ? LAWAR_NH : NH)
+// Make your own is the same tall card, Lawar Bali's companion.
+const noteH = (bi: number, k: number, kind?: 'recipe' | 'new') => (kind === 'new' || (bi === 0 && k === 0) ? LAWAR_NH : NH)
 // Its 3 × 3 dots, white or apricot, row by row.
 const LAWAR_DOTS = [[1, 0, 0], [1, 0, 0], [1, 1, 1]]
 // Camera: the whole fridge, or zoomed in until the door fills the screen.
@@ -43,7 +44,8 @@ const LAYOUTS: Record<number, Spot[]> = {
 const START_SPOT = LAYOUTS[2][0]
 // Postcard colours: [card, top band, bottom band].
 const CARDS = [['#f6c945', '#e7b82e', '#f9da7a'], ['#86cfab', '#70bd97', '#a9e0c4'], ['#86a9ef', '#7095e0', '#a9c3f6'], ['#efe6d2', '#e2d6bc', '#f7f0e2']]
-const NEWCARD = ['#fbf8f1', '#eee8dc', '#f3eee4']
+// Make your own: grey card, lighter foot band.
+const NEWCARD = ['#d4d4d4', '#d4d4d4', '#dcdcdc']
 const MAGS = [['#7a7570', '#1f1c19', '#000000'], ['#ffd27a', '#e0a21c', '#8a5a00'], ['#9fb7ff', '#3546a8', '#1d2a6b'], ['#a8e0b0', '#2c6a39', '#143a1c']]
 const ICON = {
   clock: 'M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M10 6.5V10l2.4 1.5',
@@ -124,6 +126,33 @@ function LawarFace({ name, mins, owner, foot }: { name: string; mins: number; ow
   )
 }
 
+// Make your own's face: a white ring held by four corner brackets, an orange dot on it, the name big, and a foot band
+// that starts the recording. Drawn in the design's own px (1387 wide), scaled to the 130-wide card.
+function MakeFace({ owner, foot }: { owner: string; foot: string }) {
+  const bars = (x: number) => [
+    <rect key={`v${x}t`} x={x} y="172" width="63" height="200" />, <rect key={`v${x}b`} x={x} y="1101" width="63" height="182" />,
+  ]
+  return (
+    <>
+      <svg className="fz-make__art" viewBox="0 0 1387 1400" aria-hidden="true">
+        <g fill="#ffffff">
+          <circle cx="693" cy="741" r="484.25" fill="none" stroke="#ffffff" strokeWidth="208.5" />
+          {bars(247)}{bars(1077)}
+          <rect x="130" y="290" width="200" height="63" /><rect x="1057" y="290" width="200" height="63" />
+          <rect x="130" y="1101" width="200" height="63" /><rect x="1057" y="1101" width="200" height="63" />
+        </g>
+        <circle cx="213" cy="845" r="32" fill="#ff4a00" />
+      </svg>
+      <span className="fz-make__title">Make your own</span>
+      <span className="fz-make__owner">{owner.replace('recipe', 'Recipe')}</span>
+      <span className="fz-make__foot" style={{ background: foot }}>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.6" fill="none" stroke="currentColor" strokeWidth="1.4" /><circle cx="10" cy="10" r="5.6" fill="none" stroke="currentColor" strokeWidth="1.4" /></svg>
+        Start Recording
+      </span>
+    </>
+  )
+}
+
 // The fridge body: rolled sides, domed top, freezer door and seal, chrome hinge, ribbed base, badge and handles.
 function FridgeBody({ base, badge }: { base: string; badge: string }) {
   return (
@@ -180,8 +209,10 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     cancelAnimationFrame(glide.current)
     glide.current = 0
     const spot = posRef.current[bi]?.[0] ?? layoutFor(1)[0]
-    fyRef.current = fyTarget.current = clampFy(spot[1] + noteH(bi, 0) / 2)
+    fyRef.current = fyTarget.current = clampFy(spot[1] + noteH(bi, 0, kindAt(bi, 0)) / 2)
   }
+  // What a fridge's k-th card is; a fridge being added (not in this render yet) holds only Make your own.
+  const kindAt = (bi: number, k: number) => (bi < books.length ? itemsOf(books[bi])[k]?.kind : 'new')
   const aimRef = useRef(aimAt)
   aimRef.current = aimAt
   const settle = () => {
@@ -349,7 +380,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     const dy = (event.clientY - d.sy) / d.u + (fyRef.current - d.fy)
     if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return
     d.moved = true
-    const h = noteH(d.bi, d.k)
+    const h = noteH(d.bi, d.k, kindAt(d.bi, d.k))
     const x = Math.max(DOOR_SIDE, Math.min(W - NW - DOOR_SIDE, d.ox + dx))
     const y = Math.max(DOOR_TOP, Math.min(DOOR_BOTTOM - h, d.oy + dy))
     setPos((cur) => cur.map((spots, b) => (b === d.bi ? spots.map((s, k) => (k === d.k ? [x, y, s[2]] as Spot : s)) : spots)))
@@ -414,7 +445,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   // The note being opened: a same-colour clone flies from the note's rect to fill the screen, turning the colour of
   // the page it opens on the way (Lawar Bali's orange becomes its home view's white), so the page fades in over itself.
   let fly: CSSProperties | null = null
-  let flyFace: { k: number; h: number; name: string; mins: number; owner: string; foot: string } | null = null
+  let flyFace: { k: number; h: number; kind: 'lawar' | 'make'; name: string; mins: number; owner: string; foot: string } | null = null
   let page: { kind: 'main' | 'new' | 'paper'; name: string; from: string; book: string; paper: string; tags: { icon: string; label: string }[] } | null = null
   if (open) {
     const ob = books[open.b]
@@ -423,7 +454,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     const p = pos[open.b][open.k]
     const c = cardFor(open.b, open.k, it.kind)
     const w = NW * oc.k
-    const h = noteH(open.b, open.k) * oc.k
+    const h = noteH(open.b, open.k, it.kind) * oc.k
     const left = oc.tx + (open.b * (W + GAP) + p[0]) * oc.k
     const top = oc.ty + p[1] * oc.k
     const dx = 320 - (left + w / 2)
@@ -435,7 +466,9 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       left: Math.round(left), top: Math.round(top), width: Math.round(w), height: Math.round(h), background: phase > 0 ? pageBg : c.paper, borderRadius: phase > 0 ? 0 : 2,
       transform: phase > 0 ? `translate(${dx}px, ${dy}px) rotate(0deg) scale(${S.toFixed(3)})` : `rotate(${p[2]}deg)`,
     }
-    if (main && it.kind === 'recipe') flyFace = { k: oc.k, h: noteH(open.b, open.k), name: it.r[0], mins: it.r[1], owner: ob.owner, foot: c.bottom }
+    // The Lawar Bali and Make your own cards carry their faces as they grow, fading them on the way.
+    if (main && it.kind === 'recipe') flyFace = { k: oc.k, h: LAWAR_NH, kind: 'lawar', name: it.r[0], mins: it.r[1], owner: ob.owner, foot: c.bottom }
+    if (it.kind === 'new') flyFace = { k: oc.k, h: LAWAR_NH, kind: 'make', name: '', mins: 0, owner: ob.owner, foot: c.bottom }
     page = it.kind === 'new'
       ? { kind: 'new', name: 'New recipe', from: '', book: ob.label, paper: c.paper, tags: [] }
       : { kind: open.b === 0 && open.k === 0 ? 'main' : 'paper', name: it.r[0], from: ob.from, book: ob.label, paper: c.paper,
@@ -470,13 +503,13 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
                   <button
                     key={k}
                     type="button"
-                    className={`fz-note${main ? ' fz-note--lawar' : ''}${lifted ? ' fz-drag' : ''}`}
+                    className={`fz-note${main ? ' fz-note--lawar' : ''}${isNew ? ' fz-note--make' : ''}${lifted ? ' fz-drag' : ''}`}
                     disabled={locked}
                     aria-label={isNew ? 'Make your own recipe. Drag to move, tap to start.' : `${it.r[0]}, ${it.r[1]} minutes. Drag to move, tap to open.`}
                     onPointerDown={(event) => startDrag(event, bi, k)}
                     onClick={() => clickNote(bi, k)}
                     style={{
-                      left: Math.round(p[0]), top: Math.round(p[1]), height: noteH(bi, k), zIndex: 10 + order[bi].indexOf(k), background: c.paper,
+                      left: Math.round(p[0]), top: Math.round(p[1]), height: noteH(bi, k, it.kind), zIndex: 10 + order[bi].indexOf(k), background: c.paper,
                       cursor: cur ? (lifted ? 'grabbing' : 'grab') : 'default',
                       transform: `rotate(${lifted ? 0 : p[2]}deg) scale(${lifted ? 1.06 : 1})`,
                       boxShadow: lifted ? '0 22px 30px rgba(31,28,25,.34)' : '0 6px 10px rgba(31,28,25,.24), 0 1px 2px rgba(31,28,25,.2)',
@@ -485,26 +518,22 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
                   >
                     {main && it.kind === 'recipe' ? (
                       <LawarFace name={it.r[0]} mins={it.r[1]} owner={b.owner} foot={c.bottom} />
-                    ) : main ? null : <span className="fz-note__top" aria-hidden="true" style={{ background: c.top }}><span /></span>}
-                    {main ? null : isNew ? (
-                      <span className="fz-note__new">
-                        <span className="fz-note__plus" aria-hidden="true"><Icon d={ICON.plus} size={13} width={2.4} /></span>
-                        <span className="fz-note__new-title">Make your own</span>
-                        <span className="fz-note__new-sub">Record, scan or write it</span>
-                      </span>
-                    ) : (
-                      <span className="fz-note__body">
-                        <span className="fz-note__line">
-                          <span className="fz-note__name">{it.r[0]}</span>
-                          <span className="fz-note__mins">{it.r[1]} mins</span>
+                    ) : isNew ? (
+                      <MakeFace owner={b.owner} foot={c.bottom} />
+                    ) : it.kind === 'recipe' && (
+                      <>
+                        <span className="fz-note__top" aria-hidden="true" style={{ background: c.top }}><span /></span>
+                        <span className="fz-note__body">
+                          <span className="fz-note__line">
+                            <span className="fz-note__name">{it.r[0]}</span>
+                            <span className="fz-note__mins">{it.r[1]} mins</span>
+                          </span>
+                          <span className="fz-note__owner">{b.owner}</span>
                         </span>
-                        <span className="fz-note__owner">{b.owner}</span>
-                      </span>
-                    )}
-                    {!main && (
-                      <span className="fz-note__foot" style={{ background: c.bottom, marginTop: isNew ? 7 : 0 }}>
-                        <Icon d={isNew ? ICON.plus : ICON.history} size={8} width={2} />{isNew ? 'New recipe' : 'Version 1'}
-                      </span>
+                        <span className="fz-note__foot" style={{ background: c.bottom }}>
+                          <Icon d={ICON.history} size={8} width={2} />Version 1
+                        </span>
+                      </>
                     )}
                     <span className="fz-note__sheen" aria-hidden="true" />
                     {main ? <ChiliMagnet /> : (
@@ -550,9 +579,10 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       {fly && (
         <div className={`fz-fly${phase > 0 ? ' is-big' : ''}`} aria-hidden="true" style={fly}>
           {flyFace && (
-            <div className="fz-fly__face" style={{ width: NW, height: flyFace.h, transform: `scale(${flyFace.k})` }}>
-              <LawarFace name={flyFace.name} mins={flyFace.mins} owner={flyFace.owner} foot={flyFace.foot} />
-              <ChiliMagnet />
+            <div className="fz-fly__face" style={{ width: NW, height: flyFace.h, transform: `scale(${flyFace.k})`, ...(flyFace.kind === 'make' ? { '--fz-face-ink': '#0d0d0d' } : {}) } as CSSProperties}>
+              {flyFace.kind === 'lawar'
+                ? <><LawarFace name={flyFace.name} mins={flyFace.mins} owner={flyFace.owner} foot={flyFace.foot} /><ChiliMagnet /></>
+                : <MakeFace owner={flyFace.owner} foot={flyFace.foot} />}
             </div>
           )}
         </div>

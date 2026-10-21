@@ -61,10 +61,13 @@ a.fz-tap { text-decoration: none; }
 .fz-note__name { font-size: 14px; font-weight: 600; line-height: 15px; letter-spacing: -.025em; }
 .fz-note__mins { font-size: 6.5px; font-weight: 500; line-height: 8px; font-variant-numeric: tabular-nums; }
 .fz-note__owner { margin-top: 5px; font-size: 7px; line-height: 9px; opacity: .82; }
-.fz-note__new { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 6px; margin: 7px 8px 0; border: 1.2px dashed rgba(31, 28, 25, .32); border-radius: 3px; text-align: center; }
-.fz-note__plus { display: flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: #1f1c19; color: #fff; }
-.fz-note__new-title { font-size: 12px; font-weight: 600; line-height: 13px; letter-spacing: -.02em; }
-.fz-note__new-sub { font-size: 6.5px; line-height: 8px; opacity: .75; }
+/* Make your own: grey card, the white ring and its brackets, the name big under it, a foot band to start recording. */
+.fz-note--make { color: #0d0d0d; }
+.fz-make__art { position: absolute; top: 0; left: 0; width: 130px; height: 131.2px; }
+.fz-make__title { position: absolute; top: 133px; left: 12px; font-size: 15px; font-weight: 600; line-height: 16px; letter-spacing: -.035em; white-space: nowrap; }
+.fz-make__owner { position: absolute; top: 150px; left: 12px; font-size: 8.6px; font-weight: 300; line-height: 10px; letter-spacing: -.02em; white-space: nowrap; }
+.fz-make__foot { position: absolute; right: 0; bottom: 0; left: 0; display: flex; height: 15px; align-items: center; gap: 4px; padding: 0 12px; border-radius: 0 0 2px 2px; font-size: 7px; line-height: 15px; letter-spacing: -.02em; }
+.fz-make__foot svg { width: 7.4px; height: 7.4px; flex: none; }
 .fz-note__foot { position: relative; display: flex; height: 20px; flex: none; align-items: center; gap: 4px; padding: 0 10px; border-radius: 0 0 2px 2px; font-size: 6.5px; font-weight: 500; line-height: 8px; }
 .fz-note__sheen { position: absolute; inset: 0; border-radius: 2px; background: linear-gradient(160deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, .06)); pointer-events: none; }
 .fz-note__magnet { position: absolute; top: -8px; right: 12px; width: 22px; height: 22px; border-radius: 50%; box-shadow: 0 4px 6px rgba(0, 0, 0, .38), inset 0 -2px 2px rgba(0, 0, 0, .25); }
@@ -100,7 +103,7 @@ a.fz-tap { text-decoration: none; }
 .fz-out { animation: fz-out .24s ease both; pointer-events: none; }
 .fz-fly { position: absolute; z-index: 20; box-shadow: 0 10px 24px rgba(31, 28, 25, .25); transition: transform .62s cubic-bezier(.65, 0, .2, 1), border-radius .62s ease, background-color .32s ease; }
 .fz-fly.is-big { transition: transform .62s cubic-bezier(.65, 0, .2, 1), border-radius .62s ease, background-color .34s ease .2s; }
-.fz-fly__face { position: absolute; top: 0; left: 0; color: #fff; transform-origin: 0 0; transition: opacity .24s ease .4s; }
+.fz-fly__face { position: absolute; top: 0; left: 0; color: var(--fz-face-ink, #fff); transform-origin: 0 0; transition: opacity .24s ease .4s; }
 .fz-fly.is-big .fz-fly__face { opacity: 0; transition: opacity .16s ease; }
 .fz-page { position: absolute; z-index: 21; inset: 0; }
 .fz-back { position: absolute; z-index: 30; top: 20px; right: 20px; display: flex; }
