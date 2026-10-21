@@ -1,7 +1,6 @@
 'use client'
 
 import './home-view.css'
-import { ClayBody } from '@/clay/ClayBody'
 import { VoiceClay, type ClayPlace } from '@/clay/VoiceClay'
 import type { Vec } from '@/clay/ClaySim'
 import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
@@ -11,28 +10,17 @@ import { VersionList, initialVersions, newVersion, type VersionEntry } from './V
 import Link from 'next/link'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
-/* 07b Recipe home view: the title, one sentence about the dish, a row of tags, and the photo with Adjust, Ingredients
-   and Start cooking floating on it. Steps, Adjust, Ingredients and the photo open as centred cards over a frosted screen. */
+/* 07b Recipe home view: the title, one sentence about the dish, a row of tags, and the photo with Ingredients and
+   Start cooking floating on it. Steps, Ingredients, the versions and the photo open as centred cards over a frosted screen.
+   Changes come by voice, from the talk corner. */
 
 type AdjustPhase = 'idle' | 'listening' | 'thinking' | 'writing'
 type ModKey = 'serves2' | 'mild' | 'chicken'
 type Mods = Record<ModKey, boolean>
-type Popup = '' | 'steps' | 'adj' | 'ingr' | 'photo' | 'versions'
+type Popup = '' | 'steps' | 'ingr' | 'photo' | 'versions'
 
 const PHOTO = '/assets/lelawar-photo.png'
 const PHOTO_ALT = 'Lelawar in a dark bowl on a banana leaf, topped with fried shallots'
-
-// Each change, and how it reads in the version history when it's turned on or off.
-const MODS: { k: ModKey; label: string; hint: string; on: string; off: string }[] = [
-  { k: 'serves2', label: 'Serves 2', hint: 'Half of everything', on: 'Servings 4 → 2', off: 'Servings 2 → 4' },
-  { k: 'mild', label: 'Less spicy', hint: 'Half the sambal', on: 'Less spicy', off: 'Spicy again' },
-  { k: 'chicken', label: 'Chicken', hint: 'Instead of pork', on: 'Chicken instead of pork', off: 'Back to pork' },
-]
-
-// The voice view that plays once when the screen opens: what's said, and what changed.
-const SAY: Record<ModKey, string> = { serves2: 'Make it for two people', mild: 'Make it less spicy for Oma', chicken: 'Use chicken instead of pork' }
-const DONE: Record<ModKey, string> = { serves2: 'Now serves 2. Everything is halved.', mild: 'Sambal is down to half a spoon.', chicken: 'Swapped the pork for chicken.' }
-const INTRO_MS = 3000
 
 // [name, Oma's words, tidy for 4, tidy for 2]
 const ING = GRANDKIDS_RECIPE_CONTEXT.ingredients.map((i) => [i.name, i.familyAmount, i.tidyAmount4, i.tidyAmount2] as const)
@@ -48,8 +36,6 @@ const ICON = {
   flame: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z',
   chevron: 'M8 4l6 6-6 6',
   history: 'M3.5 10a6.5 6.5 0 1 0 2-4.7 M3 3v3.5h3.5 M10 6.5V10l2.4 1.5',
-  adjust: 'M3 6h9M15 6h2M3 14h3M9 14h8',
-  check: 'M5 10.5l3.2 3.2L15 6.8',
 }
 const PLAIN = { bg: '#f2f1ef', ink: '#1f1c19' }
 const TINT = { time: { bg: '#fbefb4', ink: '#8a6a0c' }, serves: { bg: '#dcefd2', ink: '#44703a' }, spice: { bg: '#fde3d8', ink: '#c24a24' } }
@@ -144,14 +130,12 @@ type HomeViewProps = {
   clay?: boolean
   /** Wireframe testing: the person never speaks, so the session gives up after ~6 s. */
   noSpeech?: boolean
-  /** The voice view plays once, 3 s after the screen opens. */
-  autoVoice?: boolean
   /** Start cooking: leads to the cooking-step screen. Without it, Start cooking links to the cooking board. */
   onStartCooking?: () => void
 }
 
 export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function HomeViewBoard(
-  { embedded = false, overlay = null, clay = false, noSpeech = false, autoVoice = true, onStartCooking },
+  { embedded = false, overlay = null, clay = false, noSpeech = false, onStartCooking },
   ref,
 ) {
   const embedRef = useRef<HTMLDivElement>(null)
@@ -172,29 +156,14 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const [kencur, setKencur] = useState(false)
   const [open, setOpen] = useState<Popup>('')
   const [tidy, setTidy] = useState(true)
-  // Every change from Adjust or voice adds a version; the button next to the tags opens the history.
+  // Every change adds a version; the button next to the tags opens the history.
   const [versions, setVersions] = useState<VersionEntry[]>(initialVersions)
   const record = (what: string) => setVersions((cur) => newVersion(cur, what))
-  const mRef = useRef(m)
-  mRef.current = m
-  const toggleMod = (k: ModKey) => {
-    const on = !mRef.current[k]
-    const mod = MODS.find((c) => c.k === k)!
-    mRef.current = { ...mRef.current, [k]: on }
-    setM(mRef.current)
-    record(on ? mod.on : mod.off)
-  }
   const setAmounts = (next: boolean) => {
     if (next === tidy) return
     setTidy(next)
     record(next ? 'Tidied amounts' : 'Amounts in Oma’s words')
   }
-
-  // The voice view: 1 listening, 2 the request, 3 done.
-  const [voice, setVoice] = useState(0)
-  const [said, setSaid] = useState<ModKey>('mild')
-  const introTimers = useRef<number[]>([])
-  const introLevel = useRef<() => number>(() => 0)
 
   // The talk corner: the speaking glow, the notification island and the clay follow it.
   const [phase, setPhase] = useState<AdjustPhase>('idle')
@@ -216,32 +185,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
   const later = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)) }
   const clearTimers = () => { timers.current.forEach((t) => window.clearTimeout(t)); timers.current = [] }
+  useEffect(() => () => clearTimers(), [])
 
-  // Plays the voice view: listening, then the request (the change lands here), then what changed.
-  const talk = () => {
-    if (voice || phase !== 'idle') return
-    const next = (['mild', 'serves2', 'chicken'] as const).find((k) => !m[k]) ?? 'mild'
-    introTimers.current.forEach((t) => window.clearTimeout(t))
-    introLevel.current = createSimulatedLevel()
-    setSaid(next)
-    setOpen('')
-    setVoice(1)
-    introTimers.current = [
-      window.setTimeout(() => setVoice(2), 1400),
-      window.setTimeout(() => { toggleMod(next); setVoice(3) }, 2900),
-      window.setTimeout(() => setVoice(0), 4300),
-    ]
-  }
-  const talkRef = useRef(talk)
-  talkRef.current = talk
-  useEffect(() => {
-    const intro = autoVoice ? window.setTimeout(() => talkRef.current(), INTRO_MS) : undefined
-    return () => {
-      window.clearTimeout(intro)
-      introTimers.current.forEach((t) => window.clearTimeout(t))
-      clearTimers()
-    }
-  }, [autoVoice])
 
   // Where the clay sits in the island: the centre of the notification's clay box, in screen px.
   useLayoutEffect(() => {
@@ -265,7 +210,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   }, [hop])
 
   const beginAdjust = () => {
-    if (phase !== 'idle' || voice) return
+    if (phase !== 'idle') return
     clearTimers()
     if (stage.current >= ADJUST_SCRIPT.length) {
       setM((cur) => ({ ...cur, serves2: false }))
@@ -379,7 +324,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         data-voice={glow === 'idle' || glow === 'done' ? undefined : 'on'} style={embedded ? { transform: `scale(${embedScale})` } : undefined}>
 
         {/* The page, as one layer, so it can ease back while the voice glow has the focus. */}
-        <div className="hv-content" inert={!!open || voice > 0}>
+        <div className="hv-content" inert={!!open}>
           <section className="hm-over" aria-label="Recipe overview">
             <h1 className="hm-title">Lelawar Bali</h1>
             <p key={sentenceKey} className="hm-sentence hm-blurin">
@@ -408,12 +353,6 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
           </button>
 
           <div className="hm-float">
-            <button type="button" className="hm-tap hm-pill" aria-haspopup="dialog" onClick={() => setOpen('adj')}>
-              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-                <path d={ICON.adjust} /><circle cx="13.5" cy="6" r="1.8" /><circle cx="7.5" cy="14" r="1.8" />
-              </svg>
-              Adjust
-            </button>
             <button type="button" className="hm-tap hm-pill" aria-haspopup="dialog" onClick={() => setOpen('ingr')}>
               <Icon d={ICON.steps} width={1.7} />Ingredients
             </button>
@@ -464,27 +403,6 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
           </div>
         )}
 
-        {open === 'adj' && (
-          <div className="hm-center">
-            <div className="hm-card hm-card--adj" role="dialog" aria-label="Adjust the recipe">
-              <p className="hm-card__title">Adjust for this cook</p>
-              {MODS.map((c) => {
-                const on = m[c.k]
-                return (
-                  <button key={c.k} type="button" className={`hm-tap hm-mod${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => toggleMod(c.k)}>
-                    <span className="hm-mod__text">
-                      <span className="hm-mod__label">{c.label}</span>
-                      <span className="hm-mod__hint">{c.hint}</span>
-                    </span>
-                    <span className="hm-mod__dot" aria-hidden="true">{on && <Icon d={ICON.check} size={15} width={2.2} />}</span>
-                  </button>
-                )
-              })}
-              <button type="button" className="hm-tap hm-done hm-done--centre" onClick={close}>Done</button>
-            </div>
-          </div>
-        )}
-
         {open === 'ingr' && (
           <div className="hm-center">
             <div className="hm-card hm-card--ingr" role="dialog" aria-label="Ingredients">
@@ -532,22 +450,6 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
             </div>
           </div>
         )}
-
-        {/* The voice view: plays once when the screen opens, with the clay listening in the middle. */}
-        {voice > 0 && (
-          <div className="hm-voice" role="status" aria-live="polite">
-            <span className="hm-voice__clay" aria-hidden="true">
-              <ClayBody width={88} height={88} home={{ x: 44, y: 44 }} radius={28} level={voice < 3 ? () => introLevel.current() : undefined} />
-            </span>
-            <div key={voice} className="hm-voice__lines hm-blurin">
-              <p className="hm-voice__big">{voice === 1 ? 'Listening…' : voice === 2 ? `“${SAY[said]}”` : DONE[said]}</p>
-              <p className="hm-voice__small">{voice === 1 ? 'Say what you’d like to change' : voice === 2 ? 'Changing the recipe' : 'Changes are underlined'}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Wireframe only: replays the voice view. On the device it starts when you talk. */}
-        <button type="button" className="hm-replay" aria-label="Wireframe only: replay the speaking view. On the device it starts when you talk." onClick={talk} />
 
         {/* The wake word, in the wireframe: an unmarked corner you can tap (or reach with the keyboard). */}
         <button type="button" className="hv-talk" aria-label="Talk to Moldable" onClick={beginAdjust} />

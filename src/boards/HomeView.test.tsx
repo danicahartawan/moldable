@@ -20,8 +20,8 @@ const openIngredients = () => {
 const amountOf = (card: HTMLElement, name: string) => within(card).getByText(name).closest('li')?.querySelector('.hm-ingr__amt')
 
 describe('HomeViewBoard 07b layout', () => {
-  it('shows the title, the sentence, the tags and the photo with Adjust, Ingredients and Start cooking', () => {
-    render(<HomeViewBoard autoVoice={false} />)
+  it('shows the title, the sentence, the tags and the photo with Ingredients and Start cooking', () => {
+    render(<HomeViewBoard />)
     expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
     expect(screen.getByText(/Balinese minced/)).toHaveTextContent('Balinese minced pork with toasted coconut, fried in a fresh spice paste and served on pandan rice.')
     expect(screen.getByRole('button', { name: /8 steps/ })).toBeInTheDocument()
@@ -29,14 +29,16 @@ describe('HomeViewBoard 07b layout', () => {
     expect(tag(/Serves 4/)).toBeInTheDocument()
     expect(tag(/Hot/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'See the whole photo' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Adjust' })).toBeInTheDocument()
+    // No Adjust button, and no voice view that plays by itself.
+    expect(screen.queryByRole('button', { name: 'Adjust' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /replay the speaking view/ })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Start cooking' })).toHaveAttribute('href', '/boards/cooking')
     // The old card layout is gone.
     expect(document.querySelector('.hv-card, .vh, .hv-menu')).not.toBeInTheDocument()
   })
 
   it('opens the steps card with all 8 steps and their verb tags, and Done closes it', () => {
-    render(<HomeViewBoard autoVoice={false} />)
+    render(<HomeViewBoard />)
     fireEvent.click(screen.getByRole('button', { name: /8 steps/ }))
     const card = screen.getByRole('dialog', { name: 'Steps' })
     expect(card).toHaveTextContent('8 steps · about 40 min')
@@ -46,39 +48,8 @@ describe('HomeViewBoard 07b layout', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('Adjust updates the sentence, the tags, the steps and the ingredients, underlining what changed', () => {
-    render(<HomeViewBoard autoVoice={false} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Adjust' }))
-    const adjust = screen.getByRole('dialog', { name: 'Adjust the recipe' })
-    fireEvent.click(within(adjust).getByRole('button', { name: /Less spicy/ }))
-    fireEvent.click(within(adjust).getByRole('button', { name: /Serves 2/ }))
-    fireEvent.click(within(adjust).getByRole('button', { name: /Chicken/ }))
-    expect(within(adjust).getByRole('button', { name: /Chicken/ })).toHaveAttribute('aria-pressed', 'true')
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-
-    expect(screen.getByText('gentle spice paste')).toHaveClass('hm-mark')
-    expect(screen.getByText('chicken', { selector: '.hm-sentence strong' })).toHaveClass('hm-mark')
-    expect(tag(/25 min/)).toBeInTheDocument()
-    expect(tag(/Serves 2/)).toBeInTheDocument()
-    expect(tag(/Mild/)).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: /8 steps/ }))
-    const steps = screen.getByRole('dialog', { name: 'Steps' })
-    expect(steps).toHaveTextContent('8 steps · about 25 min')
-    expect(within(steps).getByText('a little sambal')).toHaveClass('hm-mark')
-    expect(within(steps).getByText('chicken')).toHaveClass('hm-mark')
-    fireEvent.click(within(steps).getByRole('button', { name: 'Done' }))
-
-    const ingr = openIngredients()
-    expect(ingr).toHaveTextContent('Ingredients · serves 2')
-    expect(amountOf(ingr, 'Sambal')).toHaveTextContent('¼ tbsp')
-    expect(amountOf(ingr, 'Sambal')?.querySelector('.hm-mark')).toBeInTheDocument()
-    expect(amountOf(ingr, 'Coconut')).toHaveTextContent('40 g')
-    expect(within(ingr).getByText('Chicken')).toHaveClass('hm-mark')
-  })
-
   it('Ingredients switches between tidy amounts and Oma’s words, with the tools underneath', () => {
-    render(<HomeViewBoard autoVoice={false} />)
+    render(<HomeViewBoard />)
     const ingr = openIngredients()
     expect(ingr.querySelectorAll('li')).toHaveLength(11)
     expect(amountOf(ingr, 'Pork')).toHaveTextContent('500 g')
@@ -91,33 +62,31 @@ describe('HomeViewBoard 07b layout', () => {
   })
 
   it('keeps visible family ingredient wording aligned with the grounding context', () => {
-    render(<HomeViewBoard autoVoice={false} />)
+    render(<HomeViewBoard />)
     const ingr = openIngredients()
     for (const ingredient of GRANDKIDS_RECIPE_CONTEXT.ingredients) {
       expect(within(ingr).getByText(ingredient.name).closest('li')).toHaveAttribute('data-family-amount', ingredient.familyAmount)
     }
   })
 
-  it('has a version button next to the tags that opens the history; each Adjust change adds a version', () => {
-    render(<HomeViewBoard autoVoice={false} />)
+  it('has a version button next to the tags that opens the history; a change adds a version', () => {
+    render(<HomeViewBoard />)
     fireEvent.click(screen.getByRole('button', { name: 'Version history, version 3' }))
     const history = screen.getByRole('dialog', { name: 'Version history' })
     expect(history.querySelectorAll('li')).toHaveLength(3)
     expect(history.querySelector('li.is-current')).toHaveTextContent('Oma Lien Tidied into clean steps')
     fireEvent.click(within(history).getByRole('button', { name: 'Done' }))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Adjust' }))
-    fireEvent.click(screen.getByRole('button', { name: /Less spicy/ }))
-    fireEvent.click(screen.getByRole('button', { name: /Less spicy/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Version history, version 5' }))
-    const items = [...screen.getByRole('dialog', { name: 'Version history' }).querySelectorAll('li')].map((li) => li.querySelector('.hm-versions__what')?.textContent)
-    expect(items.slice(0, 2)).toEqual(['Grandkid Spicy again', 'Grandkid Less spicy'])
+    const ingr = openIngredients()
+    fireEvent.click(within(ingr).getByRole('button', { name: 'Oma’s words' }))
+    fireEvent.keyDown(window, { key: 'Escape' })
+    fireEvent.click(screen.getByRole('button', { name: 'Version history, version 4' }))
+    expect(screen.getByRole('dialog', { name: 'Version history' }).querySelector('li.is-current')).toHaveTextContent('Grandkid Amounts in Oma’s words')
   })
 
   it('opens the whole photo, and Start cooking leads to the cooking step', () => {
     const start = vi.fn()
-    render(<HomeViewBoard autoVoice={false} onStartCooking={start} />)
+    render(<HomeViewBoard onStartCooking={start} />)
     fireEvent.click(screen.getByRole('button', { name: 'See the whole photo' }))
     fireEvent.click(screen.getByRole('button', { name: 'Close photo' }))
     expect(screen.queryByRole('button', { name: 'Close photo' })).not.toBeInTheDocument()
@@ -126,41 +95,11 @@ describe('HomeViewBoard 07b layout', () => {
   })
 })
 
-describe('HomeViewBoard voice view', () => {
-  beforeEach(() => vi.useFakeTimers())
-
-  it('plays once 3 s after the screen opens, with the clay, and makes the change mid-way', () => {
-    render(<HomeViewBoard />)
-    expect(document.querySelector('.hm-voice')).not.toBeInTheDocument()
-    advance(3000)
-    const view = () => document.querySelector('.hm-voice') as HTMLElement
-    expect(view()).toHaveTextContent('Listening…')
-    // The existing clay, not a gradient orb.
-    expect(view().querySelector('.hm-voice__clay svg')).toBeInTheDocument()
-    expect(document.querySelector('.orb')).not.toBeInTheDocument()
-    advance(1400)
-    expect(view()).toHaveTextContent('“Make it less spicy for Oma”')
-    advance(1500)
-    expect(view()).toHaveTextContent('Sambal is down to half a spoon.')
-    expect(tag(/Mild/)).toBeInTheDocument()
-    advance(1400)
-    expect(document.querySelector('.hm-voice')).not.toBeInTheDocument()
-    advance(10000)
-    expect(document.querySelector('.hm-voice')).not.toBeInTheDocument()
-  })
-
-  it('replays from the hidden spot', () => {
-    render(<HomeViewBoard autoVoice={false} />)
-    fireEvent.click(screen.getByRole('button', { name: /replay the speaking view/ }))
-    expect(document.querySelector('.hm-voice')).toHaveTextContent('Listening…')
-  })
-})
-
 describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   beforeEach(() => vi.useFakeTimers())
 
   it('listens, hears, thinks, then halves the servings and says so in the island', () => {
-    render(<HomeViewBoard autoVoice={false} />)
+    render(<HomeViewBoard />)
     expect(glow()).toHaveAttribute('data-state', 'idle')
 
     fireEvent.click(talk())
@@ -181,7 +120,7 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   })
 
   it('swaps kencur for ginger and lime zest on the second request', () => {
-    render(<HomeViewBoard autoVoice={false} />)
+    render(<HomeViewBoard />)
     fireEvent.click(talk())
     advance(5800 + 1200 + 520 + 10 * 450 + 300)
     fireEvent.click(talk())
@@ -194,7 +133,7 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   })
 
   it('with the clay look, has no clay until voice starts, keeps one clay through it, and lets it go after', () => {
-    render(<HomeViewBoard clay autoVoice={false} />)
+    render(<HomeViewBoard clay />)
     expect(document.querySelector('.voice-clay')).not.toBeInTheDocument()
     fireEvent.click(talk())
     const clay = document.querySelector('.voice-clay')
@@ -211,7 +150,7 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   })
 
   it('after "Done", opens the ingredients and the clay hops onto each amount, rewriting it as it lands', () => {
-    render(<HomeViewBoard clay autoVoice={false} />)
+    render(<HomeViewBoard clay />)
     fireEvent.click(talk())
     advance(5800 + 1200)
     const ingr = screen.getByRole('dialog', { name: 'Ingredients' })
@@ -232,7 +171,7 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   })
 
   it('with the clay look, tapping away cancels: the clay leaves at once with no done step', () => {
-    render(<HomeViewBoard clay autoVoice={false} />)
+    render(<HomeViewBoard clay />)
     fireEvent.click(talk())
     advance(2000)
     fireEvent.pointerDown(screen.getByRole('heading', { name: 'Lelawar Bali' }))
@@ -244,7 +183,7 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   })
 
   it('with the clay look and no speech, gives up after about 6 s', () => {
-    render(<HomeViewBoard clay noSpeech autoVoice={false} />)
+    render(<HomeViewBoard clay noSpeech />)
     fireEvent.click(talk())
     advance(5900)
     expect(island()).toHaveAttribute('data-state', 'listening')

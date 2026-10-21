@@ -26,7 +26,7 @@ a.hm-tap { text-decoration: none; }
 .hm-tag--status { background: #f2f1ef; color: var(--hm-ink); }
 .hm-tag--status.is-changed { background: #d3efee; color: #1a8585; }
 
-/* The photo, with Adjust, Ingredients and Start cooking floating on it. */
+/* The photo, with Ingredients and Start cooking floating on it. */
 .hm-photo { position: absolute; top: 324px; right: 24px; bottom: 24px; left: 24px; padding: 0; overflow: hidden; border: 0; border-radius: 30px; background: #2a2622; cursor: zoom-in; }
 .hm-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
 .hm-float { position: absolute; right: 40px; bottom: 40px; left: 40px; display: flex; align-items: center; gap: 8px; }
@@ -58,15 +58,6 @@ a.hm-tap { text-decoration: none; }
 .hm-card--photo { width: 584px; height: 406px; padding: 0; overflow: hidden; border: 0; border-radius: 28px; background: #2a2622; box-shadow: 0 0 0 1px rgba(31, 28, 25, .05), 0 24px 60px rgba(31, 28, 25, .22); cursor: zoom-out; }
 .hm-card--photo img { display: block; width: 100%; height: 100%; object-fit: contain; }
 
-.hm-card--adj { display: flex; width: 420px; flex-direction: column; gap: 6px; padding: 26px 26px 20px; }
-.hm-card--adj .hm-card__title { margin: 0 4px 6px; }
-.hm-mod { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px 0 18px; border: 0; border-radius: 20px; background: #f4f3f1; color: var(--hm-ink); text-align: left; }
-.hm-mod.is-on { background: var(--hm-ink); color: #fff; }
-.hm-mod__text { display: flex; flex-direction: column; }
-.hm-mod__label { font-size: 24px; font-weight: 500; line-height: 30px; }
-.hm-mod__hint { font-size: 15px; line-height: 20px; opacity: .78; }
-.hm-mod__dot { display: flex; width: 26px; height: 26px; flex: none; align-items: center; justify-content: center; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #b5ada1; color: #fff; }
-.hm-mod.is-on .hm-mod__dot { background: #ec923b; box-shadow: inset 0 0 0 1.5px #ec923b; }
 
 .hm-card--ingr { display: flex; width: 552px; flex-direction: column; padding: 24px 30px 20px; }
 .hm-ingr__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -96,18 +87,9 @@ a.hm-tap { text-decoration: none; }
 .hm-versions__tag { grid-column: 3; grid-row: 1; align-self: center; padding: 1px 9px; border-radius: 999px; background: #f2f1ef; color: var(--hm-muted); font-size: 14px; font-variant-numeric: tabular-nums; }
 .hm-versions li.is-current .hm-versions__tag { background: #d3efee; color: #1a8585; }
 
-/* The voice view: a frosted screen, the clay in the middle, then one big line at a time. */
-.hm-voice { position: absolute; z-index: 9; inset: 0; display: flex; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 0 56px; background: rgba(255, 255, 255, .55); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); text-align: center; animation: hm-frost 350ms ease both; }
-.hm-voice__clay { display: block; width: 88px; height: 88px; }
-.hm-voice__lines { display: flex; flex-direction: column; gap: 12px; }
-.hm-voice__big { margin: 0; font-size: 44px; line-height: 52px; letter-spacing: -.02em; text-wrap: balance; }
-.hm-voice__small { margin: 0; color: var(--hm-muted); font-size: 17px; line-height: 22px; }
-
-/* Wireframe only: a hidden 20px spot that replays the voice view (top right; the talk corner keeps the top left). */
-.hm-replay { position: absolute; z-index: 10; top: 0; right: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hm-blurin, .hm-card, .hm-frost, .hm-voice { animation: hm-frost 150ms ease both; }
+  .hm-blurin, .hm-card, .hm-frost { animation: hm-frost 150ms ease both; }
   .hm-tag, .hm-tap { transition: none; }
   .hm-ingr li.is-hop .hm-ingr__amt > span { animation: none; }
 }
