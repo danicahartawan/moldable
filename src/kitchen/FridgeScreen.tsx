@@ -602,7 +602,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
       {!open && i < last && (
         <button type="button" className="fz-tap fz-zoom" aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} onClick={() => { if (view !== 'door') aimAt(i); setView(view === 'door' ? 'over' : 'door') }}>
-          <Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} width={1.7} />
+          <Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} size={24} width={1.6} />
         </button>
       )}
 
