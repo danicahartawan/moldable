@@ -74,6 +74,10 @@ describe('FridgeScreen', () => {
     advance(700)
     expect(document.querySelector('.fz-fly')).not.toBeInTheDocument()
     expect(note(/Lawar Bali, 40/)).toBeVisible()
+    // Once the card has landed on the door, the camera carries on out to the whole fridge.
+    expect(cam()).toContain('scale(1.6)')
+    advance(150)
+    expect(cam()).toContain('scale(0.48)')
   })
 
   it('Make your own opens the New recipe page', () => {

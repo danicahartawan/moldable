@@ -341,6 +341,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
   const openNote = (k: number) => {
     if (open) return
+    window.clearTimeout(timers.current.out)
     setOpen({ b: i, k })
     setPhase(0)
     setDragging(null)
@@ -349,12 +350,14 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     later('p2', 520, () => setPhase(2))
   }
   // Closing runs it backwards: the page fades out over the card's colour (3), then the card shrinks back onto its note (0).
-  const closeNote = () => {
+  // With `whole` (the back button), once the card has landed the camera carries on out to the whole fridge.
+  const closeNote = (whole = false) => {
     if (!open || phase === 3) return
     window.clearTimeout(timers.current.p2)
     setPhase(3)
     later('p1', 240, () => setPhase(0))
     later('close', 240 + 680, () => setOpen(null))
+    if (whole) later('out', 240 + 680 + 120, () => setView('over'))
   }
   // Asked from outside (Done at the end of cooking): fold the open note back onto the door.
   const closeRef = useRef(closeNote)
@@ -649,7 +652,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
         <div className={`fz-in-late fz-back fz-back--${page?.kind}${leaving}`}>
           {/* The tooltip rises into the empty corner rather than dropping over the lede. */}
           <GooTooltipGroup buttonColor="#f2f1ef" buttonTextColor="#1f1c19" side="top" align="end">
-            <GooButton tooltip="Back to the fridge" aria-label="Back to the fridge" className="fz-back__btn" icon={<ShrinkIcon />} onClick={closeNote} />
+            <GooButton tooltip="Back to the fridge" aria-label="Back to the fridge" className="fz-back__btn" icon={<ShrinkIcon />} onClick={() => closeNote(true)} />
           </GooTooltipGroup>
         </div>
       )}
