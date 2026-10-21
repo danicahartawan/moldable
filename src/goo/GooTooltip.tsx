@@ -20,7 +20,7 @@ const NECK_REACH = 9
 // Room around the row for the goo layer, so the filter has space to draw the tooltip and its neck.
 const PAD_X = 40
 const PAD_TOP = TIP_H + TIP_GAP + 30
-const PAD_BOTTOM = 20
+const PAD_BOTTOM = TIP_H + TIP_GAP + 30
 
 const FIRST_SHOW_MS = 80
 const HIDE_MS = 120
@@ -69,12 +69,17 @@ export type GooTooltipGroupProps = {
   /** Turn the tooltip from the button's colour to its own over the first 120ms of emerging (and back as it's absorbed),
    *  so the join reads as one material changing colour. Use it when two colours blend muddily in the neck. */
   neckTint?: boolean
+  /** Which side of the buttons the tooltip rests on: above (default), or below for buttons along the top edge. */
+  side?: 'top' | 'bottom'
+  /** Centred on its button (default), or lined up with the button's right edge for buttons along the right edge. */
+  align?: 'center' | 'end'
   className?: string
   'aria-label'?: string
 }
 
 export function GooTooltipGroup({
-  children, color = '#1f1c19', textColor = '#ffffff', buttonColor = '#1f1c19', buttonTextColor = '#ffffff', neckTint = false, className, 'aria-label': ariaLabel,
+  children, color = '#1f1c19', textColor = '#ffffff', buttonColor = '#1f1c19', buttonTextColor = '#ffffff', neckTint = false,
+  side = 'top', align = 'center', className, 'aria-label': ariaLabel,
 }: GooTooltipGroupProps) {
   const uid = useId().replace(/:/g, '')
   const filterId = `goo-${uid}`
@@ -89,7 +94,7 @@ export function GooTooltipGroup({
 
   const mode = useRef<Mode>('hidden')
   const owner = useRef<string | null>(null)
-  const ownerTop = useRef(0)
+  const ownerEdges = useRef({ top: 0, bottom: 0 })
   const geo = useRef({ cx: spring(0), cy: spring(0), w: spring(0), h: spring(0) })
   const frame = useRef(0)
   const last = useRef(0)
@@ -133,10 +138,15 @@ export function GooTooltipGroup({
     if (!b) return null
     return { x: b.el.offsetLeft, y: b.el.offsetTop, w: b.el.offsetWidth, h: b.el.offsetHeight, tooltip: b.tooltip }
   }
-  // Resting above the button, or tucked inside it: centred on it, squashed to 60% height, no wider than it.
+  // Resting 10px off the button (above or below, centred or lined up with its right edge), or tucked inside it:
+  // centred on it, squashed to 60% height, no wider than it.
   const shownBox = (id: string): Box | null => {
     const r = rectOf(id)
-    return r && { cx: r.x + r.w / 2, cy: r.y - TIP_GAP - TIP_H / 2, w: labelWidth(r.tooltip), h: TIP_H }
+    if (!r) return null
+    const w = labelWidth(r.tooltip)
+    const cx = align === 'end' ? r.x + r.w - w / 2 : r.x + r.w / 2
+    const cy = side === 'top' ? r.y - TIP_GAP - TIP_H / 2 : r.y + r.h + TIP_GAP + TIP_H / 2
+    return { cx, cy, w, h: TIP_H }
   }
   const hiddenBox = (id: string): Box | null => {
     const r = rectOf(id)
@@ -164,14 +174,16 @@ export function GooTooltipGroup({
     // The drop only melts into its button while it's close (emerging or being absorbed). Resting or travelling
     // 10px above, the button's copy leaves the goo layer, so two long flat edges never smudge together.
     const own = ownerShape.current
-    if (own) own.style.opacity = ownerTop.current - (cy.x + height / 2) < NECK_REACH ? '1' : '0'
+    const edge = ownerEdges.current
+    const gap = side === 'top' ? edge.top - (cy.x + height / 2) : cy.x - height / 2 - edge.bottom
+    if (own) own.style.opacity = gap < NECK_REACH ? '1' : '0'
   }
 
   const placeOwner = (id: string) => {
     const r = rectOf(id)
     const el = ownerShape.current
     if (!r || !el) return
-    ownerTop.current = r.y
+    ownerEdges.current = { top: r.y, bottom: r.y + r.h }
     el.style.transform = `translate3d(${r.x + PAD_X}px, ${r.y + PAD_TOP}px, 0)`
     el.style.width = `${r.w}px`
     el.style.height = `${r.h}px`

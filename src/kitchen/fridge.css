@@ -89,7 +89,9 @@ a.fz-tap { text-decoration: none; }
 .fz-dots nav { display: flex; padding: 0 6px; border-radius: 999px; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); pointer-events: auto; }
 .fz-dots button { display: flex; width: 30px; height: 30px; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; }
 .fz-dot { display: block; height: 6px; border-radius: 3px; transition: width .4s cubic-bezier(.22, 1, .36, 1), background-color .4s ease; }
-.fz-zoom { position: absolute; right: 28px; bottom: 28px; display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #1f1c19; }
+/* The magnifier and Back: solid pills whose tooltips are drops pulled out of them (GooTooltipGroup). */
+.fz-zoom { position: absolute; z-index: 25; right: 28px; bottom: 28px; display: flex; }
+.fz-zoom .goo-btn, .fz-back .goo-btn { box-shadow: 0 4px 14px rgba(31, 28, 25, .14); }
 
 /* Diving into a note: a clone of the paper grows to fill the screen, then the page blurs in. */
 /* Opening a note: its card grows to fill the screen, its face fading as it goes and its colour turning the page's own,
@@ -101,7 +103,8 @@ a.fz-tap { text-decoration: none; }
 .fz-fly__face { position: absolute; top: 0; left: 0; color: #fff; transform-origin: 0 0; transition: opacity .24s ease .4s; }
 .fz-fly.is-big .fz-fly__face { opacity: 0; transition: opacity .16s ease; }
 .fz-page { position: absolute; z-index: 21; inset: 0; }
-.fz-back { position: absolute; z-index: 30; top: 20px; right: 20px; display: flex; width: 48px; height: 48px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(242, 241, 239, .86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 4px 14px rgba(31, 28, 25, .12); color: #1f1c19; }
+.fz-back { position: absolute; z-index: 30; top: 20px; right: 20px; display: flex; }
+.fz-back .goo-btn.fz-back__btn { width: 48px; height: 48px; }
 
 .fz-page__title { margin: 0; font-size: 60px; font-weight: 500; line-height: 64px; letter-spacing: -.03em; text-transform: none; }
 .fz-page__title--big { font-size: 64px; line-height: 68px; }

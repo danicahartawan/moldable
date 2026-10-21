@@ -2,6 +2,7 @@
 
 import './fridge.css'
 import { HomeViewBoard } from '@/boards/HomeView'
+import { GooButton, GooTooltipGroup } from '@/goo/GooTooltip'
 import Link from 'next/link'
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 
@@ -541,9 +542,13 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       </div>
 
       {!open && i < last && (
-        <button type="button" className="fz-tap fz-zoom" aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} onClick={() => { if (view !== 'door') aimAt(i); setView(view === 'door' ? 'over' : 'door') }}>
-          <Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} width={1.7} />
-        </button>
+        <div className="fz-zoom">
+          <GooTooltipGroup buttonColor="#ffffff" buttonTextColor="#1f1c19" align="end">
+            <GooButton tooltip={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'}
+              icon={<Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} width={1.7} />}
+              onClick={() => { if (view !== 'door') aimAt(i); setView(view === 'door' ? 'over' : 'door') }} />
+          </GooTooltipGroup>
+        </div>
       )}
 
       {fly && (
@@ -607,9 +612,11 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       )}
 
       {shown && (
-        <button type="button" className={`fz-tap fz-in-late fz-back${leaving}`} aria-label="Back to the fridge" title="Back to the fridge" onClick={closeNote}>
-          <Icon d={ICON.back} />
-        </button>
+        <div className={`fz-in-late fz-back${leaving}`}>
+          <GooTooltipGroup buttonColor="#f2f1ef" buttonTextColor="#1f1c19" side="bottom" align="end">
+            <GooButton tooltip="Back to the fridge" aria-label="Back to the fridge" className="fz-back__btn" icon={<Icon d={ICON.back} />} onClick={closeNote} />
+          </GooTooltipGroup>
+        </div>
       )}
     </div>
   )
