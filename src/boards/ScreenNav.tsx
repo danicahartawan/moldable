@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { AmbienceToggle } from '@/ambience/AmbienceToggle'
 
 const SCREENS = [
   { href: '/boards/fridge', label: 'Fridge cookbooks' },
@@ -17,6 +18,7 @@ export function ScreenNav({ current }: { current: (typeof SCREENS)[number]['href
       {SCREENS.map((s) => (
         <Link key={s.href} href={s.href} aria-current={s.href === current ? 'page' : undefined}>{s.label}</Link>
       ))}
+      <AmbienceToggle className="boards-nav__sound" />
     </nav>
   )
 }

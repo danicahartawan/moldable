@@ -349,6 +349,11 @@
 .boards-nav a:hover { background: var(--flour-raised); }
 .boards-nav a[aria-current='page'] { background: var(--ink); color: var(--flour); }
 .boards-nav a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* The optional rain and jazz: a quiet switch at the end of the nav. */
+.boards-nav__sound { display: inline-flex; height: 36px; align-items: center; gap: 7px; padding: 0 14px; border: 0; border-radius: var(--radius-pill); background: transparent; box-shadow: inset 0 0 0 1px var(--line, rgba(31, 28, 25, .14)); color: var(--ink-muted); font: 300 14px/1 var(--font-sans); cursor: pointer; transition: background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out); }
+.boards-nav__sound:hover { background: var(--flour-raised); }
+.boards-nav__sound[aria-pressed='true'] { background: var(--ink); box-shadow: none; color: var(--flour); }
+.boards-nav__sound:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .hv-wisp {
   position: relative;

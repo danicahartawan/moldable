@@ -5,6 +5,7 @@ import { CookingStepBoard } from '@/boards/CookingStep'
 import { HomeViewBoard } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { FridgeScreen } from './FridgeScreen'
+import { AmbienceToggle } from '@/ambience/AmbienceToggle'
 
 type Perspective = 'grandma' | 'grandkids'
 
@@ -153,10 +154,14 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
       </div>
 
       <div className="kitchen__dock">
-        <div className="kitchen__bar" role="toolbar" aria-label="Choose a point of view">
-          <button type="button" aria-pressed={perspective === 'grandma'} onClick={() => setPerspective('grandma')}>Grandma</button>
-          <span aria-hidden="true" />
-          <button type="button" aria-pressed={perspective === 'grandkids'} onClick={() => setPerspective('grandkids')}>Grandkids</button>
+        <div className="kitchen__dock-row">
+          <div className="kitchen__bar" role="toolbar" aria-label="Choose a point of view">
+            <button type="button" aria-pressed={perspective === 'grandma'} onClick={() => setPerspective('grandma')}>Grandma</button>
+            <span aria-hidden="true" />
+            <button type="button" aria-pressed={perspective === 'grandkids'} onClick={() => setPerspective('grandkids')}>Grandkids</button>
+          </div>
+          {/* Optional rain and soft jazz in the background, as if you're in the kitchen. */}
+          <div className="kitchen__pill"><AmbienceToggle /></div>
         </div>
       </div>
 
