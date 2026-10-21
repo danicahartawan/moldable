@@ -1,5 +1,5 @@
 /* Liquid segmented switch: the thumb is two drops under a goo filter; the options' labels sit crisp on top. */
-.goo-seg { position: relative; display: flex; isolation: isolate; }
+.goo-seg { position: relative; display: flex; isolation: isolate; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .goo-seg__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .goo-seg__blobs { position: absolute; z-index: 0; inset: 0; pointer-events: none; }
 .goo-seg__blob { position: absolute; top: 3px; bottom: 3px; left: 0; border-radius: 999px; background: var(--goo-seg-thumb, #fff); transform-origin: center; will-change: transform, width; }
