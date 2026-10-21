@@ -83,7 +83,8 @@
 .cs-fade--bottom { bottom: 0; height: 110px; background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff 60%); }
 
 /* Step indicator on the right edge: one bar per step, the current one tall and dark. */
-.cs-bars { position: absolute; z-index: 3; top: 50%; right: 0; display: flex; flex-direction: column; align-items: flex-end; transform: translateY(-50%); }
+/* 14px in from the right edge, so the bars don't hug the screen's rim. */
+.cs-bars { position: absolute; z-index: 3; top: 50%; right: 12px; display: flex; flex-direction: column; align-items: flex-end; transform: translateY(-50%); }
 .cs-bar { display: flex; width: 32px; height: 18px; align-items: center; justify-content: flex-end; padding: 0 2px 0 0; border: 0; background: transparent; cursor: pointer; transition: height 450ms cubic-bezier(.22, 1, .36, 1); }
 .cs-bar[aria-current] { height: 32px; }
 .cs-bar span { width: 4px; height: 6px; border-radius: 999px; background: #cfcac3; transition: height 450ms cubic-bezier(.22, 1, .36, 1), width 200ms ease, background-color 200ms ease; }
@@ -92,14 +93,21 @@
 .cs-bar:not([aria-current]):hover span { background: #8a8580; }
 
 /* The foot: Ingredients, and Done on the last step, side by side at the bottom centre. */
-.cs-foot { position: absolute; z-index: 3; right: 0; bottom: 22px; left: 0; display: flex; justify-content: center; gap: 8px; pointer-events: none; }
+.cs-foot { position: absolute; z-index: 3; right: 0; bottom: 22px; left: 0; display: flex; justify-content: center; pointer-events: none; }
+/* A slot opens from nothing to its pill's width (and folds back), so the pill beside it glides over; the pill fades and sharpens in as it opens. */
+.cs-slot { display: grid; grid-template-columns: 0fr; transition: grid-template-columns 560ms cubic-bezier(.22, 1, .36, 1); }
+.cs-slot.is-shown { grid-template-columns: 1fr; }
+.cs-slot__inner { display: flex; min-width: 0; overflow: hidden; padding: 4px 0; margin: -4px 0; }
+.cs-slot__inner > * { flex: none; opacity: 0; filter: blur(6px); transform: scale(.9); transition: opacity 220ms ease, filter 220ms ease, transform 300ms ease; }
+.cs-slot.is-shown .cs-slot__inner > * { opacity: 1; filter: none; transform: none; transition: opacity 360ms ease 140ms, filter 360ms ease 140ms, transform 520ms cubic-bezier(.34, 1.4, .64, 1) 140ms; }
+/* With Ingredients beside it, Done keeps an 8px gap. */
+.cs-foot.has-ing .cs-slot--done .cs-done { margin-left: 8px; }
 .cs-foot > * { pointer-events: auto; }
-.cs-ing-btn { display: inline-flex; height: 44px; align-items: center; gap: 8px; padding: 0 18px; border: 0; border-radius: 999px; background: #f2f1ef; color: #57524c; font-size: 16px; line-height: 20px; cursor: pointer; }
+.cs-ing-btn { display: inline-flex; white-space: nowrap; height: 44px; align-items: center; gap: 8px; padding: 0 18px; border: 0; border-radius: 999px; background: #f2f1ef; color: #57524c; font-size: 16px; line-height: 20px; cursor: pointer; }
 .cs .cs-ing-btn { font-size: 16px; }
 .cs-ing-btn svg { width: 16px; height: 16px; }
-/* Done: the one dark pill, on the last step only. It blurs in as the last step arrives. */
-@keyframes cs-done-in { from { opacity: 0; filter: blur(8px); transform: translateY(8px); } to { opacity: 1; filter: none; transform: none; } }
-.cs-done { display: inline-flex; height: 44px; box-sizing: border-box; align-items: center; gap: 8px; padding: 0 20px 0 16px; border: 0; border-radius: 999px; background: #1f1c19; color: #fff; font-size: 16px; font-weight: 500; line-height: 20px; text-decoration: none; cursor: pointer; animation: cs-done-in 500ms cubic-bezier(.22, 1, .36, 1) 200ms both; }
+/* Done: the one dark pill, on the last step only. */
+.cs-done { display: inline-flex; height: 44px; box-sizing: border-box; align-items: center; gap: 8px; padding: 0 20px 0 16px; border: 0; border-radius: 999px; background: #1f1c19; color: #fff; font-size: 16px; font-weight: 500; line-height: 20px; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .cs .cs-done { font-size: 16px; }
 .cs-done svg { width: 16px; height: 16px; }
 
@@ -134,6 +142,7 @@
   .cs-orb span, .cs-quote, .cs-pop__backdrop, .cs-pop__card { animation: none; }
   .cs-pop__item { animation: cs-frost 150ms ease both; }
   .cs-pop.is-closing .cs-pop__item, .cs-pop.is-closing .cs-pop__backdrop, .cs-pop.is-closing .cs-pop__blob { animation: cs-frost-out 150ms ease both; }
-  .cs.is-entering .cs-track, .cs.is-entering .cs-bars, .cs.is-entering .cs-foot, .cs-done { animation: cs-enter-soft 200ms ease both; }
+  .cs.is-entering .cs-track, .cs.is-entering .cs-bars, .cs.is-entering .cs-foot { animation: cs-enter-soft 200ms ease both; }
+  .cs-slot, .cs-slot__inner > *, .cs-slot.is-shown .cs-slot__inner > * { transition: opacity 200ms ease; transform: none; filter: none; }
   .cs-tag svg * { animation: none !important; }
 }

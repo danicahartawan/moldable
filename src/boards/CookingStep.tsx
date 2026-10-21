@@ -248,6 +248,9 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
     return () => window.clearTimeout(gone)
   }, [pop])
 
+  const hasIng = step.ingredients.length > 0
+  const isLast = i === steps.length - 1
+
   return (
     <div className={embedded ? 'hv-embed' : 'hv-stage'}>
       <div
@@ -312,28 +315,36 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
           ))}
         </nav>
 
-        <div className="cs-foot" inert={ingOpen}>
-          {step.ingredients.length > 0 && (
-            <button ref={pill} type="button" className={`cs-ing-btn${pop === 'closed' ? '' : ' is-poured'}`} aria-haspopup="dialog" aria-expanded={ingOpen}
-              onClick={() => { if (pop !== 'closed') return; setQuoteOpen(false); setPop('open') }}>
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-                <path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h9M3.5 5.5h.01M3.5 10h.01M3.5 14.5h.01" />
-              </svg>
-              Ingredients
-            </button>
-          )}
+        {/* The foot: Ingredients, and Done on the last step. Each sits in a slot that opens and folds smoothly,
+            so when one comes or goes the other glides over instead of jumping. */}
+        <div className={`cs-foot${hasIng ? ' has-ing' : ''}`} inert={ingOpen}>
+          <span className={`cs-slot${hasIng ? ' is-shown' : ''}`} aria-hidden={!hasIng} inert={!hasIng}>
+            <span className="cs-slot__inner">
+              <button ref={pill} type="button" className={`cs-ing-btn${pop === 'closed' ? '' : ' is-poured'}`} aria-haspopup="dialog" aria-expanded={ingOpen}
+                onClick={() => { if (pop !== 'closed' || !hasIng) return; setQuoteOpen(false); setPop('open') }}>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+                  <path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h9M3.5 5.5h.01M3.5 10h.01M3.5 14.5h.01" />
+                </svg>
+                Ingredients
+              </button>
+            </span>
+          </span>
           {/* The last step ends the recipe: Done goes back to the fridge. */}
-          {i === steps.length - 1 && (() => {
-            const inner = (
-              <>
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 10.5l3.2 3.2L15 6.8" /></svg>
-                Done
-              </>
-            )
-            return onDone
-              ? <button key="done" type="button" className="cs-done" onClick={onDone}>{inner}</button>
-              : <Link key="done" href="/boards/fridge" className="cs-done">{inner}</Link>
-          })()}
+          <span className={`cs-slot cs-slot--done${isLast ? ' is-shown' : ''}`} aria-hidden={!isLast} inert={!isLast}>
+            <span className="cs-slot__inner">
+              {(() => {
+                const inner = (
+                  <>
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 10.5l3.2 3.2L15 6.8" /></svg>
+                    Done
+                  </>
+                )
+                return onDone
+                  ? <button type="button" className="cs-done" onClick={onDone}>{inner}</button>
+                  : <Link href="/boards/fridge" className="cs-done">{inner}</Link>
+              })()}
+            </span>
+          </span>
         </div>
 
         {pop !== 'closed' && (
