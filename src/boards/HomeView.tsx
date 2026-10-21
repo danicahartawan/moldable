@@ -102,13 +102,20 @@ const NO_SPEECH_MS = 6000
 const CLAY_MIX_MS = 5300
 // The clay's resting spot in the island, in screen px, until the island has been measured.
 const ISLAND_SPOT: Vec = { x: 62, y: 62 }
-// After "Done", the clay hops out of the island onto what changed, ending on the version button, which ticks up.
-const HOPS: readonly (readonly HopTarget[])[] = [['time', 'serves', 'status'], ['steps', 'status']]
-const HOP_MS = 700
-// On a tag the clay is ~10px across its radius and sits on its top edge.
+// After "Done", the ingredients open and the clay hops onto each amount it changes; each one is rewritten as it lands.
+type Pass = { kind: 'serves2' | 'kencur'; rows: number[] }
+const PASSES: Pass[] = [
+  { kind: 'serves2', rows: ING.flatMap((r, i) => (r[2] !== r[3] ? [i] : [])) },
+  { kind: 'kencur', rows: [KENCUR_ROW] },
+]
+// The card blooms in before the first hop; then one row at a time, and a moment on the last.
+const CARD_IN_MS = 520
+const HOP_MS = 450
+const LAND_MS = 220
+const LAST_HOLD_MS = 700
+// On an amount the clay is ~10px across its radius and sits on its top edge.
 const HOP_CLAY_RADIUS = 10
 const VOICE_CHANGES = ['Servings 4 → 2', 'Kencur swapped out'] as const
-type HopTarget = 'time' | 'serves' | 'steps' | 'status'
 
 // Where an element sits inside the screen, in the screen's own (unscaled) px.
 function offsetIn(el: HTMLElement, root: HTMLElement) {
@@ -197,8 +204,10 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const [blobTeal, setBlobTeal] = useState(false)
   const [cancelled, setCancelled] = useState(false)
   const [islandSpot, setIslandSpot] = useState<Vec>(ISLAND_SPOT)
-  // The thing the clay is hopping onto, and where that is.
-  const [hop, setHop] = useState<HopTarget | null>(null)
+  // The amounts the clay is rewriting: which change, which row it's on, and how many rows it has done.
+  const [pass, setPass] = useState<Pass | null>(null)
+  const [hop, setHop] = useState<number | null>(null)
+  const [landed, setLanded] = useState(0)
   const [hopSpot, setHopSpot] = useState<Vec | null>(null)
   const voiceLevel = useRef<() => number>(() => 0)
   const screenRef = useRef<HTMLDivElement>(null)
@@ -246,7 +255,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   // The clay sits on top of the thing it's hopping onto, in screen px.
   useLayoutEffect(() => {
     const root = screenRef.current
-    const el = hop && root?.querySelector<HTMLElement>(`[data-hop="${hop}"]`)
+    const el = hop !== null && root?.querySelector<HTMLElement>(`[data-hop-row="${hop}"] .hm-ingr__amt`)
     if (!root || !el) {
       setHopSpot(null)
       return
@@ -289,13 +298,22 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
       setResult(ADJUST_RESULTS[next - 1])
       if (next === 1) setM((cur) => ({ ...cur, serves2: true }))
       else setKencur(true)
-      // "Done" shows for a moment in the island, then the clay hops out onto what changed and lands on the version button.
-      const hops = HOPS[next - 1]
-      hops.forEach((target, i) => later(DONE_HOLD_MS + i * HOP_MS, () => {
-        setHop(target)
-        if (target === 'status') record(VOICE_CHANGES[next - 1])
-      }))
-      later(DONE_HOLD_MS + hops.length * HOP_MS, () => { setHop(null); setHeard(''); setPhase('idle') })
+      // "Done" shows for a moment in the island; then the ingredients open and the clay hops out onto each amount it changes.
+      const run = PASSES[next - 1]
+      later(DONE_HOLD_MS, () => { setTidy(true); setPass(run); setLanded(0); setOpen('ingr') })
+      let at = DONE_HOLD_MS + CARD_IN_MS
+      run.rows.forEach((row, i) => {
+        later(at, () => setHop(row))
+        later(at + LAND_MS, () => setLanded(i + 1))
+        at += HOP_MS
+      })
+      later(at + LAST_HOLD_MS - HOP_MS, () => {
+        setHop(null)
+        setPass(null)
+        setHeard('')
+        setPhase('idle')
+        record(VOICE_CHANGES[next - 1])
+      })
     })
   }
 
@@ -323,11 +341,11 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   // One source of truth: where the clay is comes from the voice state (and what it's hopping onto).
   const clayPlace: ClayPlace = useMemo(() => {
     if (!clay || phase === 'idle') return null
-    if (phase === 'writing' && hop && hopSpot) return { kind: 'row', at: hopSpot }
+    if (phase === 'writing' && hop !== null && hopSpot) return { kind: 'row', at: hopSpot }
     return { kind: 'island', at: islandSpot }
   }, [clay, phase, hop, hopSpot, islandSpot])
   // The island stays on "Done" until the clay hops out of it.
-  const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? (hop ? 'idle' : 'done') : glow
+  const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? (pass ? 'idle' : 'done') : glow
 
   // Escape closes whichever card is open.
   useEffect(() => {
@@ -370,15 +388,15 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
               and served on <strong>pandan rice</strong>.
             </p>
             <div className="hm-tags">
-              <button type="button" className={`hm-tap hm-tag hm-tag--steps${hop === 'steps' ? ' is-hop' : ''}`} data-hop="steps" aria-haspopup="dialog" onClick={() => setOpen('steps')}>
+              <button type="button" className="hm-tap hm-tag hm-tag--steps" aria-haspopup="dialog" onClick={() => setOpen('steps')}>
                 <Icon d={ICON.steps} />8 steps<span className="hm-tag__chev"><Icon d={ICON.chevron} size={14} width={2} /></span>
               </button>
               {tags.map((t) => (
-                <span key={t.key} className={`hm-tag${hop === t.key ? ' is-hop' : ''}`} data-hop={t.key} style={{ background: t.bg, color: t.ink }}><Icon d={t.icon} />{t.label}</span>
+                <span key={t.key} className="hm-tag" style={{ background: t.bg, color: t.ink }}><Icon d={t.icon} />{t.label}</span>
               ))}
               {/* Status: the current version; it ticks up with every change and opens the version history. */}
-              <button type="button" className={`hm-tap hm-tag hm-tag--status${versions[0]?.who === 'Grandkid' ? ' is-changed' : ''}${hop === 'status' ? ' is-hop' : ''}`}
-                data-hop="status" aria-haspopup="dialog" aria-label={`Version history, version ${current}`} onClick={() => setOpen('versions')}>
+              <button type="button" className={`hm-tap hm-tag hm-tag--status${versions[0]?.who === 'Grandkid' ? ' is-changed' : ''}`}
+                aria-haspopup="dialog" aria-label={`Version history, version ${current}`} onClick={() => setOpen('versions')}>
                 <Icon d={ICON.history} /><span key={current} className="hm-blurin">v{current}</span>
               </button>
             </div>
@@ -479,17 +497,22 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
               </div>
               <ul className="hm-ingr">
                 {ING.map((r, i) => {
+                  // While the clay is rewriting, a row it hasn't reached yet still shows how it was.
+                  const waiting = !!pass && pass.rows.indexOf(i) >= landed
+                  const halved = m.serves2 && !(waiting && pass?.kind === 'serves2')
                   const meat = i === PORK_ROW && m.chicken
-                  const swapped = i === KENCUR_ROW && kencur
+                  const swapped = i === KENCUR_ROW && kencur && !(waiting && pass?.kind === 'kencur')
                   const spicy = i === SAMBAL_ROW && m.mild
-                  let amt: string = m.serves2 ? r[3] : r[2]
-                  if (spicy) amt = m.serves2 ? '¼ tbsp' : '½ tbsp'
+                  let amt: string = halved ? r[3] : r[2]
+                  if (spicy) amt = halved ? '¼ tbsp' : '½ tbsp'
                   if (swapped) amt = `${amt} + zest`
-                  const changed = (m.serves2 && r[2] !== r[3]) || spicy || swapped
+                  const changed = (halved && r[2] !== r[3]) || spicy || swapped
                   return (
-                    <li key={r[0]} className="hm-blurin" data-family-amount={r[1]}>
-                      <span className={meat || swapped ? 'hm-mark' : undefined}>{meat ? 'Chicken' : swapped ? 'Ginger + lime zest' : r[0]}</span>
-                      <span className={`hm-ingr__amt${tidy ? '' : ' is-raw'}${tidy && changed ? ' hm-mark' : ''}`}>{tidy ? amt : r[1]}</span>
+                    <li key={r[0]} className={`hm-blurin${hop === i ? ' is-hop' : ''}`} data-family-amount={r[1]} data-hop-row={i}>
+                      <span key={`${swapped}`} className={swapped ? 'hm-mark hm-blurin' : meat ? 'hm-mark' : undefined}>{meat ? 'Chicken' : swapped ? 'Ginger + lime zest' : r[0]}</span>
+                      <span className={`hm-ingr__amt${tidy ? '' : ' is-raw'}`}>
+                        <span key={`${amt}-${changed}`} className={`${pass ? 'hm-blurin' : ''}${tidy && changed ? ' hm-mark' : ''}`}>{tidy ? amt : r[1]}</span>
+                      </span>
                     </li>
                   )
                 })}

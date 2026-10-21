@@ -25,9 +25,6 @@ a.hm-tap { text-decoration: none; }
 /* Status: the current version. Teal once a change has been made here; opens the version history. */
 .hm-tag--status { background: #f2f1ef; color: var(--hm-ink); }
 .hm-tag--status.is-changed { background: #d3efee; color: #1a8585; }
-/* The clay lands on a tag: it gives a little under the weight. */
-@keyframes hm-hop-land { 0% { transform: none; } 30% { transform: translateY(2px) scale(1.04, .9); } 65% { transform: translateY(-1px) scale(.98, 1.04); } 100% { transform: none; } }
-.hm-tag.is-hop { animation: hm-hop-land 520ms cubic-bezier(.3, .7, .4, 1) 120ms both; }
 
 /* The photo, with Adjust, Ingredients and Start cooking floating on it. */
 .hm-photo { position: absolute; top: 324px; right: 24px; bottom: 24px; left: 24px; padding: 0; overflow: hidden; border: 0; border-radius: 30px; background: #2a2622; cursor: zoom-in; }
@@ -82,6 +79,10 @@ a.hm-tap { text-decoration: none; }
 .hm-ingr li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--hm-line); font-size: 21px; line-height: 27px; }
 .hm-ingr__amt { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .hm-ingr__amt.is-raw { font-style: italic; }
+.hm-ingr__amt > span { display: inline-block; transform-origin: 50% 100%; }
+/* The clay lands on an amount: it gives a little under the weight as it's rewritten. */
+@keyframes hm-hop-land { 0% { transform: none; } 30% { transform: translateY(2px) scale(1.04, .9); } 65% { transform: translateY(-1px) scale(.98, 1.04); } 100% { transform: none; } }
+.hm-ingr li.is-hop .hm-ingr__amt > span { animation: hm-hop-land 520ms cubic-bezier(.3, .7, .4, 1) 140ms both; }
 .hm-ingr__tools { margin: 14px 0 0; color: var(--hm-muted); font-size: 16px; line-height: 22px; }
 
 .hm-card--versions { display: flex; width: 460px; max-height: 560px; flex-direction: column; padding: 24px 28px 20px; }
@@ -108,5 +109,5 @@ a.hm-tap { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .hm-blurin, .hm-card, .hm-frost, .hm-voice { animation: hm-frost 150ms ease both; }
   .hm-tag, .hm-tap { transition: none; }
-  .hm-tag.is-hop { animation: none; }
+  .hm-ingr li.is-hop .hm-ingr__amt > span { animation: none; }
 }
