@@ -121,6 +121,8 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   // With `fridge`, Grandkids starts on the fridge cookbooks; tapping Lelawar Bali dives into the recipe.
   // The grandma screen can hand over straight to the recipe: the fridge is rebuilt already open on it.
   const [recipeHandover, setRecipeHandover] = useState(0)
+  // Done at the end of cooking closes the recipe back onto the fridge door.
+  const [fridgeClose, setFridgeClose] = useState(0)
   const [leavingStep, setLeavingStep] = useState<number | null>(null)
   const [dragX, setDragX] = useState(0)
   const [ready, setReady] = useState(false)
@@ -206,7 +208,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
           <div data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragX ? ' is-dragging' : ''}`} style={dragX ? { transform: `translateX(${dragX}px)` } : undefined} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>
               {fridge ? (
-                <FridgeScreen key={recipeHandover} startOpen={recipeHandover > 0} active={perspective === 'grandkids'}
+                <FridgeScreen key={recipeHandover} startOpen={recipeHandover > 0} active={perspective === 'grandkids'} closeRequest={fridgeClose}
                   onStartCooking={() => goToStep(1)} onRecord={() => setPerspective('grandma')} />
               ) : (
                 <HomeViewBoard onStartCooking={() => goToStep(1)} />
@@ -219,7 +221,8 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
             )}
             {instructionStep !== null && (
               <div className="kitchen__grandkids-view kitchen__grandkids-view--in" key="steps">
-                <CookingStepBoard embedded step={instructionStep - 1} onStepChange={(n) => setInstructionStep(n + 1)} />
+                <CookingStepBoard embedded step={instructionStep - 1} onStepChange={(n) => setInstructionStep(n + 1)}
+                  onDone={() => { goToStep(null); if (fridge) setFridgeClose((n) => n + 1) }} />
               </div>
             )}
             {instructionStep === null && !fridge && (

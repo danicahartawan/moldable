@@ -99,4 +99,19 @@ describe('CookingStepBoard', () => {
     expect(current()).toHaveTextContent('Cook the paste')
     expect(screen.queryByRole('button', { name: 'Ingredients' })).not.toBeInTheDocument()
   })
+
+  it('shows Done only on the last step, and Done goes back', () => {
+    const done = vi.fn()
+    render(<CookingStepBoard onDone={done} />)
+    expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Step 8' }))
+    expect(current()).toHaveTextContent('Serve on pandan rice.')
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+    expect(done).toHaveBeenCalledTimes(1)
+  })
+
+  it('without a host, Done links to the fridge', () => {
+    render(<CookingStepBoard step={7} />)
+    expect(screen.getByRole('link', { name: 'Done' })).toHaveAttribute('href', '/boards/fridge')
+  })
 })

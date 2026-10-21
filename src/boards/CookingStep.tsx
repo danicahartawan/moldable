@@ -1,6 +1,7 @@
 'use client'
 
 import './cooking-step.css'
+import Link from 'next/link'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 /* One recipe step at a time, as one big sentence. Steps move like song lyrics: the current one sharp in the middle,
@@ -83,9 +84,11 @@ type CookingStepProps = {
   align?: 'center' | 'left'
   /** Rises in like the first lyric line when it appears. Off for a copy that's on its way out. */
   enter?: boolean
+  /** Done, on the last step: back to the fridge. Without it, Done links to the fridge board. */
+  onDone?: () => void
 }
 
-export function CookingStepBoard({ embedded = false, step: hostStep, onStepChange, recipe = LELAWAR_BALI, align = 'center', enter = true }: CookingStepProps = {}) {
+export function CookingStepBoard({ embedded = false, step: hostStep, onStepChange, recipe = LELAWAR_BALI, align = 'center', enter = true, onDone }: CookingStepProps = {}) {
   const { steps } = recipe
   const [own, setOwn] = useState(0)
   const i = Math.min(Math.max(hostStep ?? own, 0), steps.length - 1)
@@ -260,14 +263,28 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
           ))}
         </nav>
 
-        {step.ingredients.length > 0 && (
-          <button type="button" className="cs-ing-btn" aria-haspopup="dialog" aria-expanded={ingOpen} inert={ingOpen} onClick={() => { setQuoteOpen(false); setIngOpen(true) }}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
-              <path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h9M3.5 5.5h.01M3.5 10h.01M3.5 14.5h.01" />
-            </svg>
-            Ingredients
-          </button>
-        )}
+        <div className="cs-foot" inert={ingOpen}>
+          {step.ingredients.length > 0 && (
+            <button type="button" className="cs-ing-btn" aria-haspopup="dialog" aria-expanded={ingOpen} onClick={() => { setQuoteOpen(false); setIngOpen(true) }}>
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+                <path d="M7.5 5.5h9M7.5 10h9M7.5 14.5h9M3.5 5.5h.01M3.5 10h.01M3.5 14.5h.01" />
+              </svg>
+              Ingredients
+            </button>
+          )}
+          {/* The last step ends the recipe: Done goes back to the fridge. */}
+          {i === steps.length - 1 && (() => {
+            const inner = (
+              <>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 10.5l3.2 3.2L15 6.8" /></svg>
+                Done
+              </>
+            )
+            return onDone
+              ? <button key="done" type="button" className="cs-done" onClick={onDone}>{inner}</button>
+              : <Link key="done" href="/boards/fridge" className="cs-done">{inner}</Link>
+          })()}
+        </div>
 
         {ingOpen && (
           <div className="cs-pop">

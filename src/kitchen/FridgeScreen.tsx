@@ -123,9 +123,11 @@ type FridgeProps = {
   startOpen?: boolean
   /** Whether the screen is showing; the opening zoom waits until it is. */
   active?: boolean
+  /** Bumped to close the open note back onto the fridge door (e.g. Done at the end of cooking). */
+  closeRequest?: number
 }
 
-export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, active = true }: FridgeProps) {
+export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, active = true, closeRequest = 0 }: FridgeProps) {
   const [books, setBooks] = useState<Book[]>(() => START.map((b) => ({ ...b, recipes: b.recipes.slice() })))
   const [i, setI] = useState(0)
   const [view, setView] = useState<View>(startOpen ? 'door' : 'over')
@@ -229,6 +231,10 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     later('p1', 40, () => setPhase(0))
     later('close', 720, () => setOpen(null))
   }
+  // Asked from outside (Done at the end of cooking): fold the open note back onto the door.
+  const closeRef = useRef(closeNote)
+  closeRef.current = closeNote
+  useEffect(() => { if (closeRequest) closeRef.current() }, [closeRequest])
   const clickNote = (bi: number, k: number) => {
     if (suppress.current) { suppress.current = false; return }
     if (bi === i) openNote(k)

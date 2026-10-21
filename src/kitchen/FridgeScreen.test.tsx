@@ -95,4 +95,14 @@ describe('FridgeScreen', () => {
     expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Back to the fridge' })).toBeInTheDocument()
   })
+
+  it('closes the open recipe back onto the door when asked (Done at the end of cooking)', () => {
+    const { rerender } = render(<FridgeScreen startOpen closeRequest={0} />)
+    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
+    rerender(<FridgeScreen startOpen closeRequest={1} />)
+    advance(800)
+    expect(screen.queryByRole('heading', { name: 'Lelawar Bali' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Lelawar Bali, 40 minutes/ })).toBeVisible()
+    expect(cam()).toContain('scale(1.6)')
+  })
 })
