@@ -1,5 +1,5 @@
 /* 07b Recipe home view. Sits on the .hv-screen surface (which carries the voice glow's tokens), but white and in its own type. */
-.hv-screen.hm { --hm-ink: #1f1c19; --hm-muted: #6b665f; --hm-line: #efedea; background: #fff; color: var(--hm-ink); font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; -webkit-tap-highlight-color: transparent; }
+.hv-screen.hm { --hm-ink: #1f1c19; --hm-muted: #6b665f; --hm-line: #efedea; background: #fff; color: var(--hm-ink); font-family: "Archivo", "archivo Fallback", system-ui, sans-serif; font-weight: 400; -webkit-tap-highlight-color: transparent; }
 .hv-screen.hm::before { display: none; }
 .hm button, .hm a { font: inherit; }
 

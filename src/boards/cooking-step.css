@@ -1,6 +1,6 @@
 /* 09 Cooking step, 5.73 in: one step at a time as one big sentence, moving like song lyrics.
    Shares the 640 × 640 .st-screen surface with Oma's story. */
-.cs { --cs-ink: #1f1c19; --cs-align: center; background: #fff; color: var(--cs-ink); font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.cs { --cs-ink: #1f1c19; --cs-align: center; background: #fff; color: var(--cs-ink); font-family: "Archivo", "archivo Fallback", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .cs[data-align='left'] { --cs-align: left; }
 .cs:focus { outline: none; }
 .cs button { font: inherit; }
