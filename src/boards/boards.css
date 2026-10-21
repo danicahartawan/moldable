@@ -315,40 +315,6 @@
 .hv-mark { padding: 1px 3px; margin: 0 -3px; border-radius: 3px; background: rgba(214, 160, 238, .5); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 
 .hv-replay { position: absolute; z-index: 1; left: 0; top: 0; width: 20px; height: 20px; padding: 0; border: 0; background: transparent; cursor: pointer; }
-.hv-card { position: absolute; box-sizing: border-box; border: 1px solid rgba(255, 255, 255, .6); border-radius: 0; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(18px) saturate(1.1); backdrop-filter: blur(18px) saturate(1.1); box-shadow: 0 1px 0 rgba(255, 255, 255, .5) inset, 0 8px 24px rgba(70, 110, 160, .08); }
-
-.hv-recipe { left: 20px; top: 20px; width: 290px; height: 600px; overflow: hidden; display: flex; flex-direction: column; padding: 10px 10px 72px; }
-.hv-recipe__inner { flex: 1; display: flex; flex-direction: column; gap: 14px; min-height: 0; padding: 14px 10px 6px; }
-.hv-recipe__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.hv-title { margin: 0; font-family: var(--font-display); font-size: 30px; line-height: 34px; font-weight: 300; letter-spacing: -0.02em; }
-.hv-sub { margin: 2px 0 0; color: var(--ink-muted); font-size: 14px; line-height: 18px; }
-.hv-round { display: grid; width: 44px; height: 44px; flex: none; place-items: center; border: 0; border-radius: 0; background: var(--flour-sunken); color: var(--ink); }
-.hv-photo { display: block; flex: none; width: 100%; height: 300px; border-radius: 0; object-fit: cover; object-position: 50% 30%; }
-.hv-overview { margin: 0; color: var(--ink); font-size: 16px; line-height: 22px; }
-.hv-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin: auto 0 0; padding-top: 12px; border-top: 1.5px solid #000; }
-.hv-stats dt { color: var(--ink-muted); font-size: 12px; line-height: 16px; }
-.hv-stats dd { margin: 2px 0 0; font-size: 22px; line-height: 26px; font-weight: 300; }
-
-
-.hv-swap { left: 326px; top: 20px; width: 294px; height: 266px; overflow: hidden; }
-.hv-swap__btn { position: absolute; inset: 0; border: 0; background: transparent; color: var(--ink); text-align: left; }
-.hv-swap__btn:active { transform: scale(0.98); }
-.hv-roll { position: absolute; left: 20px; right: 20px; top: 18px; bottom: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 550ms cubic-bezier(0.3, 1.15, 0.4, 1), filter 550ms ease, opacity 550ms ease; }
-.hv-h { font-size: 22px; line-height: 26px; font-weight: 300; }
-.hv-count { color: var(--ink); font-size: 18px; line-height: 26px; }
-.hv-mins { font-size: 84px; line-height: 80px; font-weight: 300; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
-.hv-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.hv-tool { display: flex; align-items: center; gap: 10px; font-size: 18px; line-height: 22px; font-weight: 300; }
-.hv-tool__icon { display: grid; width: 36px; height: 36px; flex: none; place-items: center; border-radius: 0; background: #fff; box-shadow: 0 1px 2px rgba(40, 70, 110, .1); }
-.hv-dots { position: absolute; right: 18px; top: 22px; display: flex; gap: 5px; }
-.hv-dots span { width: 6px; height: 6px; border-radius: 50%; transition: background-color 300ms; }
-
-.hv-ingr { left: 326px; top: 302px; width: 294px; height: 318px; display: flex; flex-direction: column; gap: 18px; padding: 20px 22px; }
-.hv-ingr ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 9px; margin: 0; padding: 0; list-style: none; }
-.hv-ingr li { display: flex; justify-content: space-between; gap: 8px; font-size: 16px; line-height: 22px; white-space: nowrap; }
-.hv-ingr li.is-voice-target { border-radius: 6px; background: rgba(214, 160, 238, .22); }
-.hv-amt { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
-
 
 .hv-wave { align-self: flex-start; padding: 6px 14px; border-radius: 0; background: #fff; color: #0f8f94; font-size: 16px; line-height: 20px; font-weight: 300; animation: hv-wave-glow 2.4s ease-in-out infinite; }
 
@@ -358,7 +324,6 @@
 .hv-adjust.is-requesting, .hv-adjust.is-thinking { box-shadow: 0 0 0 4px rgba(84, 69, 180, 0.16); }
 .hv-adjust.is-speaking { box-shadow: 0 0 0 4px rgba(236, 146, 59, 0.18); }
 .hv-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-.hv-round, .hv-tool__icon { background: #fff; }
 .hv-chips { position: absolute; z-index: 6; left: 20px; bottom: 70px; display: flex; width: 300px; box-sizing: border-box; flex-direction: column; gap: 6px; padding: 8px; border-radius: 0; background: color-mix(in srgb, var(--flour-raised) 96%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 12px 32px rgba(31, 28, 25, 0.18); }
 .hv-chips__title { margin: 4px 10px 2px; color: var(--ink-muted); font-size: 13px; line-height: 16px; }
 .hv-chips__rule { height: 1px; margin: 4px 10px; background: var(--line); }
@@ -376,7 +341,6 @@
 @media (max-width: 430px) { .hv-screen { zoom: 0.5; } }
 @media (prefers-reduced-motion: reduce) {
   .hv-blurin, .hv-orb--talk, .hv-veil, .hv-adjust { animation: none !important; }
-  .hv-roll { transition: none; }
 }
 
 /* 08 Explore recipes, magnet globe */
@@ -489,9 +453,6 @@
 .hv-screen--embedded { zoom: 1 !important; position: absolute; top: 0; left: 0; border-radius: 0; box-shadow: none; transform-origin: 0 0; }
 
 /* Outer corners follow the screen's 68px curve (20px inset), inner corners stay square. */
-.hv-card.hv-recipe { border-radius: 48px 0 0 48px; }
-.hv-card.hv-swap { border-radius: 0 48px 0 0; }
-.hv-card.hv-ingr { border-radius: 0 0 48px 0; }
 
 @keyframes hv-wave-glow {
   0%, 100% { box-shadow: 0 1px 2px rgba(40, 70, 110, .1), 0 0 8px rgba(40, 190, 190, .3); }
@@ -570,44 +531,12 @@
   .st-tap { transition: none; }
 }
 
-/* 09 Cooking step, 5.73 in. Shares the .st-screen surface with Oma's story. */
-@keyframes ck-bloom-in { 0% { opacity: 0; transform: translate(0, 64px) scale(0.3); filter: blur(10px); } 55% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: none; filter: none; } }
-@keyframes ck-bloom-out { from { opacity: 1; transform: none; filter: none; } to { opacity: 0; transform: translate(0, 64px) scale(0.3); filter: blur(10px); } }
-@keyframes ck-pop { from { opacity: 0; transform: translateY(12px) scale(0.92); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
-
-.ck-body { position: absolute; left: 32px; right: 32px; top: 24px; bottom: 88px; display: flex; flex-direction: column; gap: 24px; }
-.ck-freeze { transition: filter 420ms var(--ease-out), opacity 420ms ease; }
-.ck-step { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-transform: inherit; cursor: pointer; }
-.ck-step:focus-visible { outline: 2px solid var(--enamel); outline-offset: 2px; }
-.ck-view { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 24px; }
-.ck-cue { display: flex; align-items: flex-start; gap: 12px; }
-.ck-mascot { width: 48px; height: 48px; flex: none; }
-.ck-bubble { max-width: 480px; margin: 0; padding: 12px 16px; border-radius: 4px 24px 24px 24px; background: var(--line); font-size: 20px; line-height: 28px; letter-spacing: -0.01em; }
-.ck-instruction { margin: 0; font-size: 32px; line-height: 40px; font-weight: 500; letter-spacing: -0.015em; text-wrap: pretty; }
-.ck-verb { display: inline-flex; height: 40px; align-items: center; gap: 8px; margin-right: 8px; padding: 0 16px 0 12px; border-radius: 12px; background: var(--yolk-soft); color: var(--yolk-ink); vertical-align: top; }
-.ck-picture { display: grid; flex: 1; min-height: 0; place-items: center; }
-.ck-art { height: 100%; }
-
-.ck-ingredients { display: flex; flex: 1; min-height: 0; box-sizing: border-box; flex-direction: column; gap: 8px; overflow: auto; padding: 16px 20px; border-radius: 24px; background: var(--flour-raised); box-shadow: var(--shadow-1); transform-origin: 0% 100%; }
-.ck-ingredients ul { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; margin: 0; padding: 0; list-style: none; }
-.ck-ingredients li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 20px; line-height: 28px; }
-.ck-amt { color: var(--ink-muted); font-variant-numeric: tabular-nums; }
-.ck-bloom { animation: ck-bloom-in 520ms cubic-bezier(0.34, 1.36, 0.5, 1) both; }
-.ck-bloom.is-out { animation: ck-bloom-out 260ms cubic-bezier(0.5, 0, 0.75, 0) both; }
-.ck-pop { animation: ck-pop 440ms cubic-bezier(0.34, 1.3, 0.5, 1) both; }
-
-.ck-ing-btn { position: absolute; left: 32px; bottom: 24px; display: inline-flex; height: 48px; align-items: center; gap: 8px; padding: 0 20px 0 16px; border: 0; border-radius: var(--radius-pill); background: var(--flour-sunken); color: var(--ink); font-size: 16px; font-weight: 500; line-height: 24px; }
-.ck-ing-btn.is-open { background: var(--ink); color: var(--flour); }
-.ck-ico-wrap { position: relative; width: 20px; height: 20px; }
-.ck-ico { position: absolute; inset: 0; transition: transform 440ms cubic-bezier(0.34, 1.4, 0.5, 1), opacity 200ms ease; }
-
-@media (prefers-reduced-motion: reduce) {
-  .ck-bloom, .ck-bloom.is-out, .ck-pop { animation: none !important; }
-  .ck-ico, .ck-freeze { transition: none; }
-}
-
 /* Voice: the glow and notification follow the screen's corner; the cards ease back a touch while the glow has the focus. */
 .hv-screen { --sg-radius: 36px; --vn-radius: 20px; }
 .hv-content { position: absolute; inset: 0; transition: transform 520ms cubic-bezier(.34, 1.56, .64, 1), filter 420ms ease; }
 .hv-screen[data-voice='on'] .hv-content { transform: scale(.985); filter: saturate(.88) blur(.4px); transition: transform 420ms cubic-bezier(.2, .8, .2, 1), filter 420ms ease; }
 @media (prefers-reduced-motion: reduce) { .hv-content, .hv-screen[data-voice='on'] .hv-content { transform: none; transition: filter 300ms ease; } }
+
+/* The wake word, in the wireframe: an unmarked top-left corner you can tap or tab to. There's no clay until voice starts. */
+.hv-talk { position: absolute; z-index: 8; top: 0; left: 0; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 0 0 16px 0; background: transparent; cursor: pointer; }
+.hv-talk:focus-visible { outline: 2px solid #3546a8; outline-offset: -2px; }

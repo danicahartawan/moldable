@@ -20,7 +20,7 @@ describe('KitchenMockup perspectives', () => {
 
     expect(stage).toHaveAttribute('data-perspective', 'grandkids')
     expect(screen.getByRole('button', { name: 'Grandkids' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeVisible()
 
     fireEvent.pointerDown(stage, { clientX: 120 })
     fireEvent.pointerUp(stage, { clientX: 520 })
@@ -39,15 +39,16 @@ describe('KitchenMockup perspectives', () => {
     expect(screen.getByTestId('kitchen-perspective-stage')).toHaveAttribute('data-perspective', 'grandma')
   })
 
-  it('opens Fred’s cooking step with Grandma’s cue from the grandkids view', () => {
+  it('opens the cooking step from the grandkids view, with Oma’s words behind the orb', () => {
     render(<KitchenMockup />)
     fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
 
     const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
-    expect(within(board).getByRole('button', { name: /Step 1/ })).toBeInTheDocument()
+    expect(within(board).getByRole('button', { name: 'Step 1' })).toHaveAttribute('aria-current', 'step')
     expect(board).toHaveTextContent('half the onions, garlic, sambal')
-    expect(within(board).getByLabelText('Blend the aromatics first, little one. Don’t make it watery; you should still see a little texture.')).toBeInTheDocument()
+    fireEvent.click(within(board).getByRole('button', { name: 'Show Oma Lien’s words' }))
+    expect(board).toHaveTextContent('Blend the aromatics first, little one.')
   })
 
   it('shows what the step uses only after Ingredients is pressed', () => {
@@ -56,29 +57,23 @@ describe('KitchenMockup perspectives', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
 
     const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
-    expect(within(board).queryByRole('region', { name: 'Ingredients for this step' })).not.toBeInTheDocument()
+    expect(within(board).queryByRole('dialog')).not.toBeInTheDocument()
     fireEvent.click(within(board).getByRole('button', { name: 'Ingredients' }))
-    const uses = within(board).getByRole('region', { name: 'Ingredients for this step' })
+    const uses = within(board).getByRole('dialog', { name: 'Ingredients · Step 1' })
     for (const name of ['Onions', 'Garlic', 'Sambal', 'Kencur', 'Pepper', 'Lime leaves']) {
       expect(within(uses).getByText(name)).toBeInTheDocument()
     }
   })
 
-  it('advances through the steps from the right edge and the step number', () => {
+  it('moves through the steps with the step bars, keeping one screen', () => {
     render(<KitchenMockup />)
     fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
-    const board = () => document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
+    const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    expect(board()).toHaveTextContent('Toast')
-    expect(board()).toHaveTextContent('the coconut in a dry pan until it turns golden.')
-
-    fireEvent.click(within(board()).getByRole('button', { name: /Step 2/ }))
-    expect(board()).toHaveTextContent('Fry')
-
-    for (let i = 3; i < 8; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next instruction' }))
-    expect(board()).toHaveTextContent('Serve')
+    fireEvent.click(within(board).getByRole('button', { name: 'Step 8' }))
+    expect(document.querySelector('.kitchen__grandkids-view--in')).toBe(board)
+    expect(within(board).getByRole('button', { name: 'Step 8' })).toHaveAttribute('aria-current', 'step')
     expect(screen.queryByRole('button', { name: 'Next instruction' })).not.toBeInTheDocument()
   })
 })

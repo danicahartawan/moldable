@@ -19,7 +19,6 @@ export function GlowDemo() {
   const manualRef = useRef(manual)
   manualRef.current = manual
   const simulated = useMemo(() => (typeof window === 'undefined' ? () => 0 : createSimulatedLevel()), [])
-  const notice = useRef<HTMLDivElement>(null)
   const timers = useRef<number[]>([])
   const clear = () => { timers.current.forEach((t) => window.clearTimeout(t)); timers.current = [] }
   useEffect(() => clear, [])
@@ -58,10 +57,9 @@ export function GlowDemo() {
         <SpeakingGlow
           state={state}
           level={() => (simulate ? simulated() : manualRef.current)}
-          mirrorTo={notice}
           onDone={() => setState('idle')}
         />
-        <VoiceNotification ref={notice} state={state} heard={heard} result={RESULT} teal={state === 'done'} />
+        <VoiceNotification state={state} heard={heard} result={RESULT} teal={state === 'done'} level={() => (simulate ? simulated() : manualRef.current)} />
       </div>
 
       <div className="gd__controls">

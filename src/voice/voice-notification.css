@@ -1,6 +1,5 @@
 /* VoiceNotification: the frosted card at the top of the screen that narrates a voice request. */
 .vn {
-  --sg-level: 0;
   position: absolute;
   z-index: 40;
   top: 16px;
@@ -29,38 +28,8 @@
 /* Leaving: up and out, a little faster. */
 .vn[data-state='idle'] { transition: opacity 240ms ease, transform 300ms cubic-bezier(.5, 0, .75, 0), filter 240ms ease; }
 
-/* The clay: the outer wrapper squashes with the voice, the lump inside keeps reshaping. */
-.vn__clay { display: grid; width: 56px; height: 56px; flex: none; place-items: center; }
-.vn__voice { display: block; transform: scale(calc(1 + .32 * var(--sg-level)), calc(1 - .18 * var(--sg-level))); }
-.vn__lump {
-  position: relative;
-  display: block;
-  width: 44px;
-  height: 44px;
-  background: radial-gradient(circle at 34% 28%, #ffc3a3 0, #ff8a5c 24%, #ff5a26 56%, #d9420f 100%);
-  box-shadow: inset -5px -7px 10px rgba(140, 38, 0, .4), inset 4px 4px 7px rgba(255, 226, 208, .55), 0 6px 12px rgba(255, 90, 38, .3);
-  animation: vn-morph 4.2s ease-in-out infinite;
-}
-.vn__lump::after {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at 34% 28%, #d4f7f4 0, #86dede 26%, #3fbfbd 58%, #1f9d9d 100%);
-  box-shadow: inset -5px -7px 10px rgba(0, 70, 70, .35), inset 4px 4px 7px rgba(220, 255, 252, .55);
-  content: '';
-  opacity: 0;
-  transition: opacity 600ms ease;
-}
-.vn__lump.is-teal::after { opacity: 1; }
-/* Thinking: the clay is kneaded faster. */
-.vn[data-state='thinking'] .vn__lump { animation-duration: 1.4s; }
-@keyframes vn-morph {
-  0%, 100% { border-radius: 58% 42% 46% 54% / 52% 60% 40% 48%; transform: rotate(0deg) scale(1, 1); }
-  20% { border-radius: 30% 70% 70% 30% / 50% 30% 70% 50%; transform: rotate(-8deg) scale(1.18, .84); }
-  40% { border-radius: 70% 30% 35% 65% / 30% 65% 35% 70%; transform: rotate(10deg) scale(.86, 1.16); }
-  60% { border-radius: 45% 55% 25% 75% / 70% 25% 75% 30%; transform: rotate(20deg) scale(1.08, 1.04); }
-  80% { border-radius: 38% 62% 44% 56% / 28% 52% 48% 72%; transform: rotate(-14deg) scale(.92, 1.1); }
-}
+/* The clay (ClayBody) sits on the left; it can leap in from outside the card, so nothing clips it. */
+.vn__clay { position: relative; display: block; width: 56px; height: 56px; flex: none; }
 
 .vn__text { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .vn__status { color: #8a8580; font-size: 13px; font-weight: 500; line-height: 16px; letter-spacing: .01em; }
@@ -74,6 +43,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .vn, .vn[data-state='idle'] { transform: none; filter: none; transition: opacity 300ms ease; }
-  .vn__lump, .vn__main { animation: none !important; }
-  .vn__voice { transform: none; }
+  .vn__main { animation: none !important; }
 }

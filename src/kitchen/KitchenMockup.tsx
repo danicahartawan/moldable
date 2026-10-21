@@ -3,7 +3,7 @@
 import { BowlFood, Drop, Grains, Jar, JarLabel, Leaf, Orange, OrangeSlice, Pepper, PiggyBank, Plant, TreePalm, type Icon as PhosphorIcon } from '@phosphor-icons/react'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { ExploreBoard } from '@/boards/Explore'
-import { COOKING_STEP_COUNT, CookingStepBoard } from '@/boards/CookingStep'
+import { CookingStepBoard } from '@/boards/CookingStep'
 import { HomeViewBoard } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { FridgeScreen } from './FridgeScreen'
@@ -118,16 +118,9 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   const perspectiveRef = useRef<Perspective>('grandma')
   const [perspective, setPerspectiveState] = useState<Perspective>('grandma')
   const [instructionStep, setInstructionStep] = useState<number | null>(null)
-  // With `fridge`, Grandkids starts on a fridge door; tapping Popo's recipe card opens the recipe.
-  const [isFridgeOpen, setIsFridgeOpen] = useState(false)
-  const [isFridgeLeaving, setIsFridgeLeaving] = useState(false)
-  const showFridge = fridge && !isFridgeOpen
-  // Opening the recipe turns the fridge over like a page, with the recipe already underneath.
-  const openFridge = () => {
-    setIsFridgeOpen(true)
-    setIsFridgeLeaving(true)
-    window.setTimeout(() => setIsFridgeLeaving(false), 740)
-  }
+  // With `fridge`, Grandkids starts on the fridge cookbooks; tapping Lelawar Bali dives into the recipe.
+  // The grandma screen can hand over straight to the recipe: the fridge is rebuilt already open on it.
+  const [recipeHandover, setRecipeHandover] = useState(0)
   const [leavingStep, setLeavingStep] = useState<number | null>(null)
   const [slideBack, setSlideBack] = useState(false)
   const [dragX, setDragX] = useState(0)
@@ -142,10 +135,6 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   }
 
   const setPerspective = (next: Perspective) => {
-    if (next !== 'grandkids') {
-      setIsFridgeOpen(false)
-      setIsFridgeLeaving(false)
-    }
     perspectiveRef.current = next
     setPerspectiveState(next)
   }
@@ -188,11 +177,11 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
     swipeStart.current = null
     setDragX(0)
     if (perspective === 'grandkids' && instructionStep !== null) {
-      if (distance > 56) goToStep(instructionStep > 1 ? instructionStep - 1 : null, true)
-      if (distance < -56 && instructionStep < COOKING_STEP_COUNT) goToStep(instructionStep + 1)
+      // The step screen moves between steps itself (up and down); a swipe to the right goes back to the recipe.
+      if (distance > 56) goToStep(null, true)
       return
     }
-    if (perspective === 'grandkids' && distance < -56 && !showFridge) {
+    if (perspective === 'grandkids' && distance < -56 && !fridge) {
       goToStep(1)
       return
     }
@@ -214,34 +203,29 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
       <div className="kitchen__css">
         <div ref={screen} className="kitchen__screen">
           <div data-testid="kitchen-grandma" className={`kitchen__host kitchen__host--grandma${perspective === 'grandma' ? '' : ' is-off'}`} aria-hidden={perspective !== 'grandma'} inert={perspective !== 'grandma'}>
-            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids'), showRecipe: () => { setPerspective('grandkids'); setIsFridgeOpen(true) } }) : grandmaScreen}
+            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids'), showRecipe: () => { setPerspective('grandkids'); setRecipeHandover((n) => n + 1) } }) : grandmaScreen}
           </div>
           <div data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragX ? ' is-dragging' : ''}`} style={dragX ? { transform: `translateX(${dragX}px)` } : undefined} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
-            <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}${fridge ? ' kitchen__grandkids-view--fridge' : ''}`} inert={instructionStep !== null}>
-              {(!fridge || isFridgeOpen) && <HomeViewBoard clay={fridge} />}
-              {fridge && (!isFridgeOpen || isFridgeLeaving) && (
-                <div className={`kitchen__fridge-layer${isFridgeLeaving ? ' is-leaving' : ''}`}>
-                  <FridgeScreen onOpen={openFridge} />
-                </div>
+            <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>
+              {fridge ? (
+                <FridgeScreen key={recipeHandover} startOpen={recipeHandover > 0} active={perspective === 'grandkids'}
+                  onStartCooking={() => goToStep(1)} onRecord={() => setPerspective('grandma')} />
+              ) : (
+                <HomeViewBoard onStartCooking={() => goToStep(1)} />
               )}
             </div>
             {leavingStep !== null && (
               <div className={`kitchen__grandkids-view kitchen__grandkids-view--out${slideBack ? ' is-back' : ''}`} key={`out-${leavingStep}`} aria-hidden="true">
-                <CookingStepBoard embedded clay={fridge} step={leavingStep - 1} />
+                <CookingStepBoard embedded step={leavingStep - 1} />
               </div>
             )}
             {instructionStep !== null && (
-              <div className={`kitchen__grandkids-view kitchen__grandkids-view--in${slideBack ? ' is-back' : ''}`} key={instructionStep}>
-                <CookingStepBoard embedded clay={fridge} step={instructionStep - 1} onStepTap={() => instructionStep < COOKING_STEP_COUNT && goToStep(instructionStep + 1)} />
+              <div className={`kitchen__grandkids-view kitchen__grandkids-view--in${slideBack ? ' is-back' : ''}`} key="steps">
+                <CookingStepBoard embedded step={instructionStep - 1} onStepChange={(n) => setInstructionStep(n + 1)} />
               </div>
             )}
-            {instructionStep !== null && (
-              <button type="button" className="kitchen__edge-prev" aria-label="Previous" onClick={() => goToStep(instructionStep > 1 ? instructionStep - 1 : null, true)} />
-            )}
-            {instructionStep === null ? (
-              !showFridge && <button type="button" className="kitchen__edge-next" aria-label="Open step 1" onClick={() => goToStep(1)} />
-            ) : instructionStep < COOKING_STEP_COUNT && (
-              <button type="button" className="kitchen__edge-next kitchen__edge-next--wide" aria-label="Next instruction" onClick={() => goToStep((instructionStep ?? 0) + 1)} />
+            {instructionStep === null && !fridge && (
+              <button type="button" className="kitchen__edge-next" aria-label="Open step 1" onClick={() => goToStep(1)} />
             )}
           </div>
           <div data-testid="kitchen-explore" className={`kitchen__host kitchen__host--explore${perspective === 'explore' ? '' : ' is-off'}`} aria-hidden={perspective !== 'explore'} inert={perspective !== 'explore'}>
