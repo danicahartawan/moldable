@@ -1,0 +1,47 @@
+/* Demo page for the speaking glow: a 640 × 640 white screen and controls underneath. */
+.gd { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px 0 48px; font-family: "Archivo", system-ui, sans-serif; }
+.gd__screen {
+  --sg-radius: 36px;
+  --vn-radius: 20px;
+  position: relative;
+  width: 640px;
+  height: 640px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 36px;
+  background: #fff;
+  box-shadow: 0 0 0 10px #1f1c19, 0 30px 70px rgba(31, 28, 25, .25);
+  color: #1f1c19;
+}
+@media (max-width: 700px) { .gd__screen { zoom: .8; } }
+@media (max-width: 560px) { .gd__screen { zoom: .6; } }
+@media (max-width: 430px) { .gd__screen { zoom: .5; } }
+
+.gd__content { position: absolute; inset: 0; transition: transform 520ms cubic-bezier(.34, 1.56, .64, 1), filter 420ms ease; }
+.gd__screen[data-voice='on'] .gd__content { transform: scale(.985); filter: saturate(.88) blur(.4px); transition: transform 420ms cubic-bezier(.2, .8, .2, 1), filter 420ms ease; }
+@media (prefers-reduced-motion: reduce) { .gd__content, .gd__screen[data-voice='on'] .gd__content { transform: none; transition: filter 300ms ease; } }
+
+.gd__card { position: absolute; box-sizing: border-box; border: 1.5px solid #e6e3de; border-radius: 24px; background: #fff; }
+.gd__recipe { left: 20px; top: 20px; width: 290px; height: 600px; padding: 24px 20px; }
+.gd__recipe h1 { margin: 0 0 14px; font-size: 32px; font-weight: 400; letter-spacing: -.03em; line-height: 36px; text-transform: none; }
+.gd__recipe img { display: block; width: 100%; height: 220px; border-radius: 16px; object-fit: cover; }
+.gd__recipe p { margin: 14px 0 0; font-size: 17px; line-height: 24px; }
+.gd__time { left: 326px; top: 20px; width: 294px; height: 170px; display: flex; flex-direction: column; justify-content: space-between; padding: 18px 22px; }
+.gd__ingr { left: 326px; top: 206px; width: 294px; height: 414px; padding: 22px 24px; }
+.gd__h { margin: 0; font-size: 22px; font-weight: 500; line-height: 26px; letter-spacing: -.01em; }
+.gd__mins { margin: 0; font-size: 22px; }
+.gd__mins span { font-size: 84px; font-weight: 500; line-height: 80px; letter-spacing: -.04em; }
+.gd__ingr ul { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; margin: 14px 0 0; padding: 0; list-style: none; }
+.gd__ingr li { display: flex; justify-content: space-between; font-size: 16px; line-height: 22px; }
+.gd__ingr li span:last-child { color: #8a8580; }
+
+.gd__controls { display: flex; width: min(640px, calc(100vw - 32px)); flex-direction: column; gap: 12px; }
+.gd__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.gd__row button { height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #ece7de; color: #1f1c19; font: 500 14px/1 inherit; font-family: inherit; cursor: pointer; }
+.gd__row button[aria-pressed='true'] { background: #1f1c19; color: #fff; }
+.gd__row .gd__play { margin-left: auto; background: #4e0b91; color: #fff; }
+.gd__row label { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+.gd__row label.is-off { opacity: .45; }
+.gd__row output { min-width: 3ch; font-variant-numeric: tabular-nums; }
+.gd__row button:focus-visible, .gd__row input:focus-visible { outline: 2px solid #3546a8; outline-offset: 2px; }
+.gd__note { margin: 0; color: #655e54; font-size: 13px; line-height: 18px; }

@@ -605,3 +605,9 @@
   .ck-bloom, .ck-bloom.is-out, .ck-pop { animation: none !important; }
   .ck-ico, .ck-freeze { transition: none; }
 }
+
+/* Voice: the glow and notification follow the screen's corner; the cards ease back a touch while the glow has the focus. */
+.hv-screen { --sg-radius: 36px; --vn-radius: 20px; }
+.hv-content { position: absolute; inset: 0; transition: transform 520ms cubic-bezier(.34, 1.56, .64, 1), filter 420ms ease; }
+.hv-screen[data-voice='on'] .hv-content { transform: scale(.985); filter: saturate(.88) blur(.4px); transition: transform 420ms cubic-bezier(.2, .8, .2, 1), filter 420ms ease; }
+@media (prefers-reduced-motion: reduce) { .hv-content, .hv-screen[data-voice='on'] .hv-content { transform: none; transition: filter 300ms ease; } }
