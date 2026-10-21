@@ -1,0 +1,40 @@
+/* Gooey tooltip: one drop of liquid pulled out of a pill button. Archivo, fully round pills (Moldable Kitchen Display). */
+.goo { --goo-font: "Archivo", system-ui, sans-serif; position: relative; display: inline-block; font-family: var(--goo-font); }
+.goo__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.goo__row { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+/* The goo layer reaches past the row so the filter has room for the tooltip above and the neck between. */
+.goo__shapes, .goo__labels { position: absolute; z-index: 1; top: calc(var(--goo-pad-top) * -1); right: calc(var(--goo-pad-x) * -1); bottom: calc(var(--goo-pad-bottom) * -1); left: calc(var(--goo-pad-x) * -1); pointer-events: none; }
+.goo__labels { z-index: 3; top: 0; right: auto; bottom: auto; left: 0; }
+.goo__tip, .goo__owner { position: absolute; top: 0; left: 0; visibility: hidden; will-change: transform; }
+.goo__tip { border-radius: 12px; background: var(--goo-tip); }
+.goo__owner { border-radius: 999px; background: var(--goo-btn); transition: scale 140ms cubic-bezier(.2, .8, .2, 1); }
+.goo__tip.is-on, .goo__owner.is-on { visibility: visible; }
+
+/* Labels: crisp, on top, centred on the drop. The outgoing one blurs away; the incoming one blurs in after it. */
+.goo__label-box { position: absolute; top: 0; left: 0; height: 36px; color: var(--goo-tip-ink); }
+.goo__label { position: absolute; top: 50%; left: 50%; font: 500 15px/20px var(--goo-font); letter-spacing: -.005em; white-space: nowrap; transform: translate(-50%, -50%); animation: goo-label-in 180ms ease var(--goo-delay, 0ms) both; }
+.goo__label.is-out { animation: goo-label-out 140ms ease both; }
+.goo__measure { visibility: hidden; top: 0; left: 0; transform: none; animation: none; }
+.goo__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes goo-label-in { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: blur(0); } }
+@keyframes goo-label-out { from { opacity: 1; filter: blur(0); } to { opacity: 0; filter: blur(6px); } }
+
+/* The buttons: real backgrounds sit above the goo layer, so a drop inside its button is hidden by it until it rises out. */
+.goo-btn { position: relative; z-index: 2; display: inline-flex; height: 44px; box-sizing: border-box; align-items: center; justify-content: center; gap: 8px; padding: 0 18px 0 16px; border: 0; border-radius: 999px; background: var(--goo-btn); color: var(--goo-btn-ink); font: 500 16px/20px var(--goo-font); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: scale 140ms cubic-bezier(.2, .8, .2, 1); }
+.goo-btn:active { scale: .96; }
+.goo-btn:focus-visible { outline: 2px solid var(--goo-btn); outline-offset: 3px; }
+.goo-btn--icon { width: 44px; padding: 0; }
+.goo-btn svg { width: 20px; height: 20px; flex: none; }
+
+/* Reduced motion (and no filter): no goo, no travel; it fades in and out where it rests. */
+.goo.is-reduced .goo__tip, .goo.is-reduced .goo__owner { visibility: visible; opacity: 0; transition: opacity 120ms ease; }
+.goo.is-reduced .goo__tip.is-on { opacity: 1; }
+.goo.is-reduced .goo__owner { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .goo__label, .goo__label.is-out { animation-duration: 120ms; animation-delay: 0ms; animation-name: goo-fade-in; }
+  .goo__label.is-out { animation-name: goo-fade-out; }
+  .goo-btn { transition: none; }
+}
+@keyframes goo-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes goo-fade-out { from { opacity: 1; } to { opacity: 0; } }
