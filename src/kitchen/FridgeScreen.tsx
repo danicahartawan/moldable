@@ -3,7 +3,7 @@
 import './fridge.css'
 import { HomeViewBoard } from '@/boards/HomeView'
 import Link from 'next/link'
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 
 /* 10 Fridge cookbooks. Each cookbook is a retro fridge; its recipes are postcard notes held on by magnets.
    You see a fridge whole, then the camera zooms in until the door fills the screen. Swipe between fridges,
@@ -65,10 +65,15 @@ function cardFor(bi: number, k: number, kind: Item['kind']) {
   const c = CARDS[(bi * 2 + k) % CARDS.length]
   return { paper: c[0], top: c[1], bottom: c[2] }
 }
-function camFor(view: View, i: number) {
+// At the door the screen shows 400 units of the fridge; it scrolls between its top and bottom.
+const DOOR_FY: number = VIEWS.door.fy
+const DOOR_HALF = 320 / VIEWS.door.k
+const clampFy = (fy: number) => Math.max(DOOR_HALF, Math.min(H - DOOR_HALF, fy))
+function camFor(view: View, i: number, doorFy: number = DOOR_FY) {
   const v = VIEWS[view]
+  const fy = view === 'door' ? doorFy : v.fy
   const ox = i * (W + GAP)
-  return { k: v.k, tx: 320 - (ox + v.fx) * v.k, ty: 320 - v.fy * v.k }
+  return { k: v.k, tx: 320 - (ox + v.fx) * v.k, ty: 320 - fy * v.k }
 }
 
 function Icon({ d, size = 20, width = 1.8 }: { d: string; size?: number; width?: number }) {
@@ -117,7 +122,7 @@ function FridgeBody({ base, badge }: { base: string; badge: string }) {
 }
 
 type Open = { b: number; k: number }
-type Drag = { bi: number; k: number; sx: number; sy: number; ox: number; oy: number; moved: boolean; u: number }
+type Drag = { bi: number; k: number; sx: number; sy: number; ox: number; oy: number; moved: boolean; u: number; fy: number }
 
 type FridgeProps = {
   /** Start cooking, from the recipe home view inside the fridge: leads to the cooking-step screen. */
@@ -136,6 +141,20 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const [books, setBooks] = useState<Book[]>(() => START.map((b) => ({ ...b, recipes: b.recipes.slice() })))
   const [i, setI] = useState(0)
   const [view, setView] = useState<View>(startOpen ? 'door' : 'over')
+  // Where the door view is scrolled to (its centre, in world units), and whether it's following a finger or wheel right now.
+  const [doorFy, setDoorFy] = useState(DOOR_FY)
+  const fyRef = useRef(DOOR_FY)
+  fyRef.current = doorFy
+  const [panning, setPanning] = useState(false)
+  const panIdle = useRef<number | undefined>(undefined)
+  const scrollTo = (fy: number) => {
+    const next = clampFy(fy)
+    fyRef.current = next
+    setDoorFy(next)
+    setPanning(true)
+    window.clearTimeout(panIdle.current)
+    panIdle.current = window.setTimeout(() => setPanning(false), 160)
+  }
   const [ready, setReady] = useState(startOpen)
   const [fresh, setFresh] = useState(-1)
   const [pos, setPos] = useState<Spot[][]>(() => START.map((b) => layoutFor(itemsOf(b).length)))
@@ -150,7 +169,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const accT = useRef<number | undefined>(undefined)
   const drag = useRef<Drag | null>(null)
   const suppress = useRef(false)
-  const down = useRef<{ x: number; y: number } | null>(null)
+  const down = useRef<{ x: number; y: number; fy: number; pan: boolean } | null>(null)
   const timers = useRef<Record<string, number | undefined>>({})
   const later = (name: string, ms: number, fn: () => void) => {
     window.clearTimeout(timers.current[name])
@@ -159,6 +178,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   useEffect(() => () => {
     Object.values(timers.current).forEach((t) => window.clearTimeout(t))
     window.clearTimeout(accT.current)
+    window.clearTimeout(panIdle.current)
   }, [])
 
   // On first showing: the world fades in, whole, then zooms to the door.
@@ -189,7 +209,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     lock.current = Date.now() + 2700
     const wait = view === 'door' ? 800 : 0
     setView('over')
-    later('slide', wait, () => setI(n))
+    later('slide', wait, () => { setI(n); setDoorFy(DOOR_FY) })
     if (n < last) later('zoom', wait + 1700, () => setView('door'))
   }
   const step = (d: number) => { if (Date.now() >= lock.current) go(i + d) }
@@ -202,6 +222,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setPos((cur) => [...cur, layoutFor(1)])
     setOrder((cur) => [...cur, [0]])
     setI(n)
+    setDoorFy(DOOR_FY)
     setView('over')
     lock.current = Date.now() + 1800
     later('zoom', 1100, () => { setView('door'); setFresh(-1) })
@@ -217,7 +238,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     if (open || bi !== i) return
     event.stopPropagation()
     const p = pos[bi][k]
-    drag.current = { bi, k, sx: event.clientX, sy: event.clientY, ox: p[0], oy: p[1], moved: false, u: unit() }
+    drag.current = { bi, k, sx: event.clientX, sy: event.clientY, ox: p[0], oy: p[1], moved: false, u: unit(), fy: fyRef.current }
     setOrder((cur) => cur.map((o, b) => (b === bi ? [...o.filter((x) => x !== k), k] : o)))
     setDragging([bi, k])
   }
@@ -248,18 +269,36 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const onDown = (event: ReactPointerEvent) => {
     // The fridge handles its own swipes; the kitchen around it shouldn't also turn the page.
     event.stopPropagation()
-    down.current = { x: event.clientX, y: event.clientY }
+    down.current = { x: event.clientX, y: event.clientY, fy: fyRef.current, pan: false }
   }
   const onMove = (event: ReactPointerEvent) => {
     const d = drag.current
-    if (!d) return
+    if (!d) {
+      // Dragging empty door up or down scrolls the fridge (at the door, with nothing open).
+      const dn = down.current
+      if (!dn || open || view !== 'door') return
+      const dx = event.clientX - dn.x
+      const dy = event.clientY - dn.y
+      if (!dn.pan && (Math.abs(dy) < 6 || Math.abs(dy) < Math.abs(dx) * 1.3)) return
+      dn.pan = true
+      scrollTo(dn.fy - dy / unit())
+      return
+    }
+    // The camera may have scrolled since the drag began: the note stays under the finger.
     const dx = (event.clientX - d.sx) / d.u
-    const dy = (event.clientY - d.sy) / d.u
+    const dy = (event.clientY - d.sy) / d.u + (fyRef.current - d.fy)
     if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return
     d.moved = true
+    const h = noteH(d.bi, d.k)
     const x = Math.max(-20, Math.min(W - NW + 20, d.ox + dx))
-    const y = Math.max(20, Math.min(1140 - noteH(d.bi, d.k), d.oy + dy))
+    const y = Math.max(20, Math.min(1140 - h, d.oy + dy))
     setPos((cur) => cur.map((spots, b) => (b === d.bi ? spots.map((s, k) => (k === d.k ? [x, y, s[2]] as Spot : s)) : spots)))
+    // Carrying a note past the top or bottom of the screen scrolls the fridge with it.
+    if (view === 'door') {
+      const fy = fyRef.current
+      if (y + h > fy + DOOR_HALF - 16) scrollTo(fy + Math.min(14, y + h - (fy + DOOR_HALF - 16)))
+      else if (y < fy - DOOR_HALF + 16) scrollTo(fy - Math.min(14, fy - DOOR_HALF + 16 - y))
+    }
   }
   const onUp = (event: ReactPointerEvent) => {
     const d = drag.current
@@ -271,12 +310,19 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     }
     const dn = down.current
     down.current = null
-    if (!dn || open || event.type === 'pointerleave') return
+    if (!dn || dn.pan || open || event.type === 'pointerleave') return
     const dx = event.clientX - dn.x
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(event.clientY - dn.y) * 1.3) step(dx < 0 ? 1 : -1)
   }
-  const onWheel = (event: ReactWheelEvent) => {
-    if (open || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
+  // Wheel or trackpad: up and down scroll the door; sideways moves between fridges.
+  const onWheel = (event: WheelEvent) => {
+    if (open) return
+    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+      if (view !== 'door') return
+      event.preventDefault()
+      scrollTo(fyRef.current + event.deltaY / unit())
+      return
+    }
     acc.current += event.deltaX
     window.clearTimeout(accT.current)
     accT.current = window.setTimeout(() => { acc.current = 0 }, 200)
@@ -287,7 +333,18 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     }
   }
 
-  const cam = camFor(view, i)
+  // The wheel listener is native, so it can stop the page scrolling while the door does.
+  const wheelRef = useRef(onWheel)
+  wheelRef.current = onWheel
+  useEffect(() => {
+    const el = root.current
+    if (!el) return
+    const listen = (event: WheelEvent) => wheelRef.current(event)
+    el.addEventListener('wheel', listen, { passive: false })
+    return () => el.removeEventListener('wheel', listen)
+  }, [])
+
+  const cam = camFor(view, i, doorFy)
   const camStyle: CSSProperties = {
     transform: `translate(${Math.round(cam.tx)}px, ${Math.round(cam.ty)}px) scale(${cam.k})`,
     opacity: ready ? 1 : 0,
@@ -300,7 +357,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   if (open) {
     const ob = books[open.b]
     const it = itemsOf(ob)[open.k]
-    const oc = camFor(view, open.b)
+    const oc = camFor(view, open.b, doorFy)
     const p = pos[open.b][open.k]
     const c = cardFor(open.b, open.k, it.kind)
     const w = NW * oc.k
@@ -323,9 +380,9 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
   return (
     <div ref={root} className="fz" aria-label="Fridge cookbooks"
-      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp} onWheel={onWheel}>
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
 
-      <div className="fz-cam" style={camStyle}>
+      <div className={`fz-cam${panning ? ' is-panning' : ''}`} style={camStyle}>
         {books.map((b, bi) => {
           const d = bi - i
           const cur = d === 0

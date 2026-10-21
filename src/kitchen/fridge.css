@@ -5,7 +5,7 @@
 .fz-in-late { animation: fz-in .5s cubic-bezier(.22, 1, .36, 1) .12s both; }
 .fz-pop { animation: fz-pop .7s cubic-bezier(.22, 1, .36, 1) both; }
 
-.fz { position: relative; width: 640px; height: 640px; overflow: hidden; background: #fff; color: #1f1c19; font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; }
+.fz { position: relative; width: 640px; height: 640px; overflow: hidden; overflow: clip; background: #fff; color: #1f1c19; font-family: "ABC Arizona Sans", system-ui, sans-serif; font-weight: 400; touch-action: none; user-select: none; -webkit-user-select: none; }
 .fz button, .fz a { font: inherit; }
 .fz-tap { cursor: pointer; transition: transform .14s cubic-bezier(.2, .8, .2, 1), background-color .2s ease; }
 .fz-tap:active { transform: scale(.95); }
@@ -14,6 +14,8 @@ a.fz-tap { text-decoration: none; }
 
 /* The camera: one transform moves the whole world. */
 .fz-cam { position: absolute; top: 0; left: 0; width: 600px; height: 1240px; transform-origin: 0 0; transition: transform 1.15s cubic-bezier(.7, 0, .18, 1), opacity .6s ease, filter .6s ease; }
+/* Following a finger or the wheel up and down the door: the camera keeps up instead of easing for a second. */
+.fz-cam.is-panning { transition: transform 90ms linear, opacity .6s ease, filter .6s ease; }
 .fz-book { position: absolute; top: 0; width: 600px; height: 1240px; transition: opacity .8s ease; }
 .fz-book__pick { position: absolute; z-index: 40; inset: 0; padding: 0; border: 0; border-radius: 130px 130px 34px 34px / 104px 104px 34px 34px; background: transparent; cursor: pointer; }
 

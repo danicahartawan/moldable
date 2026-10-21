@@ -105,4 +105,35 @@ describe('FridgeScreen', () => {
     expect(screen.getByRole('button', { name: /Lawar Bali, 40 minutes/ })).toBeVisible()
     expect(cam()).toContain('scale(1.6)')
   })
+
+  it('scrolls the door up and down with the wheel and by dragging empty door, stopping at the fridge ends', () => {
+    render(<FridgeScreen />)
+    advance(1600)
+    const ty = () => Number(/translate\(-?\d+px, (-?\d+)px\)/.exec(cam())?.[1])
+    const start = ty()
+    act(() => { root().dispatchEvent(new WheelEvent('wheel', { deltaY: 160, bubbles: true, cancelable: true })) })
+    expect(ty()).toBe(start - 160)
+    // Far down: it stops with the bottom of the fridge at the bottom of the screen.
+    act(() => { root().dispatchEvent(new WheelEvent('wheel', { deltaY: 5000, bubbles: true, cancelable: true })) })
+    expect(ty()).toBe(640 - 1240 * 1.6)
+    // Dragging the door down scrolls back up.
+    fireEvent.pointerDown(root(), { clientX: 300, clientY: 100 })
+    fireEvent.pointerMove(root(), { clientX: 302, clientY: 420 })
+    fireEvent.pointerUp(root(), { clientX: 302, clientY: 420 })
+    expect(ty()).toBe(640 - 1240 * 1.6 + 320)
+    // Not a sideways swipe: still on Oma Lien's fridge.
+    expect(screen.getByRole('button', { name: 'Oma Lien’s cookbook' })).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('carrying a note past the bottom of the screen scrolls the fridge with it', () => {
+    render(<FridgeScreen />)
+    advance(1600)
+    const start = cam()
+    const lawar = note(/Lawar Bali, 40/)
+    fireEvent.pointerDown(lawar, { clientX: 100, clientY: 100 })
+    for (let y = 140; y <= 600; y += 40) fireEvent.pointerMove(root(), { clientX: 100, clientY: y })
+    fireEvent.pointerUp(root(), { clientX: 100, clientY: 600 })
+    expect(cam()).not.toBe(start)
+    expect(Number(lawar.style.top.replace('px', ''))).toBeGreaterThan(700)
+  })
 })
