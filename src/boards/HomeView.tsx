@@ -98,6 +98,8 @@ const PASSES: Pass[] = [
 ]
 // How the amounts are written: tidied, or as Oma says them. The switch's thumb is liquid (GooSegmented).
 const AMOUNT_MODES = [{ value: 'tidy', label: 'Tidy' }, { value: 'oma', label: 'Oma’s words' }] as const
+// A card (other than Ingredients) folds away in this long, the frost with it.
+const CARD_OUT_MS = 300
 // The card pours in (720ms) before the first hop; then one row at a time, and a moment on the last.
 const CARD_IN_MS = 760
 // The Ingredients pill and the card it pours into, as on the cooking step: the blob changes from one look to the other.
@@ -227,7 +229,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     }
     const next = stage.current + 1
     setOpen('')
-    setIngrOut(false)
+    setClosing(false)
     setCancelled(false)
     setPhase('listening')
     setGlow('listening')
@@ -300,12 +302,21 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   // The island stays on "Done" until the clay hops out of it.
   const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? (pass ? 'idle' : 'done') : glow
 
-  // Ingredients pours out of its pill into the card, and back into the pill when it closes (where a pour can play).
-  const [ingrOut, setIngrOut] = useState(false)
+// Closing runs the opening backwards (where motion can play): Ingredients pours back into its pill, and the other
+  // cards shrink a little, blur and fade with the frost, the way they bloomed in.
+  const [closing, setClosing] = useState(false)
   const close = () => {
-    if (open === 'ingr' && canPour()) setIngrOut(true)
-    else { setOpen(''); setIngrOut(false) }
+    if (!open || closing) return
+    if (canPour()) setClosing(true)
+    else { setOpen(''); setClosing(false) }
   }
+  // A card on its way out is no longer a dialog, and can't be pressed again.
+  const dialog = (label: string) => (closing ? { 'aria-hidden': true, inert: true } : { role: 'dialog', 'aria-label': label })
+  useEffect(() => {
+    if (!closing || open === 'ingr') return
+    const gone = window.setTimeout(() => { setOpen(''); setClosing(false) }, CARD_OUT_MS)
+    return () => window.clearTimeout(gone)
+  }, [closing, open])
   const ingrPill = useRef<HTMLButtonElement>(null)
   const ingrCard = useRef<HTMLDivElement>(null)
   const ingrBlob = useRef<HTMLDivElement>(null)
@@ -314,7 +325,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     const r = screenRef.current
     const b = ingrBlob.current
     if (open !== 'ingr' || !r || !b || !ingrCard.current) return
-    if (!ingrOut) {
+    if (!closing) {
       const to = rectIn(ingrCard.current, r)
       ingrRect.current = to
       pourOpen(b, ingrPill.current ? rectIn(ingrPill.current, r) : to, to, PILL_LOOK, CARD_LOOK)
@@ -322,9 +333,9 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     }
     const from = ingrRect.current
     if (from && ingrPill.current) pourClose(b, from, rectIn(ingrPill.current, r), CARD_LOOK, PILL_LOOK)
-    const gone = window.setTimeout(() => { setOpen(''); setIngrOut(false) }, 540)
+    const gone = window.setTimeout(() => { setOpen(''); setClosing(false) }, 540)
     return () => window.clearTimeout(gone)
-  }, [open, ingrOut])
+  }, [open, closing])
 
   // Escape closes whichever card is open.
   const closeRef = useRef(close)
@@ -388,18 +399,18 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
           </button>
 
           <div className="hm-float">
-            <button ref={ingrPill} type="button" className={`hm-tap hm-pill${open === 'ingr' ? ' is-poured' : ''}`} aria-haspopup="dialog" aria-expanded={open === 'ingr' && !ingrOut} onClick={() => setOpen('ingr')}>
+            <button ref={ingrPill} type="button" className={`hm-tap hm-pill${open === 'ingr' ? ' is-poured' : ''}`} aria-haspopup="dialog" aria-expanded={open === 'ingr' && !closing} onClick={() => setOpen('ingr')}>
               <Icon d={ICON.steps} width={1.7} />Ingredients
             </button>
             {startCooking('hm-tap hm-go', 18)}
           </div>
         </div>
 
-        {open && <button type="button" className={`hm-frost${ingrOut ? ' is-closing' : ''}`} aria-label="Close" onClick={close} tabIndex={ingrOut ? -1 : undefined} />}
+        {open && <button type="button" className={`hm-frost${closing ? ` is-closing${open === 'ingr' ? '' : ' is-quick'}` : ''}`} aria-label="Close" onClick={close} tabIndex={closing ? -1 : undefined} />}
 
         {open === 'steps' && (
-          <div className="hm-center">
-            <div className="hm-card hm-card--steps" role="dialog" aria-label="Steps">
+          <div className={`hm-center${closing ? ' is-closing' : ''}`}>
+            <div className="hm-card hm-card--steps" {...dialog('Steps')}>
               <p className="hm-card__title">8 steps · about {mins} min</p>
               <ol className="hm-steps">
                 {STEPS.map((step, i) => {
@@ -430,7 +441,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         )}
 
         {open === 'photo' && (
-          <div className="hm-center">
+          <div className={`hm-center${closing ? ' is-closing' : ''}`}>
             <button type="button" className="hm-card hm-card--photo" aria-label="Close photo" onClick={close}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={PHOTO} alt={PHOTO_ALT} />
@@ -439,9 +450,9 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         )}
 
         {open === 'ingr' && (
-          <div className={`hm-center${ingrOut ? ' is-closing' : ''}`}>
+          <div className={`hm-center${closing ? ' is-closing' : ''}`}>
             <div ref={ingrBlob} className="hm-blob" aria-hidden="true" />
-            <div ref={ingrCard} className="hm-card hm-card--ingr" {...(ingrOut ? { 'aria-hidden': true, inert: true } : { role: 'dialog', 'aria-label': 'Ingredients' })}>
+            <div ref={ingrCard} className="hm-card hm-card--ingr" {...dialog('Ingredients')}>
               <div className="hm-ingr__head hm-pour" style={{ '--i': 0 } as React.CSSProperties}>
                 <p className="hm-card__title">Ingredients · serves {m.serves2 ? 2 : 4}</p>
                 <GooSegmented className="hm-seg" buttonClassName="hm-tap" aria-label="How amounts are written"
@@ -476,8 +487,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         )}
 
         {open === 'versions' && (
-          <div className="hm-center">
-            <div className="hm-card hm-card--versions" role="dialog" aria-label="Version history">
+          <div className={`hm-center${closing ? ' is-closing' : ''}`}>
+            <div className="hm-card hm-card--versions" {...dialog('Version history')}>
               <p className="hm-card__title">Version history · v{current}</p>
               <VersionList entries={versions} />
               <button type="button" className="hm-tap hm-done hm-done--centre" onClick={close}>Done</button>

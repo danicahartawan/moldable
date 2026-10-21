@@ -71,6 +71,10 @@ a.hm-tap { text-decoration: none; }
 .hm-center.is-closing .hm-blob { animation: hm-frost-out 120ms ease 450ms both; }
 .hm-frost.is-closing { animation: hm-frost-out 420ms ease 120ms both; pointer-events: none; }
 .hm-pill.is-poured { visibility: hidden; }
+/* The other cards fold away the way they bloomed in: a little smaller, blurring, fading, with the frost. */
+@keyframes hm-center-out { from { opacity: 1; transform: none; filter: none; } to { opacity: 0; transform: scale(.94); filter: blur(8px); } }
+.hm-center.is-closing .hm-card:not(.hm-card--ingr) { animation: hm-center-out 300ms cubic-bezier(.4, 0, .7, .2) both; pointer-events: none; }
+.hm-frost.is-closing.is-quick { animation: hm-frost-out 300ms cubic-bezier(.4, 0, .7, .2) both; }
 .hm-ingr__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .hm-ingr__head .hm-card__title { margin: 0; }
 .hm-seg { display: flex; padding: 3px; border-radius: 999px; background: #f2f1ef; }
