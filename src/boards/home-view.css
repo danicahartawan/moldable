@@ -41,9 +41,10 @@ a.hm-tap { text-decoration: none; }
 .hm-center { position: absolute; z-index: 6; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 .hm-card { box-sizing: border-box; border-radius: 32px; background: rgba(255, 255, 255, .9); box-shadow: 0 0 0 1px rgba(31, 28, 25, .05), 0 24px 60px rgba(31, 28, 25, .18); pointer-events: auto; animation: hm-center 420ms cubic-bezier(.2, 1.1, .3, 1) both; }
 .hm-card__title { margin: 0 0 4px; color: var(--hm-muted); font-size: 16px; line-height: 20px; }
-.hm-done { height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #f2f1ef; color: var(--hm-ink); font-size: 16px; }
+/* Done stands out from the white card: outlined beside Start cooking, and the card's one dark pill when it's alone. */
+.hm-done { height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1.5px rgba(31, 28, 25, .22); color: var(--hm-ink); font-size: 16px; }
 .hm .hm-done { font-size: 16px; }
-.hm-done--centre { align-self: center; margin-top: 14px; }
+.hm-done--centre { align-self: center; margin-top: 14px; background: var(--hm-ink); box-shadow: none; color: #fff; font-weight: 500; }
 
 .hm-card--steps { display: flex; width: 584px; max-height: 596px; flex-direction: column; padding: 22px 28px 18px; background: rgba(255, 255, 255, .92); }
 .hm-steps { flex: 1; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
