@@ -59,7 +59,17 @@ a.hm-tap { text-decoration: none; }
 .hm-card--photo img { display: block; width: 100%; height: 100%; object-fit: contain; }
 
 
-.hm-card--ingr { display: flex; width: 552px; flex-direction: column; padding: 24px 30px 20px; }
+.hm-card--ingr { position: relative; display: flex; width: 552px; flex-direction: column; padding: 24px 30px 20px; background: transparent; box-shadow: none; animation: none; }
+/* The liquid, as on the cooking step: one shape pours out of the Ingredients pill into the card (its size, radius and fill set by script). */
+@keyframes hm-frost-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes hm-flow-in { from { opacity: 0; transform: translateY(14px) scale(.98); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes hm-flow-out { from { opacity: 1; transform: none; filter: none; } to { opacity: 0; transform: translateY(8px); filter: blur(4px); } }
+.hm-blob { position: absolute; box-sizing: border-box; border-radius: 32px; background: rgba(255, 255, 255, .9); box-shadow: 0 0 0 1px rgba(31, 28, 25, .05), 0 24px 60px rgba(31, 28, 25, .18); pointer-events: none; }
+.hm-card--ingr .hm-pour { animation: hm-flow-in 520ms cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: calc(260ms + var(--i, 0) * 25ms); }
+.hm-center.is-closing .hm-pour { animation: hm-flow-out 160ms ease both; animation-delay: 0ms; }
+.hm-center.is-closing .hm-blob { animation: hm-frost-out 120ms ease 450ms both; }
+.hm-frost.is-closing { animation: hm-frost-out 420ms ease 120ms both; pointer-events: none; }
+.hm-pill.is-poured { visibility: hidden; }
 .hm-ingr__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .hm-ingr__head .hm-card__title { margin: 0; }
 .hm-seg { display: flex; padding: 3px; border-radius: 999px; background: #f2f1ef; }
@@ -90,6 +100,8 @@ a.hm-tap { text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .hm-blurin, .hm-card, .hm-frost { animation: hm-frost 150ms ease both; }
+  .hm-card--ingr { animation: none; }
+  .hm-card--ingr .hm-pour { animation: hm-frost 150ms ease both; }
   .hm-tag, .hm-tap { transition: none; }
   .hm-ingr li.is-hop .hm-ingr__amt > span { animation: none; }
 }

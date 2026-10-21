@@ -7,6 +7,7 @@ import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/Spea
 import { VoiceNotification } from '@/voice/VoiceNotification'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 import { VersionList, initialVersions, newVersion, type VersionEntry } from './VersionHistory'
+import { canPour, pourClose, pourOpen, rectIn, type Rect } from './liquid'
 import Link from 'next/link'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
@@ -94,8 +95,11 @@ const PASSES: Pass[] = [
   { kind: 'serves2', rows: ING.flatMap((r, i) => (r[2] !== r[3] ? [i] : [])) },
   { kind: 'kencur', rows: [KENCUR_ROW] },
 ]
-// The card blooms in before the first hop; then one row at a time, and a moment on the last.
-const CARD_IN_MS = 520
+// The card pours in (720ms) before the first hop; then one row at a time, and a moment on the last.
+const CARD_IN_MS = 760
+// The Ingredients pill and the card it pours into, as on the cooking step: the blob changes from one look to the other.
+const PILL_LOOK = { radius: 24, fill: 'rgba(255, 255, 255, 0.78)', shadow: '0 0 0 0 rgba(31,28,25,0), 0 0 0 0 rgba(31,28,25,0)' }
+const CARD_LOOK = { radius: 32, fill: 'rgba(255, 255, 255, 0.9)', shadow: '0 0 0 1px rgba(31,28,25,.05), 0 24px 60px rgba(31,28,25,.18)' }
 const HOP_MS = 450
 const LAND_MS = 220
 const LAST_HOLD_MS = 700
@@ -220,6 +224,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     }
     const next = stage.current + 1
     setOpen('')
+    setIngrOut(false)
     setCancelled(false)
     setPhase('listening')
     setGlow('listening')
@@ -292,10 +297,38 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   // The island stays on "Done" until the clay hops out of it.
   const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? (pass ? 'idle' : 'done') : glow
 
+  // Ingredients pours out of its pill into the card, and back into the pill when it closes (where a pour can play).
+  const [ingrOut, setIngrOut] = useState(false)
+  const close = () => {
+    if (open === 'ingr' && canPour()) setIngrOut(true)
+    else { setOpen(''); setIngrOut(false) }
+  }
+  const ingrPill = useRef<HTMLButtonElement>(null)
+  const ingrCard = useRef<HTMLDivElement>(null)
+  const ingrBlob = useRef<HTMLDivElement>(null)
+  const ingrRect = useRef<Rect | null>(null)
+  useLayoutEffect(() => {
+    const r = screenRef.current
+    const b = ingrBlob.current
+    if (open !== 'ingr' || !r || !b || !ingrCard.current) return
+    if (!ingrOut) {
+      const to = rectIn(ingrCard.current, r)
+      ingrRect.current = to
+      pourOpen(b, ingrPill.current ? rectIn(ingrPill.current, r) : to, to, PILL_LOOK, CARD_LOOK)
+      return
+    }
+    const from = ingrRect.current
+    if (from && ingrPill.current) pourClose(b, from, rectIn(ingrPill.current, r), CARD_LOOK, PILL_LOOK)
+    const gone = window.setTimeout(() => { setOpen(''); setIngrOut(false) }, 540)
+    return () => window.clearTimeout(gone)
+  }, [open, ingrOut])
+
   // Escape closes whichever card is open.
+  const closeRef = useRef(close)
+  closeRef.current = close
   useEffect(() => {
     if (!open) return
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen('') }
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') closeRef.current() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
@@ -309,7 +342,6 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     { key: 'serves', icon: ICON.serves, label: `Serves ${m.serves2 ? 2 : 4}`, ...(m.serves2 ? TINT.serves : PLAIN) },
     { key: 'spice', icon: ICON.flame, label: m.mild ? 'Mild' : 'Hot', ...(m.mild ? TINT.spice : PLAIN) },
   ]
-  const close = () => setOpen('')
 
   const startCooking = (className: string, size: number) => {
     const inner = <>Start cooking<Icon d={ICON.chevron} size={size} /></>
@@ -353,14 +385,14 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
           </button>
 
           <div className="hm-float">
-            <button type="button" className="hm-tap hm-pill" aria-haspopup="dialog" onClick={() => setOpen('ingr')}>
+            <button ref={ingrPill} type="button" className={`hm-tap hm-pill${open === 'ingr' ? ' is-poured' : ''}`} aria-haspopup="dialog" aria-expanded={open === 'ingr' && !ingrOut} onClick={() => setOpen('ingr')}>
               <Icon d={ICON.steps} width={1.7} />Ingredients
             </button>
             {startCooking('hm-tap hm-go', 18)}
           </div>
         </div>
 
-        {open && <button type="button" className="hm-frost" aria-label="Close" onClick={close} />}
+        {open && <button type="button" className={`hm-frost${ingrOut ? ' is-closing' : ''}`} aria-label="Close" onClick={close} tabIndex={ingrOut ? -1 : undefined} />}
 
         {open === 'steps' && (
           <div className="hm-center">
@@ -404,9 +436,10 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         )}
 
         {open === 'ingr' && (
-          <div className="hm-center">
-            <div className="hm-card hm-card--ingr" role="dialog" aria-label="Ingredients">
-              <div className="hm-ingr__head">
+          <div className={`hm-center${ingrOut ? ' is-closing' : ''}`}>
+            <div ref={ingrBlob} className="hm-blob" aria-hidden="true" />
+            <div ref={ingrCard} className="hm-card hm-card--ingr" {...(ingrOut ? { 'aria-hidden': true, inert: true } : { role: 'dialog', 'aria-label': 'Ingredients' })}>
+              <div className="hm-ingr__head hm-pour" style={{ '--i': 0 } as React.CSSProperties}>
                 <p className="hm-card__title">Ingredients · serves {m.serves2 ? 2 : 4}</p>
                 <div className="hm-seg" role="group" aria-label="How amounts are written">
                   <button type="button" className="hm-tap" aria-pressed={tidy} onClick={() => setAmounts(true)}>Tidy</button>
@@ -426,7 +459,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                   if (swapped) amt = `${amt} + zest`
                   const changed = (halved && r[2] !== r[3]) || spicy || swapped
                   return (
-                    <li key={r[0]} className={`hm-blurin${hop === i ? ' is-hop' : ''}`} data-family-amount={r[1]} data-hop-row={i}>
+                    <li key={r[0]} className={`hm-pour${hop === i ? ' is-hop' : ''}`} style={{ '--i': i + 1 } as React.CSSProperties} data-family-amount={r[1]} data-hop-row={i}>
                       <span key={`${swapped}`} className={swapped ? 'hm-mark hm-blurin' : meat ? 'hm-mark' : undefined}>{meat ? 'Chicken' : swapped ? 'Ginger + lime zest' : r[0]}</span>
                       <span className={`hm-ingr__amt${tidy ? '' : ' is-raw'}`}>
                         <span key={`${amt}-${changed}`} className={`${pass ? 'hm-blurin' : ''}${tidy && changed ? ' hm-mark' : ''}`}>{tidy ? amt : r[1]}</span>
@@ -435,8 +468,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                   )
                 })}
               </ul>
-              <p className="hm-ingr__tools">You’ll need a bowl, dry pan, blender, spatula and rice pot.</p>
-              <button type="button" className="hm-tap hm-done hm-done--centre" onClick={close}>Done</button>
+              <p className="hm-ingr__tools hm-pour" style={{ '--i': ING.length + 1 } as React.CSSProperties}>You’ll need a bowl, dry pan, blender, spatula and rice pot.</p>
+              <button type="button" className="hm-tap hm-done hm-done--centre hm-pour" style={{ '--i': ING.length + 2 } as React.CSSProperties} onClick={close}>Done</button>
             </div>
           </div>
         )}

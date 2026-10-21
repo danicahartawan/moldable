@@ -122,11 +122,11 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   it('swaps kencur for ginger and lime zest on the second request', () => {
     render(<HomeViewBoard />)
     fireEvent.click(talk())
-    advance(5800 + 1200 + 520 + 10 * 450 + 300)
+    advance(5800 + 1200 + 760 + 10 * 450 + 300)
     fireEvent.click(talk())
     advance(1500)
     expect(screen.getByText('“What can I use instead of kencur?”')).toBeInTheDocument()
-    advance(4300 + 1200 + 520 + 800)
+    advance(4300 + 1200 + 760 + 800)
     const ingr = screen.getByRole('dialog', { name: 'Ingredients' })
     expect(within(ingr).getByText('Ginger + lime zest')).toHaveClass('hm-mark')
     expect(within(ingr).queryByText('Kencur')).not.toBeInTheDocument()
@@ -142,7 +142,7 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
     advance(5800 + 1000)
     expect(document.querySelector('.voice-clay')).toBe(clay)
     // After "Done" the same clay hops onto each changed amount, then fades where it is and is removed.
-    advance(200 + 520 + 10 * 450 + 300)
+    advance(200 + 760 + 10 * 450 + 300)
     expect(document.querySelector('.voice-clay')).toBe(clay)
     advance(100)
     advance(800)
@@ -155,7 +155,8 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
     advance(5800 + 1200)
     const ingr = screen.getByRole('dialog', { name: 'Ingredients' })
     expect(amountOf(ingr, 'Pork')).toHaveTextContent('500 g')
-    advance(520)
+    // The hop waits for the card to finish pouring in.
+    advance(760)
     expect(document.querySelector('.hm-ingr li.is-hop')).toHaveTextContent('Pork')
     advance(250)
     expect(amountOf(ingr, 'Pork')).toHaveTextContent('250 g')

@@ -25,6 +25,9 @@ const box = (r: Rect, look: Look) => ({
 
 const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
+/** Whether a pour will play: not under reduced motion, and only where the Web Animations API exists (not in tests). */
+export const canPour = () => !reduced() && typeof Element !== 'undefined' && typeof Element.prototype.animate === 'function'
+
 /** Pours the blob from `from` (the pill) into `to` (the card). Returns null where it can't animate (tests, reduced motion). */
 export function pourOpen(blob: HTMLElement, from: Rect, to: Rect, pill: Look, card: Look): Animation | null {
   Object.assign(blob.style, box(to, card))
