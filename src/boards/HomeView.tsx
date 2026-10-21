@@ -34,8 +34,6 @@ const KENCUR_ROW = rowOf('kencur')
 const ICON = {
   clock: 'M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M10 6.5V10l2.4 1.5',
   steps: 'M7 5h10M7 10h10M7 15h10M3 5h.1M3 10h.1M3 15h.1',
-  // A mixing bowl with a sprout: the Ingredients button, on its own.
-  ingredients: 'M3.5 10.5h13a6.5 6.5 0 0 1-13 0z M10 10.5V6 M10 6c0-2 1.4-3.3 3.6-3.3 0 2.1-1.4 3.3-3.6 3.3z M10 7.6C10 6 8.9 5 7.2 5c0 1.6 1.1 2.6 2.8 2.6z',
   serves: 'M7 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2.5 16c0-2.6 2-4.5 4.5-4.5s4.5 1.9 4.5 4.5 M14 8.5a2 2 0 1 0 0-4 M13.5 11.6c2.3.2 4 2 4 4.4',
   flame: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z',
   chevron: 'M8 4l6 6-6 6',
@@ -428,7 +426,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
           <div className="hm-float">
             <button ref={ingrPill} type="button" className={`hm-tap hm-pill${open === 'ingr' ? ' is-poured' : ''}`} aria-haspopup="dialog" aria-expanded={open === 'ingr' && !closing} aria-label="Ingredients" title="Ingredients" onClick={() => setOpen('ingr')}>
-              <Icon d={ICON.ingredients} size={22} width={1.7} />
+              <Icon d={ICON.steps} size={20} width={1.7} />
             </button>
             {startCooking('hm-tap hm-go', 18)}
           </div>
