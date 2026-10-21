@@ -92,7 +92,14 @@ a.fz-tap { text-decoration: none; }
 .fz-zoom { position: absolute; right: 28px; bottom: 28px; display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #1f1c19; }
 
 /* Diving into a note: a clone of the paper grows to fill the screen, then the page blurs in. */
-.fz-fly { position: absolute; z-index: 20; box-shadow: 0 10px 24px rgba(31, 28, 25, .25); transition: transform .62s cubic-bezier(.65, 0, .2, 1), border-radius .62s ease; }
+/* Opening a note: its card grows to fill the screen, its face fading as it goes and its colour turning the page's own,
+   so the page fades in over itself. Closing, the card shrinks back, finding its colour and face again as it lands. */
+@keyframes fz-out { to { opacity: 0; filter: blur(8px); } }
+.fz-out { animation: fz-out .24s ease both; pointer-events: none; }
+.fz-fly { position: absolute; z-index: 20; box-shadow: 0 10px 24px rgba(31, 28, 25, .25); transition: transform .62s cubic-bezier(.65, 0, .2, 1), border-radius .62s ease, background-color .32s ease; }
+.fz-fly.is-big { transition: transform .62s cubic-bezier(.65, 0, .2, 1), border-radius .62s ease, background-color .34s ease .2s; }
+.fz-fly__face { position: absolute; top: 0; left: 0; color: #fff; transform-origin: 0 0; transition: opacity .24s ease .4s; }
+.fz-fly.is-big .fz-fly__face { opacity: 0; transition: opacity .16s ease; }
 .fz-page { position: absolute; z-index: 21; inset: 0; }
 .fz-back { position: absolute; z-index: 30; top: 20px; right: 20px; display: flex; width: 48px; height: 48px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(242, 241, 239, .86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 4px 14px rgba(31, 28, 25, .12); color: #1f1c19; }
 

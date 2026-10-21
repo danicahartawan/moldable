@@ -104,6 +104,23 @@ function ChiliMagnet() {
   )
 }
 
+// The Lawar Bali card's face: the dots, then the name big at the foot. Drawn on the note, and on the card that grows out of it.
+function LawarFace({ name, mins, owner, foot }: { name: string; mins: number; owner: string; foot: string }) {
+  return (
+    <>
+      <svg className="fz-lawar__dots" viewBox="0 0 130 128" aria-hidden="true">
+        {LAWAR_DOTS.flatMap((row, r) => row.map((white, col) => (
+          <circle key={`${r}-${col}`} cx={24.2 + col * 40.3} cy={30.2 + r * 37.3} r="14.3" fill={white ? '#ffffff' : '#ffa24f'} />
+        )))}
+      </svg>
+      <span className="fz-lawar__name">{name}</span>
+      <span className="fz-lawar__mins">{mins} mins</span>
+      <span className="fz-lawar__owner">{owner.replace('recipe', 'Recipe')}</span>
+      <span className="fz-lawar__foot" style={{ background: foot }}>Version 1</span>
+    </>
+  )
+}
+
 // The fridge body: rolled sides, domed top, freezer door and seal, chrome hinge, ribbed base, badge and handles.
 function FridgeBody({ base, badge }: { base: string; badge: string }) {
   return (
@@ -276,13 +293,16 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setPhase(0)
     setDragging(null)
     later('p1', 30, () => setPhase(1))
-    later('p2', 640, () => setPhase(2))
+    // The page starts fading in over the card's colour just before the card has finished growing.
+    later('p2', 520, () => setPhase(2))
   }
+  // Closing runs it backwards: the page fades out over the card's colour (3), then the card shrinks back onto its note (0).
   const closeNote = () => {
-    if (!open) return
-    setPhase(1)
-    later('p1', 40, () => setPhase(0))
-    later('close', 720, () => setOpen(null))
+    if (!open || phase === 3) return
+    window.clearTimeout(timers.current.p2)
+    setPhase(3)
+    later('p1', 240, () => setPhase(0))
+    later('close', 240 + 680, () => setOpen(null))
   }
   // Asked from outside (Done at the end of cooking): fold the open note back onto the door.
   const closeRef = useRef(closeNote)
@@ -378,8 +398,10 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     filter: `blur(${ready ? (open && phase > 0 ? 6 : 0) : 14}px)`,
   }
 
-  // The note being opened: a same-colour clone flies from the note's rect to fill the screen.
+  // The note being opened: a same-colour clone flies from the note's rect to fill the screen, turning the colour of
+  // the page it opens on the way (Lawar Bali's orange becomes its home view's white), so the page fades in over itself.
   let fly: CSSProperties | null = null
+  let flyFace: { k: number; h: number; name: string; mins: number; owner: string; foot: string } | null = null
   let page: { kind: 'main' | 'new' | 'paper'; name: string; from: string; book: string; paper: string; tags: { icon: string; label: string }[] } | null = null
   if (open) {
     const ob = books[open.b]
@@ -394,16 +416,20 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     const dx = 320 - (left + w / 2)
     const dy = 320 - (top + h / 2)
     const S = Math.max(640 / w, 640 / h) * 1.2
+    const main = open.b === 0 && open.k === 0
+    const pageBg = main ? '#fff' : c.paper
     fly = {
-      left: Math.round(left), top: Math.round(top), width: Math.round(w), height: Math.round(h), background: c.paper, borderRadius: phase > 0 ? 0 : 2,
+      left: Math.round(left), top: Math.round(top), width: Math.round(w), height: Math.round(h), background: phase > 0 ? pageBg : c.paper, borderRadius: phase > 0 ? 0 : 2,
       transform: phase > 0 ? `translate(${dx}px, ${dy}px) rotate(0deg) scale(${S.toFixed(3)})` : `rotate(${p[2]}deg)`,
     }
+    if (main && it.kind === 'recipe') flyFace = { k: oc.k, h: noteH(open.b, open.k), name: it.r[0], mins: it.r[1], owner: ob.owner, foot: c.bottom }
     page = it.kind === 'new'
       ? { kind: 'new', name: 'New recipe', from: '', book: ob.label, paper: c.paper, tags: [] }
       : { kind: open.b === 0 && open.k === 0 ? 'main' : 'paper', name: it.r[0], from: ob.from, book: ob.label, paper: c.paper,
         tags: [{ icon: ICON.clock, label: `${it.r[1]} min` }, { icon: ICON.level, label: it.r[2] }] }
   }
-  const shown = !!open && phase === 2
+  const shown = !!open && phase >= 2
+  const leaving = phase === 3 ? ' fz-out' : ''
 
   return (
     <div ref={root} className="fz" aria-label="Fridge cookbooks"
@@ -444,19 +470,9 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
                       visibility: open && open.b === bi && open.k === k ? 'hidden' : 'visible',
                     }}
                   >
-                    {main ? (
-                      <>
-                        <svg className="fz-lawar__dots" viewBox="0 0 130 128" aria-hidden="true">
-                          {LAWAR_DOTS.flatMap((row, r) => row.map((white, col) => (
-                            <circle key={`${r}-${col}`} cx={24.2 + col * 40.3} cy={30.2 + r * 37.3} r="14.3" fill={white ? '#ffffff' : '#ffa24f'} />
-                          )))}
-                        </svg>
-                        <span className="fz-lawar__name">{it.kind === 'recipe' ? it.r[0] : ''}</span>
-                        <span className="fz-lawar__mins">{it.kind === 'recipe' ? it.r[1] : ''} mins</span>
-                        <span className="fz-lawar__owner">{b.owner.replace('recipe', 'Recipe')}</span>
-                        <span className="fz-lawar__foot" style={{ background: c.bottom }}>Version 1</span>
-                      </>
-                    ) : <span className="fz-note__top" aria-hidden="true" style={{ background: c.top }}><span /></span>}
+                    {main && it.kind === 'recipe' ? (
+                      <LawarFace name={it.r[0]} mins={it.r[1]} owner={b.owner} foot={c.bottom} />
+                    ) : main ? null : <span className="fz-note__top" aria-hidden="true" style={{ background: c.top }}><span /></span>}
                     {main ? null : isNew ? (
                       <span className="fz-note__new">
                         <span className="fz-note__plus" aria-hidden="true"><Icon d={ICON.plus} size={13} width={2.4} /></span>
@@ -518,16 +534,25 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
         </button>
       )}
 
-      {fly && phase < 2 && <div className="fz-fly" aria-hidden="true" style={fly} />}
+      {fly && (
+        <div className={`fz-fly${phase > 0 ? ' is-big' : ''}`} aria-hidden="true" style={fly}>
+          {flyFace && (
+            <div className="fz-fly__face" style={{ width: NW, height: flyFace.h, transform: `scale(${flyFace.k})` }}>
+              <LawarFace name={flyFace.name} mins={flyFace.mins} owner={flyFace.owner} foot={flyFace.foot} />
+              <ChiliMagnet />
+            </div>
+          )}
+        </div>
+      )}
 
       {shown && page?.kind === 'main' && (
-        <div className="fz-in fz-page" style={{ background: '#fff' }}>
+        <div className={`fz-in fz-page${leaving}`} style={{ background: '#fff' }}>
           <HomeViewBoard embedded clay onStartCooking={onStartCooking} />
         </div>
       )}
 
       {shown && page?.kind === 'new' && (
-        <article className="fz-in fz-page" aria-label="New recipe" style={{ background: page.paper }}>
+        <article className={`fz-in fz-page${leaving}`} aria-label="New recipe" style={{ background: page.paper }}>
           <section className="fz-new">
             <h1 className="fz-page__title">New recipe</h1>
             <p className="fz-page__lede">For <b>{page.book}</b>. How do you want to save it?</p>
@@ -557,7 +582,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       )}
 
       {shown && page?.kind === 'paper' && (
-        <article className="fz-in fz-page" aria-label={page.name} style={{ background: page.paper }}>
+        <article className={`fz-in fz-page${leaving}`} aria-label={page.name} style={{ background: page.paper }}>
           <section className="fz-paper">
             <h1 className="fz-page__title fz-page__title--big">{page.name}</h1>
             <p className="fz-page__lede">From <b>{page.from}</b>.</p>
@@ -570,7 +595,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       )}
 
       {shown && (
-        <button type="button" className="fz-tap fz-in-late fz-back" aria-label="Back to the fridge" title="Back to the fridge" onClick={closeNote}>
+        <button type="button" className={`fz-tap fz-in-late fz-back${leaving}`} aria-label="Back to the fridge" title="Back to the fridge" onClick={closeNote}>
           <Icon d={ICON.back} />
         </button>
       )}
