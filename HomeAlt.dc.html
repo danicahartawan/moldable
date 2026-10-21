@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Grandkid home view, step style</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+@keyframes orbtalk{0%,100%{transform:scale(1)}30%{transform:scale(1.18)}60%{transform:scale(.94)}}
+@keyframes blurin{from{opacity:0;filter:blur(10px);transform:translateY(8px)}to{opacity:1;filter:none;transform:none}}
+@keyframes frost{from{opacity:0;backdrop-filter:blur(0)}to{opacity:1;backdrop-filter:blur(18px)}}
+@keyframes center{from{transform:scale(.88);opacity:0;filter:blur(10px)}to{transform:none;opacity:1;filter:none}}
+.breathe{animation:breathe 3.4s ease-in-out infinite}
+.orbtalk{animation:orbtalk .9s ease-in-out infinite}
+.blurin{animation:blurin .5s cubic-bezier(.22,1,.36,1) both}
+.frost{animation:frost .35s ease both}
+.center{animation:center .42s cubic-bezier(.2,1.1,.3,1) both}
+.orb{background:radial-gradient(circle at 35% 30%, #f5d653, #ec923b 38%, #b4347c 68%, #4e0b91)}
+.mark{box-shadow:inset 0 -0.08em 0 #ec923b}
+.tag{transition:background-color .4s ease,color .4s ease}
+.tap{transition:transform .14s cubic-bezier(.2,.8,.2,1),background-color .2s ease}
+.tap:active{transform:scale(.96)}
+.tap:focus-visible{outline:2px solid #1f1c19;outline-offset:2px}
+a.tap{text-decoration:none}
+@media (prefers-reduced-motion: reduce){.breathe,.orbtalk,.blurin,.frost,.center{animation:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 640px; height: 640px; background: #ffffff; font-family: ABC Arizona Sans, system-ui, sans-serif; color: #1f1c19; overflow: hidden">
+
+  <button type="button" onClick="{{talk}}" aria-label="Wireframe only: replay the speaking view. On the device it starts when you talk." style="position: absolute; z-index: 1; left: 0; top: 0; width: 20px; height: 20px; border: 0; padding: 0; background: transparent; cursor: pointer"></button>
+
+  <section aria-label="Recipe overview" style="position: absolute; left: 48px; right: 48px; top: 44px">
+    <h1 style="margin: 0; font-size: 60px; line-height: 64px; font-weight: 500; letter-spacing: -0.03em">Lelawar Bali</h1>
+    <sc-for list="{{sentence}}" as="s" hint-placeholder-count="1">
+      <p class="blurin" style="margin: 14px 0 0; font-size: 30px; line-height: 39px; font-weight: 400; letter-spacing: -0.012em; text-wrap: pretty"><sc-for list="{{s.parts}}" as="p" hint-placeholder-count="5"><span class="{{p.cls}}" style="font-weight: {{p.w}}">{{p.t}}</span></sc-for></p>
+    </sc-for>
+    <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px">
+      <button type="button" class="tap" onClick="{{openSteps}}" aria-haspopup="dialog" style="display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 10px 0 12px; border: 0; border-radius: 999px; background: #1f1c19; color: #ffffff; font: inherit; font-size: 18px; font-weight: 500; cursor: pointer">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10M3 5h.1M3 10h.1M3 15h.1"></path></svg>8 steps
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: .7"><path d="M8 4l6 6-6 6"></path></svg>
+      </button>
+      <sc-for list="{{tags}}" as="t" hint-placeholder-count="3">
+        <span class="tag" style="display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px 0 12px; border-radius: 999px; background: {{t.bg}}; color: {{t.ink}}; font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.icon}}"></path></svg>{{t.label}}
+        </span>
+      </sc-for>
+    </div>
+  </section>
+
+  <button type="button" class="tap" onClick="{{openPhoto}}" aria-label="See the whole photo" style="position: absolute; left: 24px; right: 24px; top: 324px; bottom: 24px; padding: 0; border: 0; border-radius: 30px; overflow: hidden; background: #2a2622; cursor: zoom-in">
+    <img src="/_blob/bd45f7e9655c9638e00590d2e751784c" alt="Lelawar in a dark bowl on a banana leaf, topped with fried shallots" style="display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%">
+  </button>
+
+  <div style="position: absolute; left: 40px; right: 40px; bottom: 40px; display: flex; align-items: center; gap: 8px">
+    <button type="button" class="tap" onClick="{{openAdjust}}" style="height: 48px; padding: 0 18px; border: 0; border-radius: 999px; background: rgba(255,255,255,.78); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: #1f1c19; font: inherit; font-size: 17px; cursor: pointer; display: flex; align-items: center; gap: 8px">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 6h9M15 6h2M3 14h3M9 14h8"></path><circle cx="13.5" cy="6" r="1.8"></circle><circle cx="7.5" cy="14" r="1.8"></circle></svg>Adjust
+    </button>
+    <button type="button" class="tap" onClick="{{openIngr}}" style="height: 48px; padding: 0 18px; border: 0; border-radius: 999px; background: rgba(255,255,255,.78); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: #1f1c19; font: inherit; font-size: 17px; cursor: pointer; display: flex; align-items: center; gap: 8px">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M7 5h10M7 10h10M7 15h10M3 5h.1M3 10h.1M3 15h.1"></path></svg>Ingredients
+    </button>
+    <a href="CookStep.dc.html" class="tap" style="margin-left: auto; height: 48px; padding: 0 22px; border-radius: 999px; background: #1f1c19; color: #ffffff; font-size: 17px; font-weight: 500; display: flex; align-items: center; gap: 8px">Start cooking
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4l6 6-6 6"></path></svg>
+    </a>
+  </div>
+
+  <sc-if value="{{anyOpen}}" hint-placeholder-val="{{false}}">
+    <button type="button" class="frost" onClick="{{close}}" aria-label="Close" style="position: absolute; z-index: 5; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; background: rgba(255,255,255,.42); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px)"></button>
+  </sc-if>
+
+  <sc-if value="{{stepsOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; z-index: 6; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none">
+      <div class="center" role="dialog" aria-label="Steps" style="pointer-events: auto; width: 584px; max-height: 596px; box-sizing: border-box; padding: 22px 28px 18px; border-radius: 32px; background: rgba(255,255,255,.92); box-shadow: 0 0 0 1px rgba(31,28,25,.05), 0 24px 60px rgba(31,28,25,.18); display: flex; flex-direction: column">
+        <p style="margin: 0 0 4px; font-size: 16px; line-height: 20px; color: #6b665f">8 steps · about {{mins}} min</p>
+        <ol style="list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 0">
+          <sc-for list="{{stepList}}" as="st" hint-placeholder-count="8">
+            <li class="blurin" style="display: flex; gap: 14px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #efedea; animation-delay: {{st.dl}}s">
+              <span style="flex: none; width: 18px; font-size: 16px; color: #8a8580; font-variant-numeric: tabular-nums">{{st.n}}</span>
+              <span style="font-size: 22px; line-height: 31px; letter-spacing: -0.01em"><sc-for list="{{st.parts}}" as="p" hint-placeholder-count="3"><sc-if value="{{p.isVerb}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; gap: 0.14em; padding: 0 0.34em 0 0.26em; margin-right: 0.04em; border-radius: 999px; background: {{p.bg}}; color: {{p.ink}}; font-weight: 500; line-height: 1.2; white-space: nowrap"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; width: 0.62em; height: 0.62em"><path d="{{p.icon}}"></path></svg>{{p.t}}</span></sc-if><sc-if value="{{p.isText}}" hint-placeholder-val="{{true}}"><span class="{{p.cls}}" style="font-weight: {{p.w}}">{{p.t}}</span></sc-if></sc-for></span>
+            </li>
+          </sc-for>
+        </ol>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px">
+          <button type="button" class="tap" onClick="{{close}}" style="height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #f2f1ef; color: #1f1c19; font: inherit; font-size: 16px; cursor: pointer">Done</button>
+          <a href="CookStep.dc.html" class="tap" style="height: 44px; padding: 0 20px; border-radius: 999px; background: #1f1c19; color: #ffffff; font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px">Start cooking<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4l6 6-6 6"></path></svg></a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{photoOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; z-index: 6; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none">
+      <button type="button" class="center" onClick="{{close}}" aria-label="Close photo" style="pointer-events: auto; width: 584px; height: 406px; padding: 0; border: 0; border-radius: 28px; overflow: hidden; background: #2a2622; box-shadow: 0 0 0 1px rgba(31,28,25,.05), 0 24px 60px rgba(31,28,25,.22); cursor: zoom-out">
+        <img src="/_blob/bd45f7e9655c9638e00590d2e751784c" alt="Lelawar in a dark bowl on a banana leaf, topped with fried shallots" style="display: block; width: 100%; height: 100%; object-fit: contain">
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{adjOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; z-index: 6; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none">
+      <div class="center" role="dialog" aria-label="Adjust the recipe" style="pointer-events: auto; width: 420px; box-sizing: border-box; padding: 26px 26px 20px; border-radius: 32px; background: rgba(255,255,255,.9); box-shadow: 0 0 0 1px rgba(31,28,25,.05), 0 24px 60px rgba(31,28,25,.18); display: flex; flex-direction: column; gap: 6px">
+        <p style="margin: 0 4px 6px; font-size: 16px; line-height: 20px; color: #6b665f">Adjust for this cook</p>
+        <sc-for list="{{mods}}" as="m" hint-placeholder-count="3">
+          <button type="button" class="tap" onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; padding: 0 16px 0 18px; border: 0; border-radius: 20px; background: {{m.bg}}; color: {{m.ink}}; font: inherit; text-align: left; cursor: pointer">
+            <span style="display: flex; flex-direction: column">
+              <span style="font-size: 24px; line-height: 30px; font-weight: 500">{{m.label}}</span>
+              <span style="font-size: 15px; line-height: 20px; opacity: .78">{{m.hint}}</span>
+            </span>
+            <span aria-hidden="true" style="flex: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{m.dotBg}}; box-shadow: inset 0 0 0 1.5px {{m.dotRing}}">
+              <sc-if value="{{m.on}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.5l3.2 3.2L15 6.8"></path></svg></sc-if>
+            </span>
+          </button>
+        </sc-for>
+        <button type="button" class="tap" onClick="{{close}}" style="align-self: center; margin-top: 12px; height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #f2f1ef; color: #1f1c19; font: inherit; font-size: 16px; cursor: pointer">Done</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ingrOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; z-index: 6; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none">
+      <div class="center" role="dialog" aria-label="Ingredients" style="pointer-events: auto; width: 552px; box-sizing: border-box; padding: 24px 30px 20px; border-radius: 32px; background: rgba(255,255,255,.9); box-shadow: 0 0 0 1px rgba(31,28,25,.05), 0 24px 60px rgba(31,28,25,.18); display: flex; flex-direction: column">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px">
+          <p style="margin: 0; font-size: 16px; line-height: 20px; color: #6b665f">Ingredients · serves {{serves}}</p>
+          <div role="group" aria-label="How amounts are written" style="display: flex; padding: 3px; border-radius: 999px; background: #f2f1ef">
+            <button type="button" class="tap" onClick="{{setTidy}}" aria-pressed="{{tidy}}" style="height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: {{tidyBg}}; color: #1f1c19; font: inherit; font-size: 15px; cursor: pointer; box-shadow: {{tidyShadow}}">Tidy</button>
+            <button type="button" class="tap" onClick="{{setRaw}}" aria-pressed="{{raw}}" style="height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: {{rawBg}}; color: #1f1c19; font: inherit; font-size: 15px; cursor: pointer; box-shadow: {{rawShadow}}">Oma’s words</button>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px">
+          <sc-for list="{{ingr}}" as="g" hint-placeholder-count="11">
+            <div class="blurin" style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; border-bottom: 1px solid #efedea; font-size: 21px; line-height: 27px">
+              <span class="{{g.cls}}">{{g.name}}</span>
+              <span class="{{g.acls}}" style="font-weight: 600; font-variant-numeric: tabular-nums; font-style: {{g.style}}; white-space: nowrap">{{g.amt}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <p style="margin: 14px 0 0; font-size: 16px; line-height: 22px; color: #6b665f">You’ll need a bowl, dry pan, blender, spatula and rice pot.</p>
+        <button type="button" class="tap" onClick="{{close}}" style="align-self: center; margin-top: 14px; height: 44px; padding: 0 22px; border: 0; border-radius: 999px; background: #f2f1ef; color: #1f1c19; font: inherit; font-size: 16px; cursor: pointer">Done</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{speaking}}" hint-placeholder-val="{{false}}">
+    <div class="frost" role="status" aria-live="polite" style="position: absolute; z-index: 8; inset: 0; background: rgba(255,255,255,.55); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 0 56px; text-align: center">
+      <span class="orb {{orbCls}}" aria-hidden="true" style="display: block; width: 56px; height: 56px; border-radius: 50%; box-shadow: 0 8px 24px rgba(78,11,145,.25)"></span>
+      <sc-for list="{{voiceLines}}" as="v" hint-placeholder-count="1">
+        <sc-if value="{{v.show}}" hint-placeholder-val="{{true}}">
+          <div class="blurin" style="display: flex; flex-direction: column; gap: 12px">
+            <p style="margin: 0; font-size: 44px; line-height: 52px; letter-spacing: -0.02em; text-wrap: balance">{{v.big}}</p>
+            <p style="margin: 0; font-size: 17px; line-height: 22px; color: #6b665f">{{v.small}}</p>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":640,"height":640}}'>
+var MODS = [
+  { k: 'serves2', label: 'Serves 2', hint: 'Half of everything' },
+  { k: 'mild', label: 'Less spicy', hint: 'Half the sambal' },
+  { k: 'chicken', label: 'Chicken', hint: 'Instead of pork' }
+];
+var SAY = { serves2: 'Make it for two people', mild: 'Make it less spicy for Oma', chicken: 'Use chicken instead of pork' };
+var DONE = { serves2: 'Now serves 2. Everything is halved.', mild: 'Sambal is down to half a spoon.', chicken: 'Swapped the pork for chicken.' };
+var ING = [
+  ['Pork', '½ kilo', '500 g', '250 g'], ['Coconut', 'segenggam', '80 g', '40 g'], ['Shallots', '6 butir', '6', '3'], ['Garlic', '4 siung', '4', '2'],
+  ['Sambal', '1 sendok', '1 tbsp', '½ tbsp'], ['Kencur', '2 ruas', '2 cm', '1 cm'], ['Pepper', 'sejumput', '½ tsp', '¼ tsp'], ['Lime leaves', '4 lembar', '4', '2'],
+  ['Lime', '1 buah', '1', '1'], ['Chives', '1 ikat', '1 bunch', '½ bunch'], ['Rice', '2 gelas', '2 cups', '1 cup']
+];
+var ICON = {
+  clock: 'M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M10 6.5V10l2.4 1.5',
+  steps: 'M7 5h10M7 10h10M7 15h10M3 5h.1M3 10h.1M3 15h.1',
+  serves: 'M7 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2.5 16c0-2.6 2-4.5 4.5-4.5s4.5 1.9 4.5 4.5 M14 8.5a2 2 0 1 0 0-4 M13.5 11.6c2.3.2 4 2 4 4.4',
+  flame: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z'
+};
+var PLAIN = { bg: '#f2f1ef', ink: '#1f1c19' };
+// Verb tags, shared with 09 Cooking step.
+var V = {
+  Blend: { bg: '#fde3d8', ink: '#c24a24', icon: 'M6 3h8l-1.2 9H7.2z M6.5 12h7v5h-7z M10 14.5h.01' },
+  Toast: { bg: '#fbefb4', ink: '#8a6a0c', icon: 'M2 11h11a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z M13 11.5h5' },
+  Fry: { bg: '#f8ddd7', ink: '#b2433a', icon: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z' },
+  Cook: { bg: '#fbe1d9', ink: '#bb4a30', icon: 'M10 2.5c1.7 0 2.8 1.6 2.8 3.4S11.7 9.5 10 9.5 7.2 7.7 7.2 5.9 8.3 2.5 10 2.5z M10 9.5v8' },
+  Add: { bg: '#fde3d8', ink: '#c24a24', icon: 'M10 4v12M4 10h12' },
+  Stir: { bg: '#dcefd2', ink: '#44703a', icon: 'M10 2.5c1.7 0 2.8 1.6 2.8 3.4S11.7 9.5 10 9.5 7.2 7.7 7.2 5.9 8.3 2.5 10 2.5z M10 9.5v8' },
+  Squeeze: { bg: '#dcefd2', ink: '#44703a', icon: 'M10 3a7 7 0 1 1 0 14a7 7 0 1 1 0-14z M10 3v14M3 10h14M5.1 5.1l9.8 9.8M14.9 5.1l-9.8 9.8' },
+  Serve: { bg: '#fbefb4', ink: '#8a6a0c', icon: 'M3 14h14 M4.5 14a5.5 5.5 0 0 1 11 0 M10 7v1.5 M2 16.5h16' }
+};
+// Steps as in 09; [text, bold, changed]. Functions take the active mods.
+var STEPS = [
+  function (m) { return [['Blend', 1], [' half the ', 0], ['onions, garlic, ', 1], [m.mild ? 'a little sambal' : 'sambal', 1, m.mild], [', ', 0], ['kencur, pepper', 1], [' and ', 0], ['lime leaves', 1], [' into a fine paste.', 0]]; },
+  [['Toast', 1], [' the ', 0], ['coconut', 1], [' in a dry pan until golden.', 0]],
+  [['Fry', 1], [' the rest of the ', 0], ['shallots', 1], [' and ', 0], ['garlic', 1], [' in hot oil.', 0]],
+  [['Cook', 1], [' the ', 0], ['paste', 1], [' until it smells sweet.', 0]],
+  function (m) { return [['Add', 1], [' the ', 0], [m.chicken ? 'chicken' : 'pork', 1, m.chicken], [' and the toasted ', 0], ['coconut', 1], ['.', 0]]; },
+  [['Stir', 1], [' until no pink is left.', 0]],
+  [['Squeeze', 1], [' in the ', 0], ['lime', 1], [' and add the ', 0], ['chives', 1], ['.', 0]],
+  [['Serve', 1], [' on ', 0], ['pandan rice', 1], ['.', 0]]
+];
+var TINT = {
+  time: { bg: '#fbefb4', ink: '#8a6a0c' }, serves: { bg: '#dcefd2', ink: '#44703a' }, spice: { bg: '#fde3d8', ink: '#c24a24' }
+};
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { m: { serves2: false, mild: false, chicken: false }, open: '', tidy: true, voice: 0, said: 'mild' }; }
+  componentDidMount() { this.intro = setTimeout(() => this.talk(), 3000); }
+  componentWillUnmount() { clearTimeout(this.intro); clearTimeout(this.t1); clearTimeout(this.t2); clearTimeout(this.t3); }
+  toggleMod(k) { var m = Object.assign({}, this.state.m); m[k] = !m[k]; this.setState({ m: m }); }
+  talk() {
+    if (this.state.voice) return;
+    var next = ['mild', 'serves2', 'chicken'].find((k) => !this.state.m[k]) || 'mild';
+    this.setState({ voice: 1, said: next, open: '' });
+    this.t1 = setTimeout(() => this.setState({ voice: 2 }), 1400);
+    this.t2 = setTimeout(() => { this.toggleMod(next); this.setState({ voice: 3 }); }, 2900);
+    this.t3 = setTimeout(() => this.setState({ voice: 0 }), 4300);
+  }
+  renderVals() {
+    var s = this.state, m = s.m;
+    var mins = 40 - (m.serves2 ? 10 : 0) - (m.chicken ? 5 : 0);
+    var key = (m.serves2 ? 1 : 0) + (m.mild ? 2 : 0) + (m.chicken ? 4 : 0);
+    var parts = [
+      ['Balinese minced ', 400, ''], [m.chicken ? 'chicken' : 'pork', 600, m.chicken ? 'mark' : ''], [' with toasted ', 400, ''], ['coconut', 600, ''],
+      [', fried in a ', 400, ''], [m.mild ? 'gentle spice paste' : 'fresh spice paste', 400, m.mild ? 'mark' : ''], [' and served on ', 400, ''], ['pandan rice', 600, ''], ['.', 400, '']
+    ];
+    return {
+      talk: () => this.talk(),
+      sentence: [{ key: key, parts: parts.map(function (p) { return { t: p[0], w: p[1], cls: p[2] }; }) }],
+      tags: [
+        Object.assign({ icon: ICON.clock, label: mins + ' min' }, mins !== 40 ? TINT.time : PLAIN),
+        Object.assign({ icon: ICON.serves, label: 'Serves ' + (m.serves2 ? 2 : 4) }, m.serves2 ? TINT.serves : PLAIN),
+        Object.assign({ icon: ICON.flame, label: m.mild ? 'Mild' : 'Hot' }, m.mild ? TINT.spice : PLAIN)
+      ],
+      anyOpen: !!s.open, adjOpen: s.open === 'adj', ingrOpen: s.open === 'ingr', photoOpen: s.open === 'photo', openPhoto: () => this.setState({ open: 'photo' }),
+      stepsOpen: s.open === 'steps', openSteps: () => this.setState({ open: 'steps' }), mins: mins,
+      stepList: STEPS.map(function (st, i) {
+        var parts = typeof st === 'function' ? st(m) : st;
+        return { n: i + 1, dl: (i * 0.04).toFixed(2), parts: parts.map(function (p, j) {
+          var v = j === 0 && V[p[0]];
+          return { t: p[0], w: p[1] ? 600 : 400, cls: p[2] ? 'mark' : '', isVerb: !!v, isText: !v, bg: v ? v.bg : '', ink: v ? v.ink : '', icon: v ? v.icon : '' };
+        }) };
+      }),
+      openAdjust: () => this.setState({ open: 'adj' }), openIngr: () => this.setState({ open: 'ingr' }), close: () => this.setState({ open: '' }),
+      mods: MODS.map((c) => {
+        var on = !!m[c.k];
+        return { label: c.label, hint: c.hint, on: on, bg: on ? '#1f1c19' : '#f4f3f1', ink: on ? '#ffffff' : '#1f1c19',
+          dotBg: on ? '#ec923b' : 'transparent', dotRing: on ? '#ec923b' : '#b5ada1', pick: () => this.toggleMod(c.k) };
+      }),
+      serves: m.serves2 ? 2 : 4,
+      tidy: s.tidy, raw: !s.tidy,
+      setTidy: () => this.setState({ tidy: true }), setRaw: () => this.setState({ tidy: false }),
+      tidyBg: s.tidy ? '#ffffff' : 'transparent', rawBg: s.tidy ? 'transparent' : '#ffffff',
+      tidyShadow: s.tidy ? '0 1px 3px rgba(31,28,25,.12)' : 'none', rawShadow: s.tidy ? 'none' : '0 1px 3px rgba(31,28,25,.12)',
+      ingr: ING.map(function (r, i) {
+        var meat = i === 0 && m.chicken, spicy = i === 4 && m.mild;
+        var amt = m.serves2 ? r[3] : r[2];
+        if (spicy) amt = m.serves2 ? '¼ tbsp' : '½ tbsp';
+        var changed = (m.serves2 && r[2] !== r[3]) || spicy;
+        return { name: meat ? 'Chicken' : r[0], cls: meat ? 'mark' : '', amt: s.tidy ? amt : r[1],
+          acls: s.tidy && changed ? 'mark' : '', style: s.tidy ? 'normal' : 'italic' };
+      }),
+      speaking: s.voice > 0, orbCls: s.voice === 3 ? 'breathe' : 'orbtalk',
+      voiceLines: [
+        { show: s.voice === 1, big: 'Listening…', small: 'Say what you’d like to change' },
+        { show: s.voice === 2, big: '“' + SAY[s.said] + '”', small: 'Changing the recipe' },
+        { show: s.voice === 3, big: DONE[s.said], small: 'Changes are underlined' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
