@@ -20,7 +20,7 @@ describe('FridgeScreen', () => {
     advance(1600)
     expect(cam()).toContain('scale(1.6)')
     expect(screen.getByText('OMA LIEN')).toBeInTheDocument()
-    expect(note(/Lelawar Bali, 40 minutes/)).toBeInTheDocument()
+    expect(note(/Lawar Bali, 40 minutes/)).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /Make your own recipe/ })[0]).toBeEnabled()
   })
 
@@ -40,7 +40,7 @@ describe('FridgeScreen', () => {
   it('drags a note without opening it', () => {
     render(<FridgeScreen />)
     advance(1600)
-    const lelawar = note(/Lelawar Bali/)
+    const lelawar = note(/Lawar Bali, 40/)
     const before = lelawar.style.left
     fireEvent.pointerDown(lelawar, { clientX: 100, clientY: 100 })
     fireEvent.pointerMove(root(), { clientX: 160, clientY: 140 })
@@ -54,14 +54,14 @@ describe('FridgeScreen', () => {
   it('dives into Lelawar Bali for the recipe home view, and Back returns to the fridge', () => {
     render(<FridgeScreen />)
     advance(1600)
-    fireEvent.click(note(/Lelawar Bali/))
+    fireEvent.click(note(/Lawar Bali, 40/))
     expect(document.querySelector('.fz-fly')).toBeInTheDocument()
     advance(700)
     expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Back to the fridge' }))
     advance(800)
     expect(screen.queryByRole('heading', { name: 'Lelawar Bali' })).not.toBeInTheDocument()
-    expect(note(/Lelawar Bali/)).toBeVisible()
+    expect(note(/Lawar Bali, 40/)).toBeVisible()
   })
 
   it('Make your own opens the New recipe page', () => {
@@ -102,7 +102,7 @@ describe('FridgeScreen', () => {
     rerender(<FridgeScreen startOpen closeRequest={1} />)
     advance(800)
     expect(screen.queryByRole('heading', { name: 'Lelawar Bali' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Lelawar Bali, 40 minutes/ })).toBeVisible()
+    expect(screen.getByRole('button', { name: /Lawar Bali, 40 minutes/ })).toBeVisible()
     expect(cam()).toContain('scale(1.6)')
   })
 })

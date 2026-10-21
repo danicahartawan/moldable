@@ -65,6 +65,13 @@ a.fz-tap { text-decoration: none; }
 .fz-note__foot { position: relative; display: flex; height: 20px; flex: none; align-items: center; gap: 4px; padding: 0 10px; border-radius: 0 0 2px 2px; font-size: 6.5px; font-weight: 500; line-height: 8px; }
 .fz-note__sheen { position: absolute; inset: 0; border-radius: 2px; background: linear-gradient(160deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, .06)); pointer-events: none; }
 .fz-note__magnet { position: absolute; top: -8px; right: 12px; width: 22px; height: 22px; border-radius: 50%; box-shadow: 0 4px 6px rgba(0, 0, 0, .38), inset 0 -2px 2px rgba(0, 0, 0, .25); }
+/* Lawar Bali: an orange card with a 3 × 3 grid of white and apricot dots, the name big at the foot and a lighter Version band. */
+.fz-note--lawar { color: #fff; }
+.fz-lawar__dots { position: absolute; top: 0; left: 0; width: 130px; height: 128px; }
+.fz-lawar__name { position: absolute; top: 139px; left: 11px; font-size: 15px; font-weight: 600; line-height: 16px; letter-spacing: -.035em; white-space: nowrap; }
+.fz-lawar__mins { position: absolute; top: 144px; right: 11px; font-size: 7.4px; line-height: 8px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.fz-lawar__owner { position: absolute; top: 157px; left: 11px; font-size: 8.6px; line-height: 10px; letter-spacing: -.02em; white-space: nowrap; }
+.fz-lawar__foot { position: absolute; right: 0; bottom: 0; left: 0; height: 15px; padding: 0 11px; border-radius: 0 0 2px 2px; font-size: 7.4px; line-height: 15px; letter-spacing: -.02em; }
 .fz-chili { position: absolute; top: -14px; right: -14px; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .35)); }
 
 /* The new-fridge slot: the same shape, dashed. */

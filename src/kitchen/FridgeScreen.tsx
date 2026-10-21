@@ -14,6 +14,11 @@ const H = 1240
 const GAP = 300
 const NW = 130
 const NH = 150
+// Lawar Bali, the featured recipe, is its own taller card: a grid of dots, the name big at the foot.
+const LAWAR_NH = 188
+const noteH = (bi: number, k: number) => (bi === 0 && k === 0 ? LAWAR_NH : NH)
+// Its 3 × 3 dots, white or apricot, row by row.
+const LAWAR_DOTS = [[1, 0, 0], [1, 0, 0], [1, 1, 1]]
 // Camera: the whole fridge, or zoomed in until the door fills the screen.
 const VIEWS = { over: { k: 0.48, fx: 300, fy: 630 }, door: { k: 1.6, fx: 300, fy: 632 } } as const
 type View = keyof typeof VIEWS
@@ -21,7 +26,7 @@ type View = keyof typeof VIEWS
 type Recipe = [name: string, mins: number, level: string]
 type Book = { badge: string; label: string; from: string; owner: string; base: string; recipes: Recipe[] }
 const START: Book[] = [
-  { badge: 'OMA LIEN', label: 'Oma Lien’s cookbook', from: 'Oma Lien’s cards', owner: 'Oma Lien’s recipe', base: '#c42b22', recipes: [['Lelawar Bali', 40, 'Hard']] },
+  { badge: 'OMA LIEN', label: 'Oma Lien’s cookbook', from: 'Oma Lien’s cards', owner: 'Oma Lien’s recipe', base: '#c42b22', recipes: [['Lawar Bali', 40, 'Hard']] },
   { badge: 'TANTE ANI', label: 'Tante Ani’s cookbook', from: 'Tante Ani’s notebook', owner: 'Tante Ani’s recipe', base: '#e4a0b1', recipes: [['Klepon', 45, 'Easy'], ['Kue lapis', 90, 'Medium']] },
 ]
 const NEW_COLOURS = ['#8fc6ba', '#e8d9b8', '#86a3d8', '#f0b54a']
@@ -56,7 +61,7 @@ const itemsOf = (b: Book): Item[] => [...b.recipes.map((r) => ({ kind: 'recipe' 
 const layoutFor = (n: number): Spot[] => LAYOUTS[Math.min(4, n)].map((s) => [...s] as Spot)
 function cardFor(bi: number, k: number, kind: Item['kind']) {
   if (kind === 'new') return { paper: NEWCARD[0], top: NEWCARD[1], bottom: NEWCARD[2] }
-  if (bi === 0 && k === 0) return { paper: '#f4511e', top: '#e0431a', bottom: '#ff7a4e' }
+  if (bi === 0 && k === 0) return { paper: '#ff4a00', top: '#ff4a00', bottom: '#ff7350' }
   const c = CARDS[(bi * 2 + k) % CARDS.length]
   return { paper: c[0], top: c[1], bottom: c[2] }
 }
@@ -253,7 +258,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return
     d.moved = true
     const x = Math.max(-20, Math.min(W - NW + 20, d.ox + dx))
-    const y = Math.max(20, Math.min(1140 - NH, d.oy + dy))
+    const y = Math.max(20, Math.min(1140 - noteH(d.bi, d.k), d.oy + dy))
     setPos((cur) => cur.map((spots, b) => (b === d.bi ? spots.map((s, k) => (k === d.k ? [x, y, s[2]] as Spot : s)) : spots)))
   }
   const onUp = (event: ReactPointerEvent) => {
@@ -299,7 +304,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     const p = pos[open.b][open.k]
     const c = cardFor(open.b, open.k, it.kind)
     const w = NW * oc.k
-    const h = NH * oc.k
+    const h = noteH(open.b, open.k) * oc.k
     const left = oc.tx + (open.b * (W + GAP) + p[0]) * oc.k
     const top = oc.ty + p[1] * oc.k
     const dx = 320 - (left + w / 2)
@@ -342,21 +347,33 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
                   <button
                     key={k}
                     type="button"
-                    className={`fz-note${lifted ? ' fz-drag' : ''}`}
+                    className={`fz-note${main ? ' fz-note--lawar' : ''}${lifted ? ' fz-drag' : ''}`}
                     disabled={locked}
                     aria-label={isNew ? 'Make your own recipe. Drag to move, tap to start.' : `${it.r[0]}, ${it.r[1]} minutes. Drag to move, tap to open.`}
                     onPointerDown={(event) => startDrag(event, bi, k)}
                     onClick={() => clickNote(bi, k)}
                     style={{
-                      left: Math.round(p[0]), top: Math.round(p[1]), zIndex: 10 + order[bi].indexOf(k), background: c.paper,
+                      left: Math.round(p[0]), top: Math.round(p[1]), height: noteH(bi, k), zIndex: 10 + order[bi].indexOf(k), background: c.paper,
                       cursor: cur ? (lifted ? 'grabbing' : 'grab') : 'default',
                       transform: `rotate(${lifted ? 0 : p[2]}deg) scale(${lifted ? 1.06 : 1})`,
                       boxShadow: lifted ? '0 22px 30px rgba(31,28,25,.34)' : '0 6px 10px rgba(31,28,25,.24), 0 1px 2px rgba(31,28,25,.2)',
                       visibility: open && open.b === bi && open.k === k ? 'hidden' : 'visible',
                     }}
                   >
-                    <span className="fz-note__top" aria-hidden="true" style={{ background: c.top }}><span /></span>
-                    {isNew ? (
+                    {main ? (
+                      <>
+                        <svg className="fz-lawar__dots" viewBox="0 0 130 128" aria-hidden="true">
+                          {LAWAR_DOTS.flatMap((row, r) => row.map((white, col) => (
+                            <circle key={`${r}-${col}`} cx={24.2 + col * 40.3} cy={30.2 + r * 37.3} r="14.3" fill={white ? '#ffffff' : '#ffa24f'} />
+                          )))}
+                        </svg>
+                        <span className="fz-lawar__name">{it.kind === 'recipe' ? it.r[0] : ''}</span>
+                        <span className="fz-lawar__mins">{it.kind === 'recipe' ? it.r[1] : ''} mins</span>
+                        <span className="fz-lawar__owner">{b.owner.replace('recipe', 'Recipe')}</span>
+                        <span className="fz-lawar__foot" style={{ background: c.bottom }}>Version 1</span>
+                      </>
+                    ) : <span className="fz-note__top" aria-hidden="true" style={{ background: c.top }}><span /></span>}
+                    {main ? null : isNew ? (
                       <span className="fz-note__new">
                         <span className="fz-note__plus" aria-hidden="true"><Icon d={ICON.plus} size={13} width={2.4} /></span>
                         <span className="fz-note__new-title">Make your own</span>
@@ -371,9 +388,11 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
                         <span className="fz-note__owner">{b.owner}</span>
                       </span>
                     )}
-                    <span className="fz-note__foot" style={{ background: c.bottom, marginTop: isNew ? 7 : 0 }}>
-                      <Icon d={isNew ? ICON.plus : ICON.history} size={8} width={2} />{isNew ? 'New recipe' : 'Version 1'}
-                    </span>
+                    {!main && (
+                      <span className="fz-note__foot" style={{ background: c.bottom, marginTop: isNew ? 7 : 0 }}>
+                        <Icon d={isNew ? ICON.plus : ICON.history} size={8} width={2} />{isNew ? 'New recipe' : 'Version 1'}
+                      </span>
+                    )}
                     <span className="fz-note__sheen" aria-hidden="true" />
                     {main ? <ChiliMagnet /> : (
                       <span className="fz-note__magnet" aria-hidden="true" style={{ background: `radial-gradient(circle at 34% 30%, ${mag[0]}, ${mag[1]} 52%, ${mag[2]})` }} />
