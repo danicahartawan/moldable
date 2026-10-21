@@ -542,13 +542,9 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       </div>
 
       {!open && i < last && (
-        <div className="fz-zoom">
-          <GooTooltipGroup buttonColor="#ffffff" buttonTextColor="#1f1c19" align="end">
-            <GooButton tooltip={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'}
-              icon={<Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} width={1.7} />}
-              onClick={() => { if (view !== 'door') aimAt(i); setView(view === 'door' ? 'over' : 'door') }} />
-          </GooTooltipGroup>
-        </div>
+        <button type="button" className="fz-tap fz-zoom" aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} onClick={() => { if (view !== 'door') aimAt(i); setView(view === 'door' ? 'over' : 'door') }}>
+          <Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} width={1.7} />
+        </button>
       )}
 
       {fly && (
