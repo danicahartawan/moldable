@@ -98,6 +98,23 @@ describe('HomeViewBoard 07b layout', () => {
     }
   })
 
+  it('has a version button next to the tags that opens the history; each Adjust change adds a version', () => {
+    render(<HomeViewBoard autoVoice={false} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Version history, version 3' }))
+    const history = screen.getByRole('dialog', { name: 'Version history' })
+    expect(history.querySelectorAll('li')).toHaveLength(3)
+    expect(history.querySelector('li.is-current')).toHaveTextContent('Oma Lien Tidied into clean steps')
+    fireEvent.click(within(history).getByRole('button', { name: 'Done' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Adjust' }))
+    fireEvent.click(screen.getByRole('button', { name: /Less spicy/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Less spicy/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Version history, version 5' }))
+    const items = [...screen.getByRole('dialog', { name: 'Version history' }).querySelectorAll('li')].map((li) => li.querySelector('.hm-versions__what')?.textContent)
+    expect(items.slice(0, 2)).toEqual(['Grandkid Spicy again', 'Grandkid Less spicy'])
+  })
+
   it('opens the whole photo, and Start cooking leads to the cooking step', () => {
     const start = vi.fn()
     render(<HomeViewBoard autoVoice={false} onStartCooking={start} />)
@@ -166,11 +183,11 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
   it('swaps kencur for ginger and lime zest on the second request', () => {
     render(<HomeViewBoard autoVoice={false} />)
     fireEvent.click(talk())
-    advance(5800 + 1300)
+    advance(5800 + 1200 + 3 * 700 + 100)
     fireEvent.click(talk())
     advance(1500)
     expect(screen.getByText('“What can I use instead of kencur?”')).toBeInTheDocument()
-    advance(4300 + 1300)
+    advance(4300 + 1200 + 2 * 700 + 100)
     const ingr = openIngredients()
     expect(within(ingr).getByText('Ginger + lime zest')).toHaveClass('hm-mark')
     expect(within(ingr).queryByText('Kencur')).not.toBeInTheDocument()
@@ -185,10 +202,32 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
     expect(clay).toHaveAttribute('aria-hidden', 'true')
     advance(5800 + 1000)
     expect(document.querySelector('.voice-clay')).toBe(clay)
-    // The island closes after "Done", then the clay shrinks away and is removed.
-    advance(300)
-    advance(700)
+    // After "Done" the same clay hops onto what changed, then fades where it is and is removed.
+    advance(200 + 3 * 700)
+    expect(document.querySelector('.voice-clay')).toBe(clay)
+    advance(100)
+    advance(800)
     expect(document.querySelector('.voice-clay')).not.toBeInTheDocument()
+  })
+
+  it('after "Done", the clay hops onto the time, the servings and the version button, which ticks up', () => {
+    render(<HomeViewBoard clay autoVoice={false} />)
+    expect(screen.getByRole('button', { name: 'Version history, version 3' })).toBeInTheDocument()
+    fireEvent.click(talk())
+    advance(5800)
+    expect(document.querySelector('.is-hop')).not.toBeInTheDocument()
+    advance(1200)
+    expect(document.querySelector('.is-hop')).toHaveAttribute('data-hop', 'time')
+    expect(island()).toHaveAttribute('data-state', 'idle')
+    advance(700)
+    expect(document.querySelector('.is-hop')).toHaveAttribute('data-hop', 'serves')
+    advance(700)
+    expect(document.querySelector('.is-hop')).toHaveAttribute('data-hop', 'status')
+    expect(screen.getByRole('button', { name: 'Version history, version 4' })).toHaveClass('is-changed')
+    advance(700)
+    expect(document.querySelector('.is-hop')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Version history, version 4' }))
+    expect(screen.getByRole('dialog', { name: 'Version history' }).querySelector('li.is-current')).toHaveTextContent('Grandkid Servings 4 → 2')
   })
 
   it('with the clay look, tapping away cancels: the clay leaves at once with no done step', () => {

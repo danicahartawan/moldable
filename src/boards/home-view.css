@@ -22,6 +22,12 @@ a.hm-tap { text-decoration: none; }
 .hm-tag { display: inline-flex; height: 36px; box-sizing: border-box; align-items: center; gap: 7px; padding: 0 14px 0 12px; border: 0; border-radius: 999px; font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; transition: background-color .4s ease, color .4s ease; }
 .hm-tag--steps { padding: 0 10px 0 12px; background: var(--hm-ink); color: #fff; }
 .hm-tag__chev { display: inline-flex; opacity: .7; }
+/* Status: the current version. Teal once a change has been made here; opens the version history. */
+.hm-tag--status { background: #f2f1ef; color: var(--hm-ink); }
+.hm-tag--status.is-changed { background: #d3efee; color: #1a8585; }
+/* The clay lands on a tag: it gives a little under the weight. */
+@keyframes hm-hop-land { 0% { transform: none; } 30% { transform: translateY(2px) scale(1.04, .9); } 65% { transform: translateY(-1px) scale(.98, 1.04); } 100% { transform: none; } }
+.hm-tag.is-hop { animation: hm-hop-land 520ms cubic-bezier(.3, .7, .4, 1) 120ms both; }
 
 /* The photo, with Adjust, Ingredients and Start cooking floating on it. */
 .hm-photo { position: absolute; top: 324px; right: 24px; bottom: 24px; left: 24px; padding: 0; overflow: hidden; border: 0; border-radius: 30px; background: #2a2622; cursor: zoom-in; }
@@ -78,6 +84,17 @@ a.hm-tap { text-decoration: none; }
 .hm-ingr__amt.is-raw { font-style: italic; }
 .hm-ingr__tools { margin: 14px 0 0; color: var(--hm-muted); font-size: 16px; line-height: 22px; }
 
+.hm-card--versions { display: flex; width: 460px; max-height: 560px; flex-direction: column; padding: 24px 28px 20px; }
+.hm-versions { flex: 1; min-height: 0; margin: 4px 0 0; padding: 0; overflow-y: auto; list-style: none; }
+.hm-versions li { display: grid; grid-template-columns: 14px 1fr auto; column-gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--hm-line); }
+.hm-versions__dot { grid-row: 1 / span 2; width: 9px; height: 9px; margin-top: 8px; border-radius: 50%; background: #ec923b; }
+.hm-versions li.is-current .hm-versions__dot { background: #2eb8b8; }
+.hm-versions__what { grid-column: 2; font-size: 19px; line-height: 25px; }
+.hm-versions__what strong { font-weight: 600; }
+.hm-versions__time { grid-column: 2; color: var(--hm-muted); font-size: 14px; line-height: 18px; }
+.hm-versions__tag { grid-column: 3; grid-row: 1; align-self: center; padding: 1px 9px; border-radius: 999px; background: #f2f1ef; color: var(--hm-muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.hm-versions li.is-current .hm-versions__tag { background: #d3efee; color: #1a8585; }
+
 /* The voice view: a frosted screen, the clay in the middle, then one big line at a time. */
 .hm-voice { position: absolute; z-index: 9; inset: 0; display: flex; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 0 56px; background: rgba(255, 255, 255, .55); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); text-align: center; animation: hm-frost 350ms ease both; }
 .hm-voice__clay { display: block; width: 88px; height: 88px; }
@@ -91,4 +108,5 @@ a.hm-tap { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .hm-blurin, .hm-card, .hm-frost, .hm-voice { animation: hm-frost 150ms ease both; }
   .hm-tag, .hm-tap { transition: none; }
+  .hm-tag.is-hop { animation: none; }
 }

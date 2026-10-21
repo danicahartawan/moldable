@@ -7,6 +7,7 @@ import type { Vec } from '@/clay/ClaySim'
 import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
 import { VoiceNotification } from '@/voice/VoiceNotification'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
+import { VersionList, initialVersions, newVersion, type VersionEntry } from './VersionHistory'
 import Link from 'next/link'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
@@ -16,15 +17,16 @@ import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, u
 type AdjustPhase = 'idle' | 'listening' | 'thinking' | 'writing'
 type ModKey = 'serves2' | 'mild' | 'chicken'
 type Mods = Record<ModKey, boolean>
-type Popup = '' | 'steps' | 'adj' | 'ingr' | 'photo'
+type Popup = '' | 'steps' | 'adj' | 'ingr' | 'photo' | 'versions'
 
 const PHOTO = '/assets/lelawar-photo.png'
 const PHOTO_ALT = 'Lelawar in a dark bowl on a banana leaf, topped with fried shallots'
 
-const MODS: { k: ModKey; label: string; hint: string }[] = [
-  { k: 'serves2', label: 'Serves 2', hint: 'Half of everything' },
-  { k: 'mild', label: 'Less spicy', hint: 'Half the sambal' },
-  { k: 'chicken', label: 'Chicken', hint: 'Instead of pork' },
+// Each change, and how it reads in the version history when it's turned on or off.
+const MODS: { k: ModKey; label: string; hint: string; on: string; off: string }[] = [
+  { k: 'serves2', label: 'Serves 2', hint: 'Half of everything', on: 'Servings 4 → 2', off: 'Servings 2 → 4' },
+  { k: 'mild', label: 'Less spicy', hint: 'Half the sambal', on: 'Less spicy', off: 'Spicy again' },
+  { k: 'chicken', label: 'Chicken', hint: 'Instead of pork', on: 'Chicken instead of pork', off: 'Back to pork' },
 ]
 
 // The voice view that plays once when the screen opens: what's said, and what changed.
@@ -45,6 +47,7 @@ const ICON = {
   serves: 'M7 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2.5 16c0-2.6 2-4.5 4.5-4.5s4.5 1.9 4.5 4.5 M14 8.5a2 2 0 1 0 0-4 M13.5 11.6c2.3.2 4 2 4 4.4',
   flame: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z',
   chevron: 'M8 4l6 6-6 6',
+  history: 'M3.5 10a6.5 6.5 0 1 0 2-4.7 M3 3v3.5h3.5 M10 6.5V10l2.4 1.5',
   adjust: 'M3 6h9M15 6h2M3 14h3M9 14h8',
   check: 'M5 10.5l3.2 3.2L15 6.8',
 }
@@ -99,6 +102,26 @@ const NO_SPEECH_MS = 6000
 const CLAY_MIX_MS = 5300
 // The clay's resting spot in the island, in screen px, until the island has been measured.
 const ISLAND_SPOT: Vec = { x: 62, y: 62 }
+// After "Done", the clay hops out of the island onto what changed, ending on the version button, which ticks up.
+const HOPS: readonly (readonly HopTarget[])[] = [['time', 'serves', 'status'], ['steps', 'status']]
+const HOP_MS = 700
+// On a tag the clay is ~10px across its radius and sits on its top edge.
+const HOP_CLAY_RADIUS = 10
+const VOICE_CHANGES = ['Servings 4 → 2', 'Kencur swapped out'] as const
+type HopTarget = 'time' | 'serves' | 'steps' | 'status'
+
+// Where an element sits inside the screen, in the screen's own (unscaled) px.
+function offsetIn(el: HTMLElement, root: HTMLElement) {
+  let x = 0
+  let y = 0
+  let node: HTMLElement | null = el
+  while (node && node !== root) {
+    x += node.offsetLeft
+    y += node.offsetTop
+    node = node.offsetParent as HTMLElement | null
+  }
+  return { x, y }
+}
 
 export type HomeViewHandle = {
   /** Start a voice session (the wake word, in the wireframe). */
@@ -142,7 +165,23 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const [kencur, setKencur] = useState(false)
   const [open, setOpen] = useState<Popup>('')
   const [tidy, setTidy] = useState(true)
-  const toggleMod = (k: ModKey) => setM((cur) => ({ ...cur, [k]: !cur[k] }))
+  // Every change from Adjust or voice adds a version; the button next to the tags opens the history.
+  const [versions, setVersions] = useState<VersionEntry[]>(initialVersions)
+  const record = (what: string) => setVersions((cur) => newVersion(cur, what))
+  const mRef = useRef(m)
+  mRef.current = m
+  const toggleMod = (k: ModKey) => {
+    const on = !mRef.current[k]
+    const mod = MODS.find((c) => c.k === k)!
+    mRef.current = { ...mRef.current, [k]: on }
+    setM(mRef.current)
+    record(on ? mod.on : mod.off)
+  }
+  const setAmounts = (next: boolean) => {
+    if (next === tidy) return
+    setTidy(next)
+    record(next ? 'Tidied amounts' : 'Amounts in Oma’s words')
+  }
 
   // The voice view: 1 listening, 2 the request, 3 done.
   const [voice, setVoice] = useState(0)
@@ -158,6 +197,9 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const [blobTeal, setBlobTeal] = useState(false)
   const [cancelled, setCancelled] = useState(false)
   const [islandSpot, setIslandSpot] = useState<Vec>(ISLAND_SPOT)
+  // The thing the clay is hopping onto, and where that is.
+  const [hop, setHop] = useState<HopTarget | null>(null)
+  const [hopSpot, setHopSpot] = useState<Vec | null>(null)
   const voiceLevel = useRef<() => number>(() => 0)
   const screenRef = useRef<HTMLDivElement>(null)
   const stage = useRef(0)
@@ -201,12 +243,25 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     setIslandSpot({ x: card.offsetLeft + box.offsetLeft + box.offsetWidth / 2, y: card.offsetTop + box.offsetTop + box.offsetHeight / 2 })
   }, [phase, clay])
 
+  // The clay sits on top of the thing it's hopping onto, in screen px.
+  useLayoutEffect(() => {
+    const root = screenRef.current
+    const el = hop && root?.querySelector<HTMLElement>(`[data-hop="${hop}"]`)
+    if (!root || !el) {
+      setHopSpot(null)
+      return
+    }
+    const at = offsetIn(el, root)
+    setHopSpot({ x: Math.min(at.x + el.offsetWidth / 2, 640 - 24), y: at.y - HOP_CLAY_RADIUS + 1 })
+  }, [hop])
+
   const beginAdjust = () => {
     if (phase !== 'idle' || voice) return
     clearTimers()
     if (stage.current >= ADJUST_SCRIPT.length) {
       setM((cur) => ({ ...cur, serves2: false }))
       setKencur(false)
+      setVersions(initialVersions())
       stage.current = 0
     }
     const next = stage.current + 1
@@ -234,8 +289,13 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
       setResult(ADJUST_RESULTS[next - 1])
       if (next === 1) setM((cur) => ({ ...cur, serves2: true }))
       else setKencur(true)
-      // "Done" shows for a moment in the island, then the island closes and the clay leaves.
-      later(DONE_HOLD_MS, () => { setHeard(''); setPhase('idle') })
+      // "Done" shows for a moment in the island, then the clay hops out onto what changed and lands on the version button.
+      const hops = HOPS[next - 1]
+      hops.forEach((target, i) => later(DONE_HOLD_MS + i * HOP_MS, () => {
+        setHop(target)
+        if (target === 'status') record(VOICE_CHANGES[next - 1])
+      }))
+      later(DONE_HOLD_MS + hops.length * HOP_MS, () => { setHop(null); setHeard(''); setPhase('idle') })
     })
   }
 
@@ -260,11 +320,14 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     cancelVoice()
   }
 
-  const clayPlace: ClayPlace = useMemo(
-    () => (!clay || phase === 'idle' ? null : { kind: 'island', at: islandSpot }),
-    [clay, phase, islandSpot],
-  )
-  const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? 'done' : glow
+  // One source of truth: where the clay is comes from the voice state (and what it's hopping onto).
+  const clayPlace: ClayPlace = useMemo(() => {
+    if (!clay || phase === 'idle') return null
+    if (phase === 'writing' && hop && hopSpot) return { kind: 'row', at: hopSpot }
+    return { kind: 'island', at: islandSpot }
+  }, [clay, phase, hop, hopSpot, islandSpot])
+  // The island stays on "Done" until the clay hops out of it.
+  const islandState: GlowState = phase === 'idle' ? 'idle' : phase === 'writing' ? (hop ? 'idle' : 'done') : glow
 
   // Escape closes whichever card is open.
   useEffect(() => {
@@ -277,6 +340,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const look: Look = { ...m, kencur }
   const mins = 40 - (m.serves2 ? 10 : 0) - (m.chicken ? 5 : 0)
   const sentenceKey = `${m.serves2}${m.mild}${m.chicken}`
+  const current = versions[0]?.version ?? 1
   const tags = [
     { key: 'time', icon: ICON.clock, label: `${mins} min`, ...(mins !== 40 ? TINT.time : PLAIN) },
     { key: 'serves', icon: ICON.serves, label: `Serves ${m.serves2 ? 2 : 4}`, ...(m.serves2 ? TINT.serves : PLAIN) },
@@ -306,12 +370,17 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
               and served on <strong>pandan rice</strong>.
             </p>
             <div className="hm-tags">
-              <button type="button" className="hm-tap hm-tag hm-tag--steps" aria-haspopup="dialog" onClick={() => setOpen('steps')}>
+              <button type="button" className={`hm-tap hm-tag hm-tag--steps${hop === 'steps' ? ' is-hop' : ''}`} data-hop="steps" aria-haspopup="dialog" onClick={() => setOpen('steps')}>
                 <Icon d={ICON.steps} />8 steps<span className="hm-tag__chev"><Icon d={ICON.chevron} size={14} width={2} /></span>
               </button>
               {tags.map((t) => (
-                <span key={t.key} className="hm-tag" style={{ background: t.bg, color: t.ink }}><Icon d={t.icon} />{t.label}</span>
+                <span key={t.key} className={`hm-tag${hop === t.key ? ' is-hop' : ''}`} data-hop={t.key} style={{ background: t.bg, color: t.ink }}><Icon d={t.icon} />{t.label}</span>
               ))}
+              {/* Status: the current version; it ticks up with every change and opens the version history. */}
+              <button type="button" className={`hm-tap hm-tag hm-tag--status${versions[0]?.who === 'Grandkid' ? ' is-changed' : ''}${hop === 'status' ? ' is-hop' : ''}`}
+                data-hop="status" aria-haspopup="dialog" aria-label={`Version history, version ${current}`} onClick={() => setOpen('versions')}>
+                <Icon d={ICON.history} /><span key={current} className="hm-blurin">v{current}</span>
+              </button>
             </div>
           </section>
 
@@ -404,8 +473,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
               <div className="hm-ingr__head">
                 <p className="hm-card__title">Ingredients · serves {m.serves2 ? 2 : 4}</p>
                 <div className="hm-seg" role="group" aria-label="How amounts are written">
-                  <button type="button" className="hm-tap" aria-pressed={tidy} onClick={() => setTidy(true)}>Tidy</button>
-                  <button type="button" className="hm-tap" aria-pressed={!tidy} onClick={() => setTidy(false)}>Oma’s words</button>
+                  <button type="button" className="hm-tap" aria-pressed={tidy} onClick={() => setAmounts(true)}>Tidy</button>
+                  <button type="button" className="hm-tap" aria-pressed={!tidy} onClick={() => setAmounts(false)}>Oma’s words</button>
                 </div>
               </div>
               <ul className="hm-ingr">
@@ -426,6 +495,16 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                 })}
               </ul>
               <p className="hm-ingr__tools">You’ll need a bowl, dry pan, blender, spatula and rice pot.</p>
+              <button type="button" className="hm-tap hm-done hm-done--centre" onClick={close}>Done</button>
+            </div>
+          </div>
+        )}
+
+        {open === 'versions' && (
+          <div className="hm-center">
+            <div className="hm-card hm-card--versions" role="dialog" aria-label="Version history">
+              <p className="hm-card__title">Version history · v{current}</p>
+              <VersionList entries={versions} />
               <button type="button" className="hm-tap hm-done hm-done--centre" onClick={close}>Done</button>
             </div>
           </div>
