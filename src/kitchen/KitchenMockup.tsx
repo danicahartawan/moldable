@@ -128,8 +128,9 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
       el.classList.add('is-dragging')
       if (!onGrandma) setDragging(true)
     }
-    // Grandma slides away to the left toward Grandkids, whichever way the swipe goes.
-    el.style.transform = `translateX(${(onGrandma ? -Math.abs(distance) : distance) / scale}px)`
+    // The screen leans with the finger, a third as far, as a hint of where it's going; letting go dissolves it from
+    // almost where it is (Grandma leans left toward Grandkids, whichever way the swipe goes).
+    el.style.transform = `translateX(${(((onGrandma ? -Math.abs(distance) : distance) * 0.34) / scale).toFixed(1)}px)`
   }
 
   // Class and transform go together, so the host glides back with its transition on.

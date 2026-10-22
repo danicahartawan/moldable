@@ -89,7 +89,8 @@ describe('KitchenMockup perspectives', () => {
 
     fireEvent.pointerDown(stage, { clientX: 100 })
     for (let x = 101; x <= 140; x++) fireEvent.pointerMove(stage, { clientX: x })
-    expect(host).toHaveStyle({ transform: 'translateX(40px)' })
+    // It leans a third of the way with the finger.
+    expect(host).toHaveStyle({ transform: 'translateX(13.6px)' })
     expect(host).toHaveClass('is-dragging')
     fireEvent.pointerUp(stage, { clientX: 140 })
 
