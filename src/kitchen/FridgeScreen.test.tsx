@@ -44,11 +44,12 @@ describe('FridgeScreen', () => {
     expect(screen.getAllByRole('button', { name: /Make your own recipe/ })[1]).not.toBeDisabled()
   })
 
-  it('renames a fridge from its name: the badge, the cookbook and the cards follow; Escape keeps the old name', () => {
+  it('renames a fridge right on its name: the badge, the cookbook and the cards follow; Escape keeps the old name', () => {
     render(<FridgeScreen />)
     advance(1600)
     fireEvent.click(screen.getByRole('button', { name: 'Rename Oma Lien’s cookbook' }))
     const field = screen.getByRole('textbox', { name: 'Fridge name' })
+    expect(field).toHaveClass('fz-badge')
     expect(field).toHaveValue('Oma Lien')
     fireEvent.change(field, { target: { value: '  Nana   Sri ' } })
     fireEvent.keyDown(field, { key: 'Enter' })
@@ -63,6 +64,31 @@ describe('FridgeScreen', () => {
     fireEvent.keyDown(again, { key: 'Escape' })
     fireEvent.blur(again)
     expect(screen.getByRole('button', { name: 'Rename Nana Sri’s cookbook' })).toBeInTheDocument()
+  })
+
+  it('a new fridge asks whose cookbook it is and listens for the name', async () => {
+    // The browser's speech recognition, hearing one sentence.
+    class Hear {
+      continuous = false; interimResults = false; lang = ''
+      onresult: ((e: unknown) => void) | null = null; onend: (() => void) | null = null; onerror: ((e: unknown) => void) | null = null
+      start() { window.setTimeout(() => { this.onresult?.({ results: [{ isFinal: true, 0: { transcript: 'It’s Uncle Budi’s cookbook' } }] }); this.onend?.() }, 300) }
+      stop() {}
+      abort() {}
+    }
+    ;(window as unknown as { webkitSpeechRecognition: unknown }).webkitSpeechRecognition = Hear
+    render(<FridgeScreen />)
+    advance(1600)
+    fireEvent.click(screen.getByRole('button', { name: 'New fridge' }))
+    advance(3000)
+    fireEvent.click(screen.getByRole('button', { name: 'Build a new fridge for another cookbook' }))
+    advance(1600)
+    expect(screen.getByRole('dialog', { name: 'Name the new fridge' })).toHaveTextContent('Whose cookbook is this?')
+    expect(screen.getByRole('dialog', { name: 'Name the new fridge' })).toHaveTextContent('Listening')
+    await act(async () => { vi.advanceTimersByTime(400) })
+    expect(screen.getByRole('textbox', { name: 'Fridge name' })).toHaveValue('Uncle Budi')
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(screen.getByRole('button', { name: 'Rename Uncle Budi’s cookbook' })).toHaveTextContent('UNCLE BUDI')
+    delete (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
   })
 
   it('shows a saved recipe on its fridge, opens it to its page, and pops one that was just saved', () => {

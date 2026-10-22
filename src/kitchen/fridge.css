@@ -35,13 +35,15 @@ a.fz-tap { text-decoration: none; }
 
 /* The cookbook's name, embossed in chrome. */
 .fz-badge { position: absolute; top: 112px; right: 0; left: 0; margin: 0; box-sizing: border-box; padding-left: .55em; background: linear-gradient(#fff, #c3c6cb 48%, #f4f5f6 56%, #8b9097); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 38px; font-weight: 700; line-height: 44px; letter-spacing: .55em; text-align: center; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .4)); }
-/* Tap the name on the fridge in front to rename it: the field sits where the chrome letters were, at their size. */
-.fz-badge--btn, .fz-badge--edit { font-family: inherit; }
+/* Tap the name on the fridge in front to rename it, right there: the field is the badge itself, same chrome letters and
+   no box around it; the caret and the selection show where you're typing. */
+.fz-badge--edit { box-sizing: border-box; height: 44px; padding-top: 0; padding-bottom: 0; padding-right: 0; border: 0; outline: none; font-family: inherit; text-transform: uppercase; caret-color: #fff; }
+.fz-badge--edit::selection { background: rgba(255, 255, 255, .35); color: #fff; -webkit-text-fill-color: #fff; }
+.fz-badge--btn { font-family: inherit; }
 /* `.fz button { font: inherit }` would shrink the name back to body text: keep the badge's own letters. */
 .fz .fz-badge--btn { font-size: 38px; font-weight: 700; line-height: 44px; }
-.fz-badge--btn { height: 44px; padding-top: 0; padding-bottom: 0; padding-right: 0; border: 0; border-radius: 14px; cursor: text; }
+.fz-badge--btn { height: 44px; padding-top: 0; padding-bottom: 0; padding-right: 0; border: 0; border-radius: 14px; cursor: pointer; }
 .fz-badge--btn:focus-visible { outline: 3px solid rgba(255, 255, 255, .85); outline-offset: 6px; }
-.fz-badge--edit { right: 48px; left: 48px; height: 56px; margin-top: -6px; padding-top: 0; padding-bottom: 0; padding-right: 0; border: 0; border-radius: 16px; outline: none; background: rgba(255, 255, 255, .22); -webkit-background-clip: border-box; background-clip: border-box; color: #fff; caret-color: #fff; text-transform: uppercase; filter: none; text-shadow: 0 2px 2px rgba(0, 0, 0, .35); }
 
 .fz-handle { position: absolute; left: 64px; width: 268px; height: 40px; }
 .fz-handle--top { top: 304px; }
@@ -147,3 +149,28 @@ a.fz-tap { text-decoration: none; }
   .fz-lawar__dots circle, .fz-make__dot { animation: none; }
   @keyframes fz-in-fade { from { opacity: 0; } to { opacity: 1; } }
 }
+
+/* Naming a fridge: out loud first, or typed. A card over the softly frosted fridge. */
+.fz-namer { position: absolute; z-index: 40; inset: 0; display: grid; place-items: center; background: rgba(255, 255, 255, .28); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: fz-namer-in 260ms ease both; }
+@keyframes fz-namer-in { from { opacity: 0; } }
+.fz-namer__card { display: flex; width: 520px; box-sizing: border-box; flex-direction: column; gap: 14px; padding: 28px 28px 24px; border: 1px solid rgba(31, 28, 25, .07); border-radius: 30px; background: rgba(255, 255, 255, .94); box-shadow: 0 18px 44px rgba(31, 28, 25, .18); animation: fz-namer-card 420ms cubic-bezier(.2, .9, .25, 1) both; }
+@keyframes fz-namer-card { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+.fz-namer__title { margin: 0; font-size: 32px; font-weight: 500; line-height: 38px; letter-spacing: -.02em; }
+.fz-namer__heard { margin: 0; min-height: 26px; color: #6b665f; font-size: 20px; line-height: 26px; }
+.fz-namer__heard.is-listening { color: #ff5a1f; }
+.fz-namer__row { display: flex; align-items: center; gap: 10px; }
+.fz-namer__row--end { justify-content: flex-end; }
+.fz-namer__mic { display: inline-flex; flex: none; width: 56px; height: 56px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 28px; background: #ff5a1f; color: #fff; cursor: pointer; transition: background-color 180ms ease, transform 140ms cubic-bezier(.2, .8, .2, 1); }
+.fz-namer__mic:hover { background: #ff6f3a; }
+.fz-namer__mic.is-listening { animation: fz-namer-pulse 1.4s ease-in-out infinite; }
+@keyframes fz-namer-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 90, 31, .35); } 50% { box-shadow: 0 0 0 12px rgba(255, 90, 31, 0); } }
+.fz-namer__input { flex: 1; min-width: 0; height: 56px; box-sizing: border-box; padding: 0 22px; border: 0; border-radius: 28px; background: #f2f1ef; color: #1f1c19; font: inherit; font-size: 22px; outline: none; }
+.fz-namer__input:focus-visible { box-shadow: inset 0 0 0 2px #1f1c19; }
+.fz-namer__later, .fz-namer__save { height: 44px; padding: 0 24px; border: 0; border-radius: 999px; font: inherit; font-size: 16px; cursor: pointer; transition: background-color 180ms ease, transform 140ms cubic-bezier(.2, .8, .2, 1); }
+.fz-namer__later { background: #f2f1ef; color: #1f1c19; }
+.fz-namer__later:hover { background: #e8e6e2; }
+.fz-namer__save { background: #1f1c19; color: #fff; font-weight: 500; }
+.fz-namer__save:disabled { opacity: .4; cursor: default; }
+.fz-namer button:active { transform: scale(.96); }
+.fz-namer button:focus-visible { outline: 2px solid #1f1c19; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .fz-namer, .fz-namer__card, .fz-namer__mic.is-listening { animation: none; } }

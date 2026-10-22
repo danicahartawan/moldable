@@ -5,7 +5,8 @@ import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import { useRouter } from 'next/navigation'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { changeCookbooks, useCookbooks } from '@/cookbook/client'
-import { OMA_ID, newId, type Cookbook, type SavedRecipe } from '@/cookbook/model'
+import { OMA_ID, cleanBookName, nameFromSpeech, newId, type Cookbook, type SavedRecipe } from '@/cookbook/model'
+import { hearOnce } from '@/voice/hearOnce'
 import { RecipePage } from '@/cookbook/RecipePage'
 
 /* 10 Fridge cookbooks. Each cookbook is a retro fridge; its recipes are postcard notes held on by magnets.
@@ -197,8 +198,8 @@ function MakeFace({ owner, foot }: { owner: string; foot: string }) {
   )
 }
 
-// The chrome name on the fridge's top door. On the fridge in front, tapping it turns it into a field in the same place:
-// Enter or tapping away keeps the new name, Escape keeps the old one.
+// The chrome name on the fridge's top door. On the fridge in front, tapping it makes the name itself editable, in place
+// and in the same chrome letters: delete and type. Enter or tapping away keeps the new name, Escape keeps the old one.
 function FridgeName({ book, current, onRename }: { book: Book; current: boolean; onRename: (name: string) => void }) {
   const [editing, setEditing] = useState(false)
   const cancelled = useRef(false)
@@ -206,7 +207,7 @@ function FridgeName({ book, current, onRename }: { book: Book; current: boolean;
   if (editing) {
     const done = (value: string) => {
       setEditing(false)
-      const name = value.trim().replace(/\s+/g, ' ')
+      const name = cleanBookName(value)
       if (!cancelled.current && name && name !== book.name) onRename(name)
       cancelled.current = false
     }
@@ -222,6 +223,69 @@ function FridgeName({ book, current, onRename }: { book: Book; current: boolean;
   }
   return (
     <button type="button" className="fz-badge fz-badge--btn" aria-label={`Rename ${book.label}`} onClick={() => setEditing(true)}>{book.badge}</button>
+  )
+}
+
+const MIC = 'M10 2.5a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-5 0V5A2.5 2.5 0 0 1 10 2.5z M5 9.5a5 5 0 0 0 10 0 M10 14.5V17.5'
+
+/**
+ * Naming a fridge, out loud first: a new fridge asks “Whose cookbook is this?” and listens straight away; the name is
+ * picked out of what was said (“It's Uncle Budi's cookbook” → Uncle Budi) and put in the field to keep. It can be typed
+ * too. Enter keeps it, Escape (or Not now) leaves the name as it was.
+ */
+function FridgeNamer({ book, fresh, onSave, onClose }: { book: Book; fresh: boolean; onSave: (name: string) => void; onClose: () => void }) {
+  const [value, setValue] = useState(book.name)
+  const [listening, setListening] = useState(false)
+  const [heard, setHeard] = useState('')
+  const [problem, setProblem] = useState('')
+  const field = useRef<HTMLInputElement>(null)
+  const alive = useRef(true)
+  useEffect(() => () => { alive.current = false }, [])
+  const listen = async () => {
+    setListening(true)
+    setHeard('')
+    setProblem('')
+    try {
+      const words = await hearOnce({ onWords: (w) => { if (alive.current) setHeard(w) } })
+      if (!alive.current) return
+      const name = nameFromSpeech(words)
+      if (name) setValue(name)
+      else setProblem('I didn’t catch a name. Try again, or type it.')
+    } catch {
+      if (alive.current) setProblem('The microphone is off. You can type the name instead.')
+    } finally {
+      if (alive.current) setListening(false)
+    }
+  }
+  const listenRef = useRef(listen)
+  listenRef.current = listen
+  // A new fridge listens for its name at once (the tap that made it is the gesture the microphone needs).
+  useEffect(() => { if (fresh) void listenRef.current() }, [fresh])
+  const save = () => {
+    const name = cleanBookName(value)
+    if (name && name !== book.name) onSave(name)
+    onClose()
+  }
+  return (
+    <div className="fz-namer" role="dialog" aria-label={fresh ? 'Name the new fridge' : `Rename ${book.label}`} onPointerDown={(e) => e.stopPropagation()}>
+      <form className="fz-namer__card" onSubmit={(e) => { e.preventDefault(); save() }}>
+        <p className="fz-namer__title">{fresh ? 'Whose cookbook is this?' : 'What should this fridge be called?'}</p>
+        <p className={`fz-namer__heard${listening ? ' is-listening' : ''}`} aria-live="polite">
+          {listening ? (heard ? `“${heard}”` : 'Listening… say a name') : problem || 'Say it, or type it.'}
+        </p>
+        <div className="fz-namer__row">
+          <button type="button" className={`fz-namer__mic${listening ? ' is-listening' : ''}`} aria-label="Say the name" disabled={listening} onClick={() => void listen()}>
+            <Icon d={MIC} size={24} width={1.8} />
+          </button>
+          <input ref={field} className="fz-namer__input" aria-label="Fridge name" value={value} maxLength={24} placeholder="A name, like Uncle Budi"
+            onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose() } }} />
+        </div>
+        <div className="fz-namer__row fz-namer__row--end">
+          <button type="button" className="fz-namer__later" onClick={onClose}>Not now</button>
+          <button type="submit" className="fz-namer__save" disabled={!cleanBookName(value)}>Save</button>
+        </div>
+      </form>
+    </div>
   )
 }
 
@@ -330,6 +394,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const [raised, setRaised] = useState<string[]>([])
   // A card that has just arrived (a recipe saved from Grandma's screen) pops onto the door.
   const [popped, setPopped] = useState<string | null>(null)
+  // A new fridge being named: it asks whose cookbook it is and listens at once.
+  const [naming, setNaming] = useState<{ id: string; fresh: boolean } | null>(null)
   const [dragging, setDragging] = useState<[number, number] | null>(null)
   const [open, setOpen] = useState<Open | null>(startOpen ? { b: 0, k: 0 } : null)
   const [phase, setPhase] = useState(startOpen ? 2 : 0)
@@ -389,13 +455,16 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
   const addFridge = () => {
     const n = books.length
-    void changeCookbooks({ type: 'add_book', id: newId('fridge') })
+    const id = newId('fridge')
+    void changeCookbooks({ type: 'add_book', id })
     setFresh(n)
     setI(n)
     aimAt(n)
     setView('over')
     lock.current = Date.now() + 1350
     later('zoom', 850, () => { setView('door'); setFresh(-1) })
+    // Once it's in view, it asks whose cookbook it is.
+    later('name', 1500, () => setNaming({ id, fresh: true }))
   }
 
   // One world unit in screen px: the screen's real on-screen scale times the camera's.
@@ -607,7 +676,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
           return (
             <div key={b.id} className={`fz-book${bi === fresh ? ' fz-pop' : ''}`} style={{ left: bi * (W + GAP), opacity: cur ? 1 : Math.abs(d) === 1 ? 0.6 : 0 }}>
               <FridgeBody base={b.base} />
-              <FridgeName book={b} current={cur && !open} onRename={(name) => void changeCookbooks({ type: 'rename_book', id: b.id, name })} />
+              <FridgeName book={b} current={cur && !open && !naming} onRename={(name) => void changeCookbooks({ type: 'rename_book', id: b.id, name })} />
               {Math.abs(d) === 1 && !open && (
                 <button type="button" className="fz-book__pick" aria-label={`Go to ${b.label}`} onClick={() => go(bi)} />
               )}
@@ -715,6 +784,11 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
           <HomeViewBoard ref={homeRef} embedded clay onStartCooking={onStartCooking}
             titleActions={<button type="button" className="hm-tap" aria-label="Back to the fridge" onClick={() => closeNote(true)}><ShrinkIcon /></button>} />
         </div>
+      )}
+
+      {naming && books.some((b) => b.id === naming.id) && (
+        <FridgeNamer key={naming.id} book={books.find((b) => b.id === naming.id)!} fresh={naming.fresh}
+          onSave={(name) => void changeCookbooks({ type: 'rename_book', id: naming.id, name })} onClose={() => setNaming(null)} />
       )}
 
       {shown && page?.kind === 'saved' && (
