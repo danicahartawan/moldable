@@ -46,7 +46,6 @@ const ICON = {
   flame: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z',
   chevron: 'M8 4l6 6-6 6',
   history: 'M3.5 10a6.5 6.5 0 1 0 2-4.7 M3 3v3.5h3.5 M10 6.5V10l2.4 1.5',
-  refresh: 'M16.5 10a6.5 6.5 0 1 1-2-4.7 M16.5 3v3.5H13',
 }
 const PLAIN = { bg: '#f2f1ef', ink: '#1f1c19' }
 // The time and servings chips stay grey when a change touches them; only the spice chip takes a tint.
@@ -80,6 +79,17 @@ const STEPS: ((m: Look) => Part[])[] = [
   () => [['Squeeze', true], [' in the ', false], ['lime', true], [' and add the ', false], ['chives', true], ['.', false]],
   () => [['Serve', true], [' on ', false], ['pandan rice', true], ['.', false]],
 ]
+
+// The mascot as an icon: a round body and its two tall eyes, drawn in the line weight of the other icons.
+function MascotIcon() {
+  return (
+    <svg width={24} height={24} viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="7.6" fill="none" stroke="currentColor" strokeWidth="1.7" />
+      <ellipse cx="8.6" cy="9.2" rx="1.4" ry="2.15" fill="currentColor" />
+      <ellipse cx="12.6" cy="9.2" rx="1.4" ry="2.15" fill="currentColor" />
+    </svg>
+  )
+}
 
 function Icon({ d, size = 17, width = 1.8 }: { d: string; size?: number; width?: number }) {
   return (
@@ -189,10 +199,12 @@ type HomeViewProps = {
   noSpeech?: boolean
   /** Start cooking: leads to the cooking-step screen. Without it, Start cooking links to the cooking board. */
   onStartCooking?: () => void
+  /** More buttons for the title row's pill, after Recipe change (the fridge puts Back to the fridge here). */
+  titleActions?: ReactNode
 }
 
 export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function HomeViewBoard(
-  { embedded = false, overlay = null, clay = false, noSpeech = false, onStartCooking },
+  { embedded = false, overlay = null, clay = false, noSpeech = false, onStartCooking, titleActions },
   ref,
 ) {
   const embedRef = useRef<HTMLDivElement>(null)
@@ -546,13 +558,17 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         <div className="hv-content" inert={!!open}>
           <section className="hm-over" aria-label="Recipe overview">
             <h1 className="hm-title">Lawar Bali</h1>
-            {/* Recipe change: starts a voice session. A host that listens for real (the voice page) takes the event over. */}
-            <button type="button" className="hm-tap hm-recipe-change" onClick={() => {
-              const taken = typeof window !== 'undefined' && !window.dispatchEvent(new CustomEvent('moldable:recipe-change', { cancelable: true }))
-              if (!taken) beginAdjust()
-            }}>
-              <Icon d={ICON.refresh} size={22} width={1.8} />Recipe change
-            </button>
+            {/* The title row's actions sit in one white pill, like pause and stop on the Grandma screen: grey discs, dark icons. */}
+            <div className="hm-actions">
+              {/* Recipe change: starts a voice session. A host that listens for real (the voice page) takes the event over. */}
+              <button type="button" className="hm-tap hm-recipe-change" aria-label="Recipe change" title="Recipe change" onClick={() => {
+                const taken = typeof window !== 'undefined' && !window.dispatchEvent(new CustomEvent('moldable:recipe-change', { cancelable: true }))
+                if (!taken) beginAdjust()
+              }}>
+                <MascotIcon />
+              </button>
+              {titleActions}
+            </div>
             <p key={sentenceKey} className="hm-sentence hm-blurin">
               Balinese minced <strong className={m.chicken ? 'hm-mark' : undefined}>{m.chicken ? 'chicken' : 'pork'}</strong> with toasted{' '}
               <strong>coconut</strong>, fried in a <span className={m.mild ? 'hm-mark' : undefined}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</span>{' '}

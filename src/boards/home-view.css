@@ -168,6 +168,10 @@ a.hm-tap { text-decoration: none; }
 @keyframes hv-voicebot-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .hv-voicebot { transition: none; animation: none; } }
 
-/* Recipe change on the recipe: the same orange pill as on the Grandma screen, in the title row. */
-.hm-recipe-change { position: absolute; top: 8px; right: 70px; display: inline-flex; height: 48px; box-sizing: border-box; align-items: center; gap: 10px; padding: 0 22px 0 18px; border: 0; border-radius: 999px; background: #ff5a1f; color: #fff; font-size: 20px; font-weight: 500; white-space: nowrap; }
-.hm .hm-recipe-change { font-size: 20px; font-weight: 500; }
+/* The title row's actions: one white pill (the Grandma screen's pause / stop group) holding grey discs with dark icons.
+   Recipe change shows the mascot, and the voice bot comes out of it; in the fridge, Back to the fridge follows it. */
+.hm-actions { position: absolute; top: 2px; right: -10px; display: flex; align-items: center; gap: 2px; padding: 6px 10px; border: 1px solid rgba(31, 28, 25, .07); border-radius: 30px; background: rgba(255, 255, 255, .82); box-shadow: 0 4px 14px rgba(31, 28, 25, .07); }
+.hm-actions > button { display: inline-flex; width: 48px; height: 48px; box-sizing: border-box; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 24px; background: #f2f1ef; color: #1f1c19; transition: transform 140ms cubic-bezier(.2, .8, .2, 1), background-color 180ms ease; }
+.hm-actions > button:hover { background: #e8e6e2; }
+.hm-actions > button svg { width: 22px; height: 22px; }
+.hm-actions > .hm-recipe-change svg { width: 24px; height: 24px; }

@@ -667,7 +667,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
       {shown && page?.kind === 'main' && (
         <div className={`fz-in fz-page${leaving}`} style={{ background: '#fff' }}>
-          <HomeViewBoard ref={homeRef} embedded clay onStartCooking={onStartCooking} />
+          <HomeViewBoard ref={homeRef} embedded clay onStartCooking={onStartCooking}
+            titleActions={<button type="button" className="hm-tap" aria-label="Back to the fridge" onClick={() => closeNote(true)}><ShrinkIcon /></button>} />
         </div>
       )}
 
@@ -684,7 +685,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
         </article>
       )}
 
-      {shown && (
+      {/* The recipe's own page carries Back in its title-row pill (titleActions above); the others float it here. */}
+      {shown && page?.kind !== 'main' && (
         <div className={`fz-in-late fz-back fz-back--${page?.kind}${leaving}`}>
           <button type="button" className="fz-tap fz-back__btn" aria-label="Back to the fridge" onClick={() => closeNote(true)}><ShrinkIcon /></button>
         </div>
