@@ -19,11 +19,9 @@ describe('cookbooks', () => {
     expect(applyCookbookOp(doc, { type: 'add_recipe', book: 'b-1', recipe: recipe('r-1') })).toBe(doc)
     expect(doc.books[2]).toMatchObject({ name: 'Uncle Budi', recipes: [{ id: 'r-1', name: 'Klepon' }] })
     expect(doc.rev).toBe(3)
-    // A fridge with recipes, or a built-in one, can't be removed; an empty new one can.
-    expect(applyCookbookOp(doc, { type: 'remove_book', id: 'b-1' })).toBe(doc)
+    // The built-in fridges stay; any other can be deleted, recipes and all.
     expect(applyCookbookOp(doc, { type: 'remove_book', id: 'tante-ani' })).toBe(doc)
-    const added = applyCookbookOp(doc, { type: 'add_book', id: 'b-2' })
-    expect(applyCookbookOp(added, { type: 'remove_book', id: 'b-2' }).books.map((b) => b.id)).toEqual(['oma-lien', 'tante-ani', 'b-1'])
+    expect(applyCookbookOp(doc, { type: 'remove_book', id: 'b-1' }).books.map((b) => b.id)).toEqual(['oma-lien', 'tante-ani'])
   })
 
   it('only lets well-formed, bounded changes through', () => {

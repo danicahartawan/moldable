@@ -42,6 +42,8 @@ export type CookbookOp =
 export const FRIDGE_COLOURS = ['#8fc6ba', '#e8d9b8', '#86a3d8', '#f0b54a']
 export const OMA_ID = 'oma-lien'
 const BUILT_IN = [OMA_ID, 'tante-ani']
+/** Oma Lien's and Tante Ani's fridges are always there; any other fridge can be deleted. */
+export const isBuiltIn = (id: string) => BUILT_IN.includes(id)
 
 export function defaultCookbooks(now = new Date()): Cookbooks {
   return {
@@ -126,8 +128,8 @@ export function applyCookbookOp(doc: Cookbooks, op: CookbookOp, now = new Date()
       books = [...books, { id: op.id, name: '', colour: FRIDGE_COLOURS[(books.length - 2 + FRIDGE_COLOURS.length * 4) % FRIDGE_COLOURS.length], recipes: [] }]
       break
     case 'remove_book':
-      // Only an empty fridge (one just made and not named) can go, and never Oma Lien's or Tante Ani's.
-      if (!books.some((b) => b.id === op.id && b.recipes.length === 0 && !BUILT_IN.includes(b.id))) return doc
+      // Any fridge but Oma Lien's and Tante Ani's can go (the screen asks first when it has recipes).
+      if (!books.some((b) => b.id === op.id && !BUILT_IN.includes(b.id))) return doc
       books = books.filter((b) => b.id !== op.id)
       break
     case 'rename_book':

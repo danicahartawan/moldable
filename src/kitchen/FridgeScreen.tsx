@@ -5,7 +5,7 @@ import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import { useRouter } from 'next/navigation'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { changeCookbooks, useCookbooks } from '@/cookbook/client'
-import { OMA_ID, cleanBookName, nameFromSpeech, newId, type Cookbook, type SavedRecipe } from '@/cookbook/model'
+import { OMA_ID, cleanBookName, isBuiltIn, nameFromSpeech, newId, type Cookbook, type SavedRecipe } from '@/cookbook/model'
 import { hearOnce } from '@/voice/hearOnce'
 import { MorphBot } from '@/grandma/MorphBot'
 import { RecipePage } from '@/cookbook/RecipePage'
@@ -400,6 +400,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const [popped, setPopped] = useState<string | null>(null)
   // A new fridge being named: it asks whose cookbook it is and listens at once.
   const [naming, setNaming] = useState<{ id: string; fresh: boolean } | null>(null)
+  // The fridge whose ✕ was tapped once (it has recipes, so it asks again before going).
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [dragging, setDragging] = useState<[number, number] | null>(null)
   const [open, setOpen] = useState<Open | null>(startOpen ? { b: 0, k: 0 } : null)
   const [phase, setPhase] = useState(startOpen ? 2 : 0)
@@ -469,6 +471,24 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     later('zoom', 850, () => { setView('door'); setFresh(-1) })
     // It asks whose cookbook it is straight away; the new fridge settles behind the page meanwhile.
     setNaming({ id, fresh: true })
+  }
+
+  // Deleting a fridge (never Oma Lien's or Tante Ani's): an empty one goes at once; one with recipes asks first, and the
+  // ✕ goes back to just ✕ if the second tap doesn't come. The fridge before it comes into view.
+  const removeFridge = (bi: number) => {
+    const b = books[bi]
+    if (!b || isBuiltIn(b.id) || open) return
+    if (b.saved.length > 0 && deleting !== b.id) {
+      setDeleting(b.id)
+      later('undelete', 3500, () => setDeleting(null))
+      return
+    }
+    window.clearTimeout(timers.current.undelete)
+    setDeleting(null)
+    void changeCookbooks({ type: 'remove_book', id: b.id })
+    const back = Math.max(0, bi - 1)
+    aimAt(back)
+    setI(back)
   }
 
   // One world unit in screen px: the screen's real on-screen scale times the camera's.
@@ -777,6 +797,16 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       {!open && i < last && (
         <button type="button" className="fz-tap fz-zoom" aria-label={view === 'door' ? 'See the whole fridge' : 'Zoom in to the door'} onClick={() => { if (view !== 'door') aimAt(i); setView(view === 'door' ? 'over' : 'door') }}>
           <Icon d={view === 'door' ? ICON.zoomOut : ICON.zoomIn} size={24} width={1.6} />
+        </button>
+      )}
+
+      {/* Discreet: a small ✕ bottom left, on fridges that can be deleted. */}
+      {!open && i < last && books[i] && !isBuiltIn(books[i].id) && (
+        <button type="button" className={`fz-tap fz-delete${deleting === books[i].id ? ' is-asking' : ''}`}
+          aria-label={deleting === books[i].id ? `Tap again to delete ${books[i].label} and its recipes` : `Delete ${books[i].label}`}
+          onClick={() => removeFridge(i)}>
+          <Icon d="M6 6l8 8M14 6l-8 8" size={16} width={1.8} />
+          <span className="fz-delete__ask" aria-hidden="true">Delete</span>
         </button>
       )}
 

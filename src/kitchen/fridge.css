@@ -113,6 +113,13 @@ a.fz-tap { text-decoration: none; }
 .fz-dots button { display: flex; width: 32px; height: 44px; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent; }
 .fz-dot { display: block; height: 6px; border-radius: 3px; transition: width .4s cubic-bezier(.22, 1, .36, 1), background-color .4s ease; }
 .fz-zoom { position: absolute; right: 28px; bottom: 28px; display: flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #1f1c19; }
+/* Delete a fridge: small and quiet, bottom left, on the zoom button's line. With recipes on it, the first tap opens
+   it into a little “Delete” pill and only the second deletes. */
+.fz-delete { position: absolute; left: 32px; bottom: 34px; display: flex; height: 32px; min-width: 32px; box-sizing: border-box; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; border: 0; border-radius: 16px; background: rgba(255, 255, 255, .5); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: rgba(31, 28, 25, .55); font: inherit; font-size: 14px; cursor: pointer; transition: background-color 200ms ease, color 200ms ease, padding 260ms cubic-bezier(.2, .8, .2, 1); }
+.fz-delete:hover { background: rgba(255, 255, 255, .7); color: #1f1c19; }
+.fz-delete__ask { display: none; }
+.fz-delete.is-asking { padding: 0 12px 0 10px; background: rgba(255, 255, 255, .85); color: #c2361c; }
+.fz-delete.is-asking .fz-delete__ask { display: inline; }
 
 /* Diving into a note: a clone of the paper grows to fill the screen, then the page blurs in. */
 /* Opening a note: its card grows to fill the screen, its face fading as it goes and its colour turning the page's own,

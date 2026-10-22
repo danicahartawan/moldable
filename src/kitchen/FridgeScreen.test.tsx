@@ -66,6 +66,34 @@ describe('FridgeScreen', () => {
     expect(screen.getByRole('button', { name: 'Rename Nana Sri’s cookbook' })).toBeInTheDocument()
   })
 
+  it('deletes a fridge with its small ✕: at once when empty, after a second tap when it has recipes; never the built-in two', () => {
+    const doc = defaultCookbooks()
+    doc.books.push({ id: 'fridge-fred', name: 'Fred', colour: '#86a3d8', recipes: [] })
+    doc.books.push({ id: 'fridge-budi', name: 'Uncle Budi', colour: '#f0b54a', recipes: [{
+      id: 'r-1', name: 'Klepon', summary: '', minutes: 45, serves: 4, ingredients: [], steps: [], tools: [], questions: [], transcript: '', createdAt: '2026-10-21T00:00:00.000Z',
+    }] })
+    announceCookbooks({ ...doc, rev: 9 }, true)
+    render(<FridgeScreen />)
+    advance(1600)
+    expect(screen.queryByRole('button', { name: /^Delete/ })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Uncle Budi’s cookbook' }))
+    advance(3000)
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Uncle Budi’s cookbook' }))
+    // It has a recipe: it asks first, and lets go if the second tap doesn't come.
+    expect(screen.getByRole('button', { name: 'Tap again to delete Uncle Budi’s cookbook and its recipes' })).toHaveClass('is-asking')
+    advance(3600)
+    expect(screen.getByRole('button', { name: 'Delete Uncle Budi’s cookbook' })).not.toHaveClass('is-asking')
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Uncle Budi’s cookbook' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tap again to delete Uncle Budi’s cookbook and its recipes' }))
+    expect(screen.queryByRole('button', { name: 'Uncle Budi’s cookbook' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Fred’s cookbook' })).toHaveAttribute('aria-current', 'true')
+    // Fred's is empty: one tap.
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Fred’s cookbook' }))
+    expect(screen.queryByRole('button', { name: 'Fred’s cookbook' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tante Ani’s cookbook' })).toHaveAttribute('aria-current', 'true')
+    expect(screen.queryByRole('button', { name: /^Delete/ })).not.toBeInTheDocument()
+  })
+
   it('a new fridge closed without a name is not kept', () => {
     render(<FridgeScreen />)
     advance(1600)
