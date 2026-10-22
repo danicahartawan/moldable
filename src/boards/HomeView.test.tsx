@@ -1,7 +1,8 @@
+import { createRef } from 'react'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
-import { HomeViewBoard } from './HomeView'
+import { HomeViewBoard, type HomeViewHandle } from './HomeView'
 
 afterEach(() => {
   cleanup()
@@ -11,7 +12,7 @@ afterEach(() => {
 const talk = () => screen.getByRole('button', { name: 'Talk to Moldable' })
 const advance = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
 const island = () => document.querySelector('.vn') as HTMLElement
-const glow = () => document.querySelector('.sg')
+const glow = () => document.querySelector('.hv-beam')
 const tag = (name: RegExp) => screen.getByText(name, { selector: '.hm-tag' })
 const openIngredients = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Ingredients' }))
@@ -194,5 +195,37 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
     expect(island()).toHaveAttribute('data-state', 'idle')
     advance(320)
     expect(document.querySelector('.voice-clay')).not.toBeInTheDocument()
+  })
+})
+
+describe('HomeViewBoard real voice', () => {
+  it('listens, shows what was heard, then makes the change the assistant chose', () => {
+    vi.useFakeTimers()
+    const ref = createRef<HomeViewHandle>()
+    render(<HomeViewBoard ref={ref} />)
+    expect(tag(/Serves 4/)).toBeInTheDocument()
+    expect(ref.current?.recipeNow().servings).toBe(4)
+
+    act(() => ref.current?.voiceListen())
+    expect(island()).toHaveTextContent('Listening…')
+    act(() => ref.current?.voiceHeard('Hey Popo, cook for two'))
+    expect(island()).toHaveTextContent('Hey Popo, cook for two')
+    act(() => ref.current?.voiceThinking())
+    expect(island()).toHaveTextContent('Thinking…')
+
+    act(() => ref.current?.voiceResult('serves2', 'Two it is — I halved everything.'))
+    expect(island()).toHaveTextContent('Two it is — I halved everything.')
+    expect(tag(/Serves 2/)).toBeInTheDocument()
+    expect(ref.current?.recipeNow().servings).toBe(2)
+  })
+
+  it('can answer without changing the recipe', () => {
+    vi.useFakeTimers()
+    const ref = createRef<HomeViewHandle>()
+    render(<HomeViewBoard ref={ref} />)
+    act(() => ref.current?.voiceListen())
+    act(() => ref.current?.voiceResult(null, 'It takes about forty minutes.'))
+    expect(island()).toHaveTextContent('It takes about forty minutes.')
+    expect(tag(/Serves 4/)).toBeInTheDocument()
   })
 })

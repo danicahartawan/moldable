@@ -1,7 +1,7 @@
 'use client'
 
 import './fridge.css'
-import { HomeViewBoard } from '@/boards/HomeView'
+import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import { useRouter } from 'next/navigation'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 
@@ -213,9 +213,11 @@ type FridgeProps = {
   active?: boolean
   /** Bumped to close the open note back onto the fridge door (e.g. Done at the end of cooking). */
   closeRequest?: number
+  /** Lets a host (the voice page) reach the recipe screen's voice island. */
+  homeRef?: React.Ref<HomeViewHandle>
 }
 
-export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, active = true, closeRequest = 0 }: FridgeProps) {
+export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, active = true, closeRequest = 0, homeRef }: FridgeProps) {
   const router = useRouter()
   const [books, setBooks] = useState<Book[]>(() => START.map((b) => ({ ...b, recipes: b.recipes.slice() })))
   const [i, setI] = useState(0)
@@ -627,7 +629,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
       {shown && page?.kind === 'main' && (
         <div className={`fz-in fz-page${leaving}`} style={{ background: '#fff' }}>
-          <HomeViewBoard embedded clay onStartCooking={onStartCooking} />
+          <HomeViewBoard ref={homeRef} embedded clay onStartCooking={onStartCooking} />
         </div>
       )}
 

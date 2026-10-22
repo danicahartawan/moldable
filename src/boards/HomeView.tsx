@@ -3,7 +3,8 @@
 import './home-view.css'
 import { VoiceClay, type ClayPlace } from '@/clay/VoiceClay'
 import type { Vec } from '@/clay/ClaySim'
-import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
+import { createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
+import { OrangeBeam } from '@/voice/OrangeBeam'
 import { VoiceNotification } from '@/voice/VoiceNotification'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
 import { VersionList, initialVersions, newVersion, type RecipeSnapshot, type VersionEntry } from './VersionHistory'
@@ -116,6 +117,15 @@ const LAST_HOLD_MS = 700
 // On an amount the clay is ~10px across its radius and sits on its top edge.
 const HOP_CLAY_RADIUS = 10
 const VOICE_CHANGES = ['Servings 4 → 2', 'Kencur swapped out'] as const
+const VOICE_CHANGE_LABELS: Record<RecipeChange, string> = {
+  serves2: 'Servings 4 → 2',
+  serves4: 'Servings back to 4',
+  mild: 'Made it milder',
+  chicken: 'Swapped pork for chicken',
+  kencur_swap: 'Kencur swapped out',
+  kencur_back: 'Kencur put back',
+  reset: 'Back to Oma’s recipe',
+}
 
 // Where an element sits inside the screen, in the screen's own (unscaled) px.
 function offsetIn(el: HTMLElement, root: HTMLElement) {
@@ -144,11 +154,26 @@ const TOOLS: { name: string; icon: string }[] = [
   { name: 'Rice pot', icon: 'M4 9h12v6a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 4 15z M2.5 9h15 M8 6.5h4 M10 6.5V9' },
 ]
 
+/** What a spoken request can change on the recipe. */
+export type RecipeChange = 'serves2' | 'serves4' | 'mild' | 'chicken' | 'kencur_swap' | 'kencur_back' | 'reset'
+
+export type RecipeSnapshotNow = { servings: 2 | 4; mild: boolean; chicken: boolean; kencurSwapped: boolean; versionLabel: string | null }
+
 export type HomeViewHandle = {
   /** Start a voice session (the wake word, in the wireframe). */
   startVoice: () => void
   /** Cancel it: the clay leaves at once, with no done step. */
   cancelVoice: () => void
+  /** Real voice: the island starts listening and stays that way until told more. */
+  voiceListen: () => void
+  /** Real voice: what was heard, shown in the island. */
+  voiceHeard: (text: string) => void
+  /** Real voice: working out what to do. */
+  voiceThinking: () => void
+  /** Real voice: the answer in the island, with the change (if any) made on the recipe. */
+  voiceResult: (change: RecipeChange | null, reply: string) => void
+  /** The recipe as it stands right now, for the assistant to reason from. */
+  recipeNow: () => RecipeSnapshotNow
 }
 
 type HomeViewProps = {
@@ -255,6 +280,13 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     setHopSpot({ x: Math.min(at.x + el.offsetWidth / 2, 640 - 24), y: at.y - HOP_CLAY_RADIUS + 1 })
   }, [hop])
 
+  // After "done" the beam fades out and the glow returns to idle.
+  useEffect(() => {
+    if (glow !== 'done') return
+    const settle = window.setTimeout(() => setGlow('idle'), 900)
+    return () => window.clearTimeout(settle)
+  }, [glow])
+
   const beginAdjust = () => {
     if (phase !== 'idle') return
     clearTimers()
@@ -319,9 +351,81 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     setHeard('')
     setBlobTeal(false)
   }
-  const voiceApi = useRef({ beginAdjust, cancelVoice })
-  voiceApi.current = { beginAdjust, cancelVoice }
-  useImperativeHandle(ref, () => ({ startVoice: () => voiceApi.current.beginAdjust(), cancelVoice: () => voiceApi.current.cancelVoice() }), [])
+  // Real voice: the same island, glow and clay as the scripted session, driven by what the assistant heard and decided.
+  const voiceListen = () => {
+    if (phase !== 'idle') return
+    clearTimers()
+    setOpen('')
+    setClosing(false)
+    setCancelled(false)
+    setPhase('listening')
+    setGlow('listening')
+    setHeard('')
+    setResult('')
+    setBlobTeal(false)
+    voiceLevel.current = createSimulatedLevel()
+  }
+  const voiceHeard = (text: string) => {
+    setHeard(text)
+    setGlow('hearing')
+  }
+  const voiceThinking = () => {
+    setPhase('thinking')
+    setGlow('thinking')
+    setBlobTeal(true)
+  }
+  const voiceResult = (change: RecipeChange | null, reply: string) => {
+    clearTimers()
+    setPhase('writing')
+    setGlow('done')
+    setResult(reply)
+    setBlobTeal(true)
+    if (change === 'serves2') setM((cur) => ({ ...cur, serves2: true }))
+    else if (change === 'serves4') setM((cur) => ({ ...cur, serves2: false }))
+    else if (change === 'mild') setM((cur) => ({ ...cur, mild: true }))
+    else if (change === 'chicken') setM((cur) => ({ ...cur, chicken: true }))
+    else if (change === 'kencur_swap') setKencur(true)
+    else if (change === 'kencur_back') setKencur(false)
+    else if (change === 'reset') { setM({ serves2: false, mild: false, chicken: false }); setKencur(false) }
+    const run = change === 'serves2' ? PASSES[0] : change === 'kencur_swap' ? PASSES[1] : null
+    const label = change ? VOICE_CHANGE_LABELS[change] : null
+    if (!run) {
+      later(DONE_HOLD_MS + 1200, () => {
+        setHeard('')
+        setPhase('idle')
+        if (label) record(label)
+      })
+      return
+    }
+    later(DONE_HOLD_MS, () => { setTidy(true); setPass(run); setLanded(0); setOpen('ingr') })
+    let at = DONE_HOLD_MS + CARD_IN_MS
+    run.rows.forEach((row, i) => {
+      later(at, () => setHop(row))
+      later(at + LAND_MS, () => setLanded(i + 1))
+      at += HOP_MS
+    })
+    later(at + LAST_HOLD_MS - HOP_MS, () => {
+      setHop(null)
+      setPass(null)
+      setHeard('')
+      setPhase('idle')
+      if (label) record(label)
+    })
+  }
+  const recipeNowRef = useRef<RecipeSnapshotNow>({ servings: 4, mild: false, chicken: false, kencurSwapped: false, versionLabel: null })
+  recipeNowRef.current = { servings: m.serves2 ? 2 : 4, mild: m.mild, chicken: m.chicken, kencurSwapped: kencur, versionLabel: versions[0]?.who === 'Grandkid' ? versions[0].what : null }
+
+  const voiceApi = useRef({ beginAdjust, cancelVoice, voiceListen, voiceHeard, voiceThinking, voiceResult })
+  voiceApi.current = { beginAdjust, cancelVoice, voiceListen, voiceHeard, voiceThinking, voiceResult }
+  useImperativeHandle(ref, () => ({
+    startVoice: () => voiceApi.current.beginAdjust(),
+    cancelVoice: () => voiceApi.current.cancelVoice(),
+    voiceListen: () => voiceApi.current.voiceListen(),
+    voiceHeard: (text) => voiceApi.current.voiceHeard(text),
+    voiceThinking: () => voiceApi.current.voiceThinking(),
+    voiceResult: (change, reply) => voiceApi.current.voiceResult(change, reply),
+    recipeNow: () => recipeNowRef.current,
+  }), [])
 
   // Tapping anywhere outside the island while it's listening or thinking cancels.
   const tapAway = (event: React.PointerEvent) => {
@@ -562,7 +666,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
         {isRippling ? <div className="hm-ripple" aria-hidden="true"><span /><span /><span /></div> : null}
 
-        <SpeakingGlow state={glow} level={() => voiceLevel.current()} onDone={() => setGlow('idle')} />
+        <div className="hv-beam" data-state={glow} aria-hidden="true"><OrangeBeam level={() => voiceLevel.current()} active={glow === 'listening' || glow === 'hearing' || glow === 'thinking'} /></div>
         <VoiceNotification state={islandState} heard={heard} result={result} teal={blobTeal} level={() => voiceLevel.current()} ownClay={!clay} />
         {clay && (
           <VoiceClay

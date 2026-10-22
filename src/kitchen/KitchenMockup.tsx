@@ -1,8 +1,8 @@
 'use client'
 
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type MutableRefObject, type ReactNode, useEffect, useRef, useState } from 'react'
 import { CookingStepBoard } from '@/boards/CookingStep'
-import { HomeViewBoard } from '@/boards/HomeView'
+import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { FridgeScreen } from './FridgeScreen'
 import { AmbienceToggle } from '@/ambience/AmbienceToggle'
@@ -11,17 +11,27 @@ type Perspective = 'grandma' | 'grandkids'
 
 type KitchenControls = { showGrandkids: () => void; showRecipe: () => void; prepareRipple: () => void }
 
+/** What a voice host can do to the Grandkids side: reach the recipe screen's island and move through the cooking steps. */
+export type KitchenVoiceBridge = {
+  home: () => HomeViewHandle | null
+  /** The cooking step on screen (1-based), or null on the recipe. */
+  stepNow: () => number | null
+  startCooking: () => void
+  goToStep: (step: number) => void
+  leaveSteps: () => void
+}
+
 // `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
-export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean } = {}) {
+export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false, voiceBridge, startOnRecipe = false }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean; voiceBridge?: MutableRefObject<KitchenVoiceBridge | null>; startOnRecipe?: boolean } = {}) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const screen = useRef<HTMLDivElement>(null)
   const swipeStart = useRef<number | null>(null)
-  const perspectiveRef = useRef<Perspective>('grandma')
-  const [perspective, setPerspectiveState] = useState<Perspective>('grandma')
+  const perspectiveRef = useRef<Perspective>(startOnRecipe ? 'grandkids' : 'grandma')
+  const [perspective, setPerspectiveState] = useState<Perspective>(startOnRecipe ? 'grandkids' : 'grandma')
   const [instructionStep, setInstructionStep] = useState<number | null>(null)
   // With `fridge`, Grandkids starts on the fridge cookbooks; tapping Lawar Bali dives into the recipe.
   // The grandma screen can hand over straight to the recipe: the fridge is rebuilt already open on it.
-  const [recipeHandover, setRecipeHandover] = useState(0)
+  const [recipeHandover, setRecipeHandover] = useState(startOnRecipe ? 1 : 0)
   // Done at the end of cooking closes the recipe back onto the fridge door.
   const [fridgeClose, setFridgeClose] = useState(0)
   const [leavingStep, setLeavingStep] = useState<number | null>(null)
@@ -41,6 +51,22 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
     setInstructionStep(next)
     window.setTimeout(() => setLeavingStep(null), 940)
   }
+
+  const homeRef = useRef<HomeViewHandle>(null)
+  const stepRef = useRef<number | null>(null)
+  stepRef.current = instructionStep
+  useEffect(() => {
+    if (!voiceBridge) return
+    voiceBridge.current = {
+      home: () => homeRef.current,
+      stepNow: () => stepRef.current,
+      startCooking: () => goToStep(stepRef.current ?? 1),
+      goToStep: (step) => goToStep(Math.min(8, Math.max(1, step))),
+      leaveSteps: () => goToStep(null),
+    }
+    return () => { voiceBridge.current = null }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceBridge])
 
   const setPerspective = (next: Perspective) => {
     perspectiveRef.current = next
@@ -140,10 +166,10 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
           <div ref={host} data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragging ? ' is-dragging' : ''}`} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>
               {fridge ? (
-                <FridgeScreen key={recipeHandover} startOpen={recipeHandover > 0} active={perspective === 'grandkids'} closeRequest={fridgeClose}
+                <FridgeScreen homeRef={homeRef} key={recipeHandover} startOpen={recipeHandover > 0} active={perspective === 'grandkids'} closeRequest={fridgeClose}
                   onStartCooking={() => goToStep(1)} onRecord={() => setPerspective('grandma')} />
               ) : (
-                <HomeViewBoard onStartCooking={() => goToStep(1)} />
+                <HomeViewBoard ref={homeRef} onStartCooking={() => goToStep(1)} />
               )}
             </div>
             {leavingStep !== null && (

@@ -1,0 +1,7 @@
+/* The voice page's own control: one small pill above the kitchen's dock. */
+.vk__bar { position: fixed; z-index: 30; top: 18px; left: 50%; display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 999px; background: rgba(255, 255, 255, .86); box-shadow: 0 8px 24px rgba(20, 12, 6, .18), 0 0 0 1px rgba(31, 28, 25, .08); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transform: translateX(-50%); font-family: var(--font-sans); font-size: 15px; }
+.vk__hint { padding: 6px 14px; color: #000; }
+.vk__hint[data-status='listening'] { color: #ff4d0d; }
+.vk__arm, .vk__mic { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #ff4d0d; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+.vk__mic { background: #f2f1ef; color: #000; }
+.vk__dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; }

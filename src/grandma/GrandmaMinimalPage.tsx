@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { ArrowsClockwise, Check } from '@phosphor-icons/react'
 import { MorphBot } from './MorphBot'
+import { listen, transcribe } from '../voice/capture'
+import { speakReply } from './speakReply'
+import { useHeyPopo } from '../voice/useHeyPopo'
 import { HomeViewFrame } from '../home/HomeViewFrame'
 import { useVoiceRecorder } from '../useVoiceRecorder'
-import { VoiceBeam } from 'voice-glow'
+import { OrangeBeam } from '../voice/OrangeBeam'
 import { LineIcon } from './LineIcon'
 import { simulatedLevel } from './RecordingWaveform'
 import { transcribeAudio } from './transcribe'
@@ -98,9 +101,6 @@ const RIPPLE_MS = 900
 // The change she asks for in the demo.
 const DEMO_CHANGE: StoryChange = { find: 'pork', replace: 'beef' }
 
-// The Recipe change beam in the brand orange: a bright core with softer peach lobes either side.
-const RECIPE_CHANGE_BEAM_COLORS = ['#ff5a1f', '#ff8a4c', '#ff8a4c', '#ffb27a', '#ffb27a', '#ffd2b0', '#ffd2b0']
-
 // Her live level, or a stand-in swell while there's no microphone.
 function useBeamLevel(levelRef: RefObject<number | null>) {
   const start = useRef(0)
@@ -112,52 +112,88 @@ function useBeamLevel(levelRef: RefObject<number | null>) {
   }, [levelRef])
 }
 
-// The voice beam along the bottom edge, in the brand orange.
-function OrangeBeam({ level, active, className }: { level: () => number; active: boolean; className?: string }) {
-  return (
-    <VoiceBeam
-      type="mobile"
-      theme="light"
-      strength={0.7}
-      level={level}
-      active={active}
-      colors={RECIPE_CHANGE_BEAM_COLORS}
-      bandColors={{ core: '#ff5a1f', above: '#ffb27a', mid: '#ff8a4c', below: '#ffd2b0' }}
-      staticColors
-    >
-      <div className={className ?? 'gm-recipe-change__beam-host'} />
-    </VoiceBeam>
-  )
-}
-
 const RECIPE_CHANGE_HEARD_AT_MS = 3_000
 const RECIPE_CHANGE_REQUEST = 'Replace pork with beef'
 const BLOB_SIZE = 96
 
-export function RecipeChangeOverlay({ levelRef, onClose, onHeard }: { levelRef: RefObject<number | null>; onClose: () => void; onHeard?: () => void }) {
+// She can really speak the change: it is heard, the assistant works out the word swap, and the answer is spoken back. Where
+// there is no microphone, the screen plays the demo (“Replace pork with beef”) instead.
+const canListen = () => typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== 'undefined'
+
+export function RecipeChangeOverlay({ levelRef, noteText = '', onClose, onHeard }: { levelRef: RefObject<number | null>; noteText?: string; onClose: (change?: StoryChange) => void; onHeard?: () => void }) {
   const [hasHeard, setHasHeard] = useState(false)
   const [heard, setHeard] = useState('')
+  const [spoken, setSpoken] = useState<string | null>(null)
+  const [scripted, setScripted] = useState(() => !canListen())
   const root = useRef<HTMLDivElement>(null)
   const [rowTop, setRowTop] = useState<number | null>(null)
+  const change = useRef<StoryChange | undefined>(undefined)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  const onHeardRef = useRef(onHeard)
+  onHeardRef.current = onHeard
 
+  // The demo: five seconds in which she asks for pork to become beef.
   useEffect(() => {
+    if (!scripted) return
+    change.current = DEMO_CHANGE
     const speaking = window.setTimeout(() => setHeard(RECIPE_CHANGE_REQUEST), RECIPE_CHANGE_HEARD_AT_MS)
     const done = window.setTimeout(() => {
       setHasHeard(true)
-      onHeard?.()
+      onHeardRef.current?.()
     }, RECIPE_CHANGE_LISTEN_MS)
     return () => {
       window.clearTimeout(speaking)
       window.clearTimeout(done)
     }
-  }, [onHeard])
+  }, [scripted])
 
-  // After "Okay!" the beam fades out, then the fog lifts onto the marked changes.
+  // The real thing.
+  useEffect(() => {
+    if (scripted) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const recording = await listen()
+        if (cancelled) return
+        if (!recording) {
+          onCloseRef.current()
+          return
+        }
+        const transcript = await transcribe(recording)
+        if (cancelled) return
+        if (!transcript) {
+          setSpoken('I didn’t catch that.')
+          setHasHeard(true)
+          return
+        }
+        setHeard(transcript)
+        const response = await fetch('/api/voice/edit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript, note: noteText }),
+        })
+        const edit = await response.json() as { find: string | null; replace: string | null; reply: string }
+        if (cancelled) return
+        if (edit.find && edit.replace) change.current = { find: edit.find, replace: edit.replace }
+        setSpoken(edit.reply)
+        setHasHeard(true)
+        if (change.current) onHeardRef.current?.()
+        await speakReply(edit.reply)
+      } catch {
+        // No microphone after all (blocked or missing): play the demo.
+        if (!cancelled) setScripted(true)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [scripted, noteText])
+
+  // After "Okay!" the beam fades out, then the fog lifts onto the marked change.
   useEffect(() => {
     if (!hasHeard) return
-    const lift = window.setTimeout(onClose, RECIPE_CHANGE_FADE_MS)
+    const lift = window.setTimeout(() => onCloseRef.current(change.current), scripted ? RECIPE_CHANGE_FADE_MS : RECIPE_CHANGE_FADE_MS + 1200)
     return () => window.clearTimeout(lift)
-  }, [hasHeard, onClose])
+  }, [hasHeard, scripted])
 
   // The bot sits where it did while recording, at the bottom middle, so the row of words lines up with it.
   useEffect(() => {
@@ -165,7 +201,7 @@ export function RecipeChangeOverlay({ levelRef, onClose, onHeard }: { levelRef: 
   }, [])
 
   const level = useBeamLevel(levelRef)
-  const leftWords = hasHeard ? RECIPE_CHANGE_REPLY : heard ? '' : 'Listening…'
+  const leftWords = hasHeard ? (spoken ?? RECIPE_CHANGE_REPLY) : heard ? '' : 'Listening…'
 
   return (
     <div ref={root} className="gm-recipe-change" role="dialog" aria-label="Recipe change" aria-live="polite">
@@ -294,10 +330,15 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
   const [isRecipeListening, setIsRecipeListening] = useState(false)
   const [isRecipeChangeDone, setIsRecipeChangeDone] = useState(false)
   const markRecipeChangeDone = useCallback(() => setIsRecipeChangeDone(true), [])
-  const applyRecipeChange = useCallback(() => {
+  const applyRecipeChange = useCallback((change?: StoryChange) => {
     setIsRecipeListening(false)
+    if (!change) {
+      setDoneView(null)
+      setIsRecipeChangeDone(false)
+      return
+    }
     setIsSearching(true)
-    setChanges([DEMO_CHANGE])
+    setChanges([change])
     setDoneView(null)
     setIsRecipeChangeDone(false)
   }, [])
@@ -351,6 +392,15 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
   }, [hasStory])
 
   const isDone = recorder.hasCompletedRecording
+  const openRecipeChange = useCallback(() => {
+    setDoneView('changes')
+    setIsRecipeChangeDone(false)
+    setIsRecipeListening(true)
+  }, [])
+  // Once the note is finished, “Hey Popo” opens Recipe change by voice.
+  const wake = useHeyPopo({ onWake: openRecipeChange, paused: !isDone || isRecipeListening })
+  const armWake = wake.arm
+  useEffect(() => { if (isDone) armWake() }, [isDone, armWake])
   const recordingLevel = useBeamLevel(recorder.levelRef)
 
   return (
@@ -404,7 +454,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
       {isDone ? (
         <div className="gm-done-bar">
           <div className="gm-controls gm-controls--done" role="group" aria-label="Story">
-            <button className={`gm-recipe-change-button${isRecipeChangeDone ? ' is-done' : ''}`} type="button" aria-pressed={doneView === 'changes'} onClick={() => { setDoneView('changes'); setIsRecipeChangeDone(false); setIsRecipeListening(true) }}>
+            <button className={`gm-recipe-change-button${isRecipeChangeDone ? ' is-done' : ''}`} type="button" aria-pressed={doneView === 'changes'} onClick={openRecipeChange}>
               <span className="gm-recipe-change-button__default"><ArrowsClockwise size={22} aria-hidden="true" /><span>Recipe change</span></span>
               <Check className="gm-recipe-change-button__done" size={27} weight="bold" aria-label="Done" />
             </button>
@@ -415,7 +465,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
       {isRecording ? <CameraButton onCapture={addPhoto} onOpenChange={setIsCameraOpen} /> : null}
       {isRecording ? <div className="gm-recording-beam" aria-hidden="true"><OrangeBeam level={recordingLevel} active={!isPaused} /></div> : null}
       {isRecording ? <ListeningClay isPaused={isPaused} /> : null}
-      {isRecipeListening ? <RecipeChangeOverlay levelRef={recorder.levelRef} onClose={applyRecipeChange} onHeard={markRecipeChangeDone} /> : null}
+      {isRecipeListening ? <RecipeChangeOverlay levelRef={recorder.levelRef} noteText={noteText} onClose={applyRecipeChange} onHeard={markRecipeChangeDone} /> : null}
       {guidingQuestionIndex !== null ? (
         <TypedQuestion text={guidingQuestions[guidingQuestionIndex]} />
       ) : null}

@@ -161,22 +161,22 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 0, 0, .04) 8%,
-    rgba(0, 0, 0, .14) 18%,
-    rgba(0, 0, 0, .34) 30%,
-    rgba(0, 0, 0, .62) 43%,
-    rgba(0, 0, 0, .86) 55%,
-    #000 66%
+    rgba(0, 0, 0, .04) 6%,
+    rgba(0, 0, 0, .14) 14%,
+    rgba(0, 0, 0, .34) 23%,
+    rgba(0, 0, 0, .62) 33%,
+    rgba(0, 0, 0, .86) 42%,
+    #000 51%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 0, 0, .04) 8%,
-    rgba(0, 0, 0, .14) 18%,
-    rgba(0, 0, 0, .34) 30%,
-    rgba(0, 0, 0, .62) 43%,
-    rgba(0, 0, 0, .86) 55%,
-    #000 66%
+    rgba(0, 0, 0, .04) 6%,
+    rgba(0, 0, 0, .14) 14%,
+    rgba(0, 0, 0, .34) 23%,
+    rgba(0, 0, 0, .62) 33%,
+    rgba(0, 0, 0, .86) 42%,
+    #000 51%
   );
 }
 .gm-story {

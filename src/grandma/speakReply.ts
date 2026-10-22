@@ -5,7 +5,7 @@ export function stopSpeaking() {
   current = null
 }
 
-/** Speaks `text` in the Grandkids ElevenLabs voice. Resolves quietly when audio or the voice is unavailable. */
+/** Speaks `text` in the Grandkids ElevenLabs voice. Resolves when it has finished, or quietly when audio or the voice is unavailable. */
 export async function speakReply(text: string) {
   if (typeof Audio === 'undefined' || typeof fetch === 'undefined') return
   try {
@@ -17,9 +17,15 @@ export async function speakReply(text: string) {
     if (!response.ok) return
     stopSpeaking()
     const audio = new Audio(URL.createObjectURL(await response.blob()))
-    audio.onended = () => URL.revokeObjectURL(audio.src)
     current = audio
-    await audio.play()
+    // Resolves once she has finished speaking, so a listener can wait before it listens again.
+    await new Promise<void>((resolve) => {
+      const done = () => { URL.revokeObjectURL(audio.src); resolve() }
+      audio.onended = done
+      audio.onerror = done
+      audio.onpause = done
+      audio.play().catch(done)
+    })
   } catch {
     // The typed reply still shows when the voice is unavailable.
   }
