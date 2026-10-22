@@ -28,7 +28,7 @@ export function morphPath(t: number, strength = 1) {
   return outlinePath(points)
 }
 
-export function MorphBot({ size, paused = false, state = 'default' }: { size: number; paused?: boolean; state?: 'default' | 'working' | 'sleeping' }) {
+export function MorphBot({ size, paused = false, state = 'default', color = '#ff4d0d' }: { size: number; paused?: boolean; state?: 'default' | 'working' | 'sleeping'; color?: string }) {
   const [path, setPath] = useState(() => morphPath(0, 0))
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export function MorphBot({ size, paused = false, state = 'default' }: { size: nu
     <BotAvatar
       path={path}
       type="circle"
-      color="#ff4d0d"
+      color={color}
       ink="#fff"
       brightness={1}
       saturation={2.5}

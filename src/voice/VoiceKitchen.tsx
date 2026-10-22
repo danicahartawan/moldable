@@ -18,6 +18,16 @@ export function VoiceKitchen() {
   const arm = wake.arm
   useEffect(() => { arm() }, [arm])
 
+  // The Recipe change button on the recipe starts the same listening as “Hey Popo”.
+  useEffect(() => {
+    const onRequest = (event: Event) => {
+      event.preventDefault()
+      void assistant.run()
+    }
+    window.addEventListener('moldable:recipe-change', onRequest)
+    return () => window.removeEventListener('moldable:recipe-change', onRequest)
+  }, [assistant])
+
   // Space is a fallback for “Hey Popo”.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

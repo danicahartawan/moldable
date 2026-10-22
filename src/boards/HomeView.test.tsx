@@ -135,21 +135,21 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
     expect(within(ingr).queryByText('Kencur')).not.toBeInTheDocument()
   })
 
-  it('with the clay look, has no clay until voice starts, keeps one clay through it, and lets it go after', () => {
+  it('with the bot look, has no bot until voice starts, keeps one bot through it, and lets it go after', () => {
     render(<HomeViewBoard clay />)
-    expect(document.querySelector('.voice-clay')).not.toBeInTheDocument()
+    expect(document.querySelector('.hv-voicebot')).not.toBeInTheDocument()
     fireEvent.click(talk())
-    const clay = document.querySelector('.voice-clay')
-    expect(clay).toBeInTheDocument()
-    expect(clay).toHaveAttribute('aria-hidden', 'true')
+    const bot = document.querySelector('.hv-voicebot')
+    expect(bot).toBeInTheDocument()
+    expect(bot).toHaveAttribute('aria-hidden', 'true')
     advance(5800 + 1000)
-    expect(document.querySelector('.voice-clay')).toBe(clay)
-    // After "Done" the same clay hops onto each changed amount, then fades where it is and is removed.
+    expect(document.querySelector('.hv-voicebot')).toBe(bot)
+    // After "Done" the same bot hops onto each changed amount, then shrinks away and is removed.
     advance(200 + 760 + 10 * 450 + 300)
-    expect(document.querySelector('.voice-clay')).toBe(clay)
+    expect(document.querySelector('.hv-voicebot')).toBe(bot)
     advance(100)
     advance(800)
-    expect(document.querySelector('.voice-clay')).not.toBeInTheDocument()
+    expect(document.querySelector('.hv-voicebot')).not.toBeInTheDocument()
   })
 
   it('after "Done", opens the ingredients and the clay hops onto each amount, rewriting it as it lands', () => {

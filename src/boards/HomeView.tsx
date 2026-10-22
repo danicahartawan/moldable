@@ -1,7 +1,8 @@
 'use client'
 
 import './home-view.css'
-import { VoiceClay, type ClayPlace } from '@/clay/VoiceClay'
+import type { ClayPlace } from '@/clay/VoiceClay'
+import { VoiceBot } from '@/voice/VoiceBot'
 import type { Vec } from '@/clay/ClaySim'
 import { createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
 import { OrangeBeam } from '@/voice/OrangeBeam'
@@ -44,6 +45,7 @@ const ICON = {
   flame: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z',
   chevron: 'M8 4l6 6-6 6',
   history: 'M3.5 10a6.5 6.5 0 1 0 2-4.7 M3 3v3.5h3.5 M10 6.5V10l2.4 1.5',
+  refresh: 'M16.5 10a6.5 6.5 0 1 1-2-4.7 M16.5 3v3.5H13',
 }
 const PLAIN = { bg: '#f2f1ef', ink: '#1f1c19' }
 const TINT = { time: { bg: '#fbefb4', ink: '#8a6a0c' }, serves: { bg: '#dcefd2', ink: '#44703a' }, spice: { bg: '#fde3d8', ink: '#c24a24' } }
@@ -527,6 +529,13 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         <div className="hv-content" inert={!!open}>
           <section className="hm-over" aria-label="Recipe overview">
             <h1 className="hm-title">Lawar Bali</h1>
+            {/* Recipe change: starts a voice session. A host that listens for real (the voice page) takes the event over. */}
+            <button type="button" className="hm-tap hm-recipe-change" onClick={() => {
+              const taken = typeof window !== 'undefined' && !window.dispatchEvent(new CustomEvent('moldable:recipe-change', { cancelable: true }))
+              if (!taken) beginAdjust()
+            }}>
+              <Icon d={ICON.refresh} size={22} width={1.8} />Recipe change
+            </button>
             <p key={sentenceKey} className="hm-sentence hm-blurin">
               Balinese minced <strong className={m.chicken ? 'hm-mark' : undefined}>{m.chicken ? 'chicken' : 'pork'}</strong> with toasted{' '}
               <strong>coconut</strong>, fried in a <span className={m.mild ? 'hm-mark' : undefined}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</span>{' '}
@@ -668,17 +677,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
         <div className="hv-beam" data-state={glow} aria-hidden="true"><OrangeBeam level={() => voiceLevel.current()} active={glow === 'listening' || glow === 'hearing' || glow === 'thinking'} /></div>
         <VoiceNotification state={islandState} heard={heard} result={result} teal={blobTeal} level={() => voiceLevel.current()} ownClay={!clay} />
-        {clay && (
-          <VoiceClay
-            place={clayPlace}
-            quickExit={cancelled}
-            level={() => voiceLevel.current()}
-            knead={phase === 'thinking'}
-            color={blobTeal ? 'teal' : 'orange'}
-            width={640}
-            height={640}
-          />
-        )}
+        {clay && <VoiceBot place={clayPlace} teal={blobTeal} />}
       </div>
       {embedded ? overlay : <p className="hv-caption">Grandkid home view, 640 × 640 for the 5.73 in display.</p>}
     </div>
