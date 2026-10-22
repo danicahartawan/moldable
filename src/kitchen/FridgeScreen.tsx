@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import { changeCookbooks, useCookbooks } from '@/cookbook/client'
 import { OMA_ID, cleanBookName, nameFromSpeech, newId, type Cookbook, type SavedRecipe } from '@/cookbook/model'
 import { hearOnce } from '@/voice/hearOnce'
+import { MorphBot } from '@/grandma/MorphBot'
 import { RecipePage } from '@/cookbook/RecipePage'
 
 /* 10 Fridge cookbooks. Each cookbook is a retro fridge; its recipes are postcard notes held on by magnets.
@@ -226,22 +227,21 @@ function FridgeName({ book, current, onRename }: { book: Book; current: boolean;
   )
 }
 
-const MIC = 'M10 2.5a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-5 0V5A2.5 2.5 0 0 1 10 2.5z M5 9.5a5 5 0 0 0 10 0 M10 14.5V17.5'
-
 /**
- * Naming a fridge, out loud first: a new fridge asks “Whose cookbook is this?” and listens straight away; the name is
- * picked out of what was said (“It's Uncle Budi's cookbook” → Uncle Budi) and put in the field to keep. It can be typed
- * too. Enter keeps it, Escape (or Not now) leaves the name as it was.
+ * Naming a new fridge, in the Grandma screen's own layout: the question big at the top, the name written underneath as
+ * she says it (or types it, straight onto the page, no box), and the clay listening at the foot (tap it to say it again).
+ * Close and Save sit in the white pill top right. The name is picked out of what was said (“It's Uncle Budi's cookbook”
+ * → Uncle Budi). Enter keeps it, Escape (or close) leaves the fridge as it was.
  */
 function FridgeNamer({ book, fresh, onSave, onClose }: { book: Book; fresh: boolean; onSave: (name: string) => void; onClose: () => void }) {
   const [value, setValue] = useState(book.name)
   const [listening, setListening] = useState(false)
   const [heard, setHeard] = useState('')
   const [problem, setProblem] = useState('')
-  const field = useRef<HTMLInputElement>(null)
   const alive = useRef(true)
   useEffect(() => () => { alive.current = false }, [])
   const listen = async () => {
+    if (listening) return
     setListening(true)
     setHeard('')
     setProblem('')
@@ -250,9 +250,9 @@ function FridgeNamer({ book, fresh, onSave, onClose }: { book: Book; fresh: bool
       if (!alive.current) return
       const name = nameFromSpeech(words)
       if (name) setValue(name)
-      else setProblem('I didn’t catch a name. Try again, or type it.')
+      else setProblem('I didn’t catch a name. Tap me and try again, or type it.')
     } catch {
-      if (alive.current) setProblem('The microphone is off. You can type the name instead.')
+      if (alive.current) setProblem('The microphone is off. Type the name instead.')
     } finally {
       if (alive.current) setListening(false)
     }
@@ -266,25 +266,22 @@ function FridgeNamer({ book, fresh, onSave, onClose }: { book: Book; fresh: bool
     if (name && name !== book.name) onSave(name)
     onClose()
   }
+  const live = listening && heard ? nameFromSpeech(heard) : ''
   return (
     <div className="fz-namer" role="dialog" aria-label={fresh ? 'Name the new fridge' : `Rename ${book.label}`} onPointerDown={(e) => e.stopPropagation()}>
-      <form className="fz-namer__card" onSubmit={(e) => { e.preventDefault(); save() }}>
-        <p className="fz-namer__title">{fresh ? 'Whose cookbook is this?' : 'What should this fridge be called?'}</p>
-        <p className={`fz-namer__heard${listening ? ' is-listening' : ''}`} aria-live="polite">
-          {listening ? (heard ? `“${heard}”` : 'Listening… say a name') : problem || 'Say it, or type it.'}
-        </p>
-        <div className="fz-namer__row">
-          <button type="button" className={`fz-namer__mic${listening ? ' is-listening' : ''}`} aria-label="Say the name" disabled={listening} onClick={() => void listen()}>
-            <Icon d={MIC} size={24} width={1.8} />
-          </button>
-          <input ref={field} className="fz-namer__input" aria-label="Fridge name" value={value} maxLength={24} placeholder="A name, like Uncle Budi"
-            onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose() } }} />
-        </div>
-        <div className="fz-namer__row fz-namer__row--end">
-          <button type="button" className="fz-namer__later" onClick={onClose}>Not now</button>
-          <button type="submit" className="fz-namer__save" disabled={!cleanBookName(value)}>Save</button>
+      <form className="fz-namer__page" onSubmit={(e) => { e.preventDefault(); save() }}>
+        <h2 className="fz-namer__title">{fresh ? 'Whose cookbook is this?' : 'What should this fridge be called?'}</h2>
+        <input className="fz-namer__name" aria-label="Fridge name" value={live || value} maxLength={24} placeholder="Type a name" autoComplete="off"
+          onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose() } }} />
+        <div className="fz-namer__actions">
+          <button type="button" aria-label="Not now" onClick={onClose}><Icon d="M5.5 5.5l9 9M14.5 5.5l-9 9" size={22} width={1.8} /></button>
+          <button type="submit" aria-label="Save" disabled={!cleanBookName(live || value)}><Icon d="M4.5 10.5l3.6 3.6 7.4-8" size={22} width={1.9} /></button>
         </div>
       </form>
+      <button type="button" className={`fz-namer__clay${listening ? ' is-listening' : ''}`} aria-label={listening ? 'Listening' : 'Say the name'} onClick={() => void listen()}>
+        <MorphBot size={96} paused={!listening} />
+      </button>
+      <p className="fz-namer__hint" aria-live="polite">{listening ? (heard ? `“${heard}”` : 'Listening…') : problem || 'Tap me to say it'}</p>
     </div>
   )
 }
