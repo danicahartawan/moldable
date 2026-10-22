@@ -160,16 +160,20 @@ describe('FridgeScreen', () => {
     expect(cam()).toContain('scale(0.48)')
   })
 
-  it('Make your own grows to fill the screen, then hands over to Grandma\'s screen and resets', () => {
+  it('Make your own grows to fill the screen, turning white like Grandma\'s note, then hands over to it and resets', () => {
     const record = vi.fn()
     render(<FridgeScreen onRecord={record} />)
     advance(1600)
     fireEvent.click(screen.getAllByRole('button', { name: /Make your own/ })[0])
     advance(100)
-    expect(document.querySelector('.fz-fly')).toHaveClass('is-big')
+    const fly = document.querySelector('.fz-fly') as HTMLElement
+    expect(fly).toHaveClass('is-big')
+    expect(fly.style.background).toBe('rgb(255, 255, 255)')
+    advance(450)
     expect(record).not.toHaveBeenCalled()
-    advance(400)
-    expect(record).toHaveBeenCalledTimes(1)
+    // The hand-over waits for the card to finish turning white.
+    fireEvent.transitionEnd(fly, { propertyName: 'background-color' })
+    expect(record).toHaveBeenCalledWith({ id: 'oma-lien', name: 'Oma Lien' })
     // No options page in between, and the fridge is closed again once it's out of sight.
     expect(screen.queryByRole('article', { name: 'New recipe' })).not.toBeInTheDocument()
     advance(1200)
@@ -182,7 +186,8 @@ describe('FridgeScreen', () => {
     render(<FridgeScreen />)
     advance(1600)
     fireEvent.click(screen.getAllByRole('button', { name: /Make your own/ })[0])
-    advance(500)
+    // With no transition to wait for, a timer hands over.
+    advance(950)
     expect(router.push).toHaveBeenCalledWith('/grandma')
   })
 

@@ -483,6 +483,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setDragging([bi, k])
   }
 
+  // Make your own's hand-over to Grandma's screen, waiting for the card to finish turning white.
+  const handOff = useRef<(() => void) | null>(null)
   const openNote = (k: number) => {
     if (open) return
     window.clearTimeout(timers.current.out)
@@ -490,13 +492,20 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setPhase(0)
     setDragging(null)
     later('p1', 30, () => setPhase(1))
-    // Make your own goes straight to Grandma's screen: the card grows to fill the display and, as it lands, the
-    // display hands over to her (in the kitchen) or the page moves to /grandma. Once the kitchen's slide (1.1s) has
-    // carried the fridge out of sight, the card is put back, so the fridge is ready when you come back.
+    // Make your own goes straight to Grandma's screen: the card grows to fill the display, turning the white of her new
+    // note on the way, and the moment it is white (its colour transition ends, see the fly below) the display dissolves
+    // into her note (in the kitchen) or the page moves to /grandma. A timer stands in when there are no transitions.
     if (itemsOf(books[i])[k].kind === 'new') {
       const book = { id: books[i].id, name: books[i].name }
-      later('record', 480, () => (onRecord ? onRecord(book) : router.push('/grandma')))
-      later('close', 480 + 1200, () => { setOpen(null); setPhase(0) })
+      handOff.current = () => {
+        handOff.current = null
+        window.clearTimeout(timers.current.record)
+        if (onRecord) onRecord(book)
+        else router.push('/grandma')
+        // When the fridge is out of sight, the card is put back, ready for when you come back.
+        later('close', 1200, () => { setOpen(null); setPhase(0) })
+      }
+      later('record', 900, () => handOff.current?.())
       return
     }
     // The page starts fading in over the card's colour just before the card has finished growing.
@@ -649,8 +658,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     const dy = 320 - (top + h / 2)
     const S = Math.max(640 / w, 640 / h) * 1.2
     const main = it.kind === 'recipe'
-    // Lawar Bali's and saved recipes' pages are white: the card turns white as it grows into them.
-    const pageBg = it.kind === 'new' ? c.paper : '#fff'
+    // Every card turns white as it grows: Lawar Bali's and saved recipes' pages are white, and so is Grandma's new note.
+    const pageBg = '#fff'
     fly = {
       left: Math.round(left), top: Math.round(top), width: Math.round(w), height: Math.round(h), background: phase > 0 ? pageBg : c.paper, borderRadius: phase > 0 ? 0 : 2,
       transform: phase > 0 ? `translate(${dx}px, ${dy}px) rotate(0deg) scale(${S.toFixed(3)})` : `rotate(${p[2]}deg)`,
@@ -768,7 +777,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       )}
 
       {fly && (
-        <div className={`fz-fly${phase > 0 ? ' is-big' : ''}`} aria-hidden="true" style={fly}>
+        <div className={`fz-fly${phase > 0 ? ' is-big' : ''}`} aria-hidden="true" style={fly}
+          onTransitionEnd={(e) => { if (e.target === e.currentTarget && e.propertyName === 'background-color' && phase === 1) handOff.current?.() }}>
           {flyFace && (
             <div className="fz-fly__face" style={{ width: NW, height: flyFace.h, transform: `scale(${flyFace.k})`, ...(flyFace.kind === 'make' ? { '--fz-face-ink': '#0d0d0d' } : {}) } as CSSProperties}>
               {flyFace.kind === 'lawar'

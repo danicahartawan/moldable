@@ -185,7 +185,14 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
               {fridge ? (
                 <FridgeScreen homeRef={homeRef} key={recipeHandover} startOpen={recipeHandover > 0} active={perspective === 'grandkids'} closeRequest={fridgeClose}
                   onStartCooking={() => goToStep(1)} focus={fridgeFocus}
-                  onRecord={(book) => { onMakeRecipe?.(book); setPerspective('grandma') }} />
+                  onRecord={(book) => {
+                    // The Make your own card has grown to fill the screen, white like Grandma's new note: the two dissolve
+                    // into each other (the ripple swap Tidy uses), rather than the fridge sliding away.
+                    onMakeRecipe?.(book)
+                    setIsRippleSwap(true)
+                    window.setTimeout(() => setIsRippleSwap(false), 2400)
+                    setPerspective('grandma')
+                  }} />
               ) : (
                 <HomeViewBoard ref={homeRef} onStartCooking={() => goToStep(1)} />
               )}
