@@ -376,6 +376,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
   const hasStory = Boolean(noteText || photos.length || recorder.errorMessage)
 
   // The story starts under the title and keeps its newest line in view as it grows, while she's recording.
+  // Scrolling up to reread lets go of the newest line; scrolling back down to the end picks it up again.
   const isFollowing = useRef(true)
   isFollowing.current = !recorder.hasCompletedRecording
   useEffect(() => {
@@ -384,12 +385,18 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
     if (!box || !content) return
     // Scrolling up to read stops the follow; scrolling back to the bottom picks it up again.
     let stuck = true
-    const onScroll = () => { stuck = box.scrollHeight - box.scrollTop - box.clientHeight < 28 }
+    const onScroll = () => {
+      stuck = box.scrollHeight - box.scrollTop - box.clientHeight < 28
+      // Scrolled right back to the start, nothing is hidden above, so the top fade lifts (data-top, see the CSS).
+      if (box.scrollTop < 4) box.dataset.top = ''
+      else delete box.dataset.top
+    }
     box.addEventListener('scroll', onScroll, { passive: true })
     const follow = new ResizeObserver(() => {
       if (isFollowing.current && stuck) box.scrollTop = box.scrollHeight
       setIsStoryOverflowing(box.scrollHeight > box.clientHeight)
     })
+    box.addEventListener('scroll', onScroll, { passive: true })
     follow.observe(content)
     return () => {
       follow.disconnect()

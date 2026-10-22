@@ -150,7 +150,8 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 
 @media (prefers-reduced-motion: reduce) { .gm-note__chip { animation: none; } }
 
-/* While recording, the story writes itself into the note; once full, older lines slide up out of view. */
+/* While recording, the story writes itself into the note; once full, older lines slide up out of view.
+   She can scroll back up through them (wheel, trackpad or finger) without a scrollbar showing. */
 .gm-note__story {
   position: relative;
   min-height: 0;
@@ -184,6 +185,7 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
     #000 39%
   );
 }
+.gm-note__story.is-overflowing[data-top] { -webkit-mask-image: none; mask-image: none; }
 .gm-story {
   margin: 0;
   color: #8c8884;
