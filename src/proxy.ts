@@ -5,8 +5,9 @@ import type { NextRequest } from 'next/server'
 // other page and no backend (API) route of the app is reachable. Everywhere else (localhost, previews) every route works as usual.
 const KITCHEN_HOSTS = new Set(['moldable.kitchen', 'www.moldable.kitchen'])
 
-// What the screens load: the app's scripts and styles, their images and fonts. No backend: every /api route is closed here.
-const ALLOWED_PREFIXES = ['/_next/', '/assets/', '/fonts/']
+// What the screens load: the app's scripts and styles, their images and fonts, and the few backend routes the kitchen needs:
+// the shared recipe and its assistant, hearing speech, and speaking back. Every other /api route is closed here.
+const ALLOWED_PREFIXES = ['/_next/', '/assets/', '/fonts/', '/api/recipe', '/api/voice/transcribe', '/api/grandkids/speak']
 
 export function proxy(request: NextRequest) {
   const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()

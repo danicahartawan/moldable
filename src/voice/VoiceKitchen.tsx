@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { KitchenMockup, type KitchenVoiceBridge } from '@/kitchen/KitchenMockup'
+import { RecipeSync } from '@/recipe/RecipeSync'
 import { useHeyPopo } from './useHeyPopo'
 import { useVoiceAssistant } from './useVoiceAssistant'
 import '@/kitchen/kitchen.css'
@@ -47,16 +48,30 @@ export function VoiceKitchen() {
 
   return (
     <div className="gm-kitchen vk">
+      <RecipeSync />
       <KitchenMockup fridge startOnRecipe voiceBridge={bridge} />
       <div className="vk__bar" role="status">
         {wake.armed ? (
-          <span className="vk__hint" data-status={assistant.status}>{hint}</span>
+          <span className="vk__hint" data-status={assistant.status}>
+            {hint}
+            {assistant.lastHeard ? <small className="vk__trace">You: “{assistant.lastHeard}”{assistant.lastReply ? ` → ${assistant.lastReply}` : ''}</small> : wake.heard ? <small className="vk__trace">Hearing: “{wake.heard}”</small> : null}
+          </span>
         ) : (
           <button type="button" className="vk__arm" onClick={wake.arm}>
             <span className="vk__dot" aria-hidden="true" /> {wake.error ?? 'Tap to turn on “Hey Popo”'}
           </button>
         )}
         {wake.armed ? <button type="button" className="vk__mic" aria-label="Talk to Popo now" onClick={() => void assistant.run()}>Talk</button> : null}
+        <form className="vk__type" onSubmit={(event) => {
+          event.preventDefault()
+          const field = event.currentTarget.elements.namedItem('request') as HTMLInputElement
+          const text = field.value.trim()
+          if (!text) return
+          field.value = ''
+          void assistant.run(text)
+        }}>
+          <input name="request" type="text" autoComplete="off" placeholder="or type a change…" aria-label="Type a change for Popo" disabled={assistant.status !== 'idle'} />
+        </form>
       </div>
     </div>
   )

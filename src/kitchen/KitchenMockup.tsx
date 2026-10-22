@@ -7,13 +7,15 @@ import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { FridgeScreen } from './FridgeScreen'
 import { AmbienceToggle } from '@/ambience/AmbienceToggle'
 
-type Perspective = 'grandma' | 'grandkids'
+export type Perspective = 'grandma' | 'grandkids'
 
-type KitchenControls = { showGrandkids: () => void; showRecipe: () => void; prepareRipple: () => void }
+type KitchenControls = { showGrandkids: () => void; showRecipe: () => void; prepareRipple: () => void; perspective: Perspective }
 
 /** What a voice host can do to the Grandkids side: reach the recipe screen's island and move through the cooking steps. */
 export type KitchenVoiceBridge = {
   home: () => HomeViewHandle | null
+  /** Which side of the kitchen is showing. */
+  perspective: () => Perspective
   /** The cooking step on screen (1-based), or null on the recipe. */
   stepNow: () => number | null
   startCooking: () => void
@@ -22,7 +24,7 @@ export type KitchenVoiceBridge = {
 }
 
 // `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
-export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false, voiceBridge, startOnRecipe = false }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean; voiceBridge?: MutableRefObject<KitchenVoiceBridge | null>; startOnRecipe?: boolean } = {}) {
+export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false, voiceBridge, startOnRecipe = false, onPerspective }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean; voiceBridge?: MutableRefObject<KitchenVoiceBridge | null>; startOnRecipe?: boolean; onPerspective?: (perspective: Perspective) => void } = {}) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const screen = useRef<HTMLDivElement>(null)
   const swipeStart = useRef<number | null>(null)
@@ -59,6 +61,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
     if (!voiceBridge) return
     voiceBridge.current = {
       home: () => homeRef.current,
+      perspective: () => perspectiveRef.current,
       stepNow: () => stepRef.current,
       startCooking: () => goToStep(stepRef.current ?? 1),
       goToStep: (step) => goToStep(Math.min(8, Math.max(1, step))),
@@ -67,6 +70,8 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
     return () => { voiceBridge.current = null }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [voiceBridge])
+
+  useEffect(() => { onPerspective?.(perspective) }, [perspective, onPerspective])
 
   const setPerspective = (next: Perspective) => {
     perspectiveRef.current = next
@@ -161,7 +166,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
       <div className="kitchen__css">
         <div ref={screen} className="kitchen__screen">
           <div ref={grandmaHost} data-testid="kitchen-grandma" className={`kitchen__host kitchen__host--grandma${perspective === 'grandma' ? '' : ' is-off'}`} aria-hidden={perspective !== 'grandma'} inert={perspective !== 'grandma'}>
-            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids'), showRecipe: () => { setIsRippleSwap(true); window.setTimeout(() => setIsRippleSwap(false), 2400); setPerspective('grandkids'); setRecipeHandover((n) => n + 1) }, prepareRipple: () => setIsRippleSwap(true) }) : grandmaScreen}
+            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids'), showRecipe: () => { setIsRippleSwap(true); window.setTimeout(() => setIsRippleSwap(false), 2400); setPerspective('grandkids'); setRecipeHandover((n) => n + 1) }, prepareRipple: () => setIsRippleSwap(true), perspective }) : grandmaScreen}
           </div>
           <div ref={host} data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragging ? ' is-dragging' : ''}`} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>

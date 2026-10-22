@@ -228,4 +228,33 @@ describe('HomeViewBoard real voice', () => {
     expect(island()).toHaveTextContent('It takes about forty minutes.')
     expect(tag(/Serves 4/)).toBeInTheDocument()
   })
+
+  it('opens the Ingredients and rewrites the row a spoken change touches, whichever change it is', () => {
+    vi.useFakeTimers()
+    const ref = createRef<HomeViewHandle>()
+    render(<HomeViewBoard ref={ref} clay />)
+
+    // Pork becomes chicken: the pork row is the one it hops onto.
+    act(() => ref.current?.voiceListen())
+    act(() => ref.current?.voiceResult('chicken', 'Chicken it is.'))
+    advance(1200 + 760 - 100)
+    const card = screen.getByRole('dialog', { name: 'Ingredients' })
+    expect(within(card).getByText('Pork')).toBeInTheDocument()
+    advance(100 + 250)
+    expect(document.querySelector('.hm-ingr li.is-hop')).toHaveTextContent('Chicken')
+    advance(3000)
+    expect(ref.current?.recipeNow().chicken).toBe(true)
+
+    // Back to four servings after two: every amount that differs is rewritten again.
+    act(() => ref.current?.voiceListen())
+    act(() => ref.current?.voiceResult('serves2', 'Two.'))
+    advance(8000)
+    act(() => ref.current?.voiceListen())
+    act(() => ref.current?.voiceResult('serves4', 'Four again.'))
+    advance(1200 + 760 + 200)
+    const again = screen.getByRole('dialog', { name: 'Ingredients' })
+    expect(amountOf(again, 'Chicken')).toHaveTextContent('250 g')
+    advance(250)
+    expect(amountOf(again, 'Chicken')).toHaveTextContent('500 g')
+  })
 })

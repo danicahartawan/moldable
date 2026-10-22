@@ -5,6 +5,8 @@ import { ArrowsClockwise, Check } from '@phosphor-icons/react'
 import { MorphBot } from './MorphBot'
 import { listen, transcribe } from '../voice/capture'
 import { speakReply } from './speakReply'
+import { RECIPE_EVENT, latestRecipe, requestChange } from '../recipe/client'
+import type { RecipeDoc, RecipeOp } from '../recipe/model'
 import { useHeyPopo } from '../voice/useHeyPopo'
 import { HomeViewFrame } from '../home/HomeViewFrame'
 import { useVoiceRecorder } from '../useVoiceRecorder'
@@ -117,6 +119,8 @@ export function RecipeChangeOverlay({ levelRef, noteText = '', onClose, onHeard 
   const [hasHeard, setHasHeard] = useState(false)
   const [heard, setHeard] = useState('')
   const [spoken, setSpoken] = useState<string | null>(null)
+  // A question the assistant is waiting for a yes or no to.
+  const [question, setQuestion] = useState<string | null>(null)
   const [scripted, setScripted] = useState(() => !canListen())
   const root = useRef<HTMLDivElement>(null)
   const [rowTop, setRowTop] = useState<number | null>(null)
@@ -125,11 +129,15 @@ export function RecipeChangeOverlay({ levelRef, noteText = '', onClose, onHeard 
   onCloseRef.current = onClose
   const onHeardRef = useRef(onHeard)
   onHeardRef.current = onHeard
+  const noteRef = useRef(noteText)
+  noteRef.current = noteText
 
   // The demo: five seconds in which she asks for pork to become beef.
   useEffect(() => {
     if (!scripted) return
     change.current = DEMO_CHANGE
+    // The demo request is made for real too, so the swap is saved on the server and the Grandkids screen can show it.
+    void requestChange({ transcript: 'Yes', from: 'grandma', note: noteRef.current, pending: [{ type: 'swap_word', find: 'pork', replace: 'beef' }] }).catch(() => {})
     const speaking = window.setTimeout(() => setHeard(RECIPE_CHANGE_REQUEST), RECIPE_CHANGE_HEARD_AT_MS)
     const done = window.setTimeout(() => {
       setHasHeard(true)
@@ -141,45 +149,53 @@ export function RecipeChangeOverlay({ levelRef, noteText = '', onClose, onHeard 
     }
   }, [scripted])
 
-  // The real thing.
+  // The real thing: she speaks, the assistant asks whether it understood, she says yes, and only then is the story changed.
   useEffect(() => {
     if (scripted) return
     let cancelled = false
     ;(async () => {
       try {
-        const recording = await listen()
-        if (cancelled) return
-        if (!recording) {
-          onCloseRef.current()
-          return
-        }
-        const transcript = await transcribe(recording)
-        if (cancelled) return
-        if (!transcript) {
-          setSpoken('I didn’t catch that.')
+        let pending: RecipeOp[] = []
+        for (let round = 0; round < 3; round++) {
+          const recording = await listen()
+          if (cancelled) return
+          if (!recording) {
+            onCloseRef.current()
+            return
+          }
+          const transcript = await transcribe(recording)
+          if (cancelled) return
+          if (!transcript) {
+            setQuestion(null)
+            setSpoken('I didn’t catch that.')
+            setHasHeard(true)
+            return
+          }
+          setHeard(transcript)
+          setQuestion(null)
+          const edit = await requestChange({ transcript, from: 'grandma', note: noteRef.current, pending })
+          if (cancelled) return
+          if (edit.action === 'confirm') {
+            pending = edit.ops
+            setQuestion(edit.reply)
+            await speakReply(edit.reply)
+            continue
+          }
+          if (edit.swap) change.current = { find: edit.swap.find, replace: edit.swap.replace }
+          setSpoken(edit.reply)
           setHasHeard(true)
+          if (change.current) onHeardRef.current?.()
+          await speakReply(edit.reply)
           return
         }
-        setHeard(transcript)
-        const response = await fetch('/api/voice/edit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transcript, note: noteText }),
-        })
-        const edit = await response.json() as { find: string | null; replace: string | null; reply: string }
-        if (cancelled) return
-        if (edit.find && edit.replace) change.current = { find: edit.find, replace: edit.replace }
-        setSpoken(edit.reply)
-        setHasHeard(true)
-        if (change.current) onHeardRef.current?.()
-        await speakReply(edit.reply)
+        onCloseRef.current()
       } catch {
         // No microphone after all (blocked or missing): play the demo.
         if (!cancelled) setScripted(true)
       }
     })()
     return () => { cancelled = true }
-  }, [scripted, noteText])
+  }, [scripted])
 
   // After "Okay!" the beam fades out, then the fog lifts onto the marked change.
   useEffect(() => {
@@ -194,7 +210,7 @@ export function RecipeChangeOverlay({ levelRef, noteText = '', onClose, onHeard 
   }, [])
 
   const level = useBeamLevel(levelRef)
-  const leftWords = hasHeard ? (spoken ?? RECIPE_CHANGE_REPLY) : heard ? '' : 'Listening…'
+  const leftWords = hasHeard ? (spoken ?? RECIPE_CHANGE_REPLY) : question ?? (heard ? '' : 'Listening…')
 
   return (
     <div ref={root} className="gm-recipe-change" role="dialog" aria-label="Recipe change" aria-live="polite">
@@ -240,7 +256,7 @@ function TypedQuestion({ text }: { text: string }) {
 }
 
 // The grandma screen as a recipe note: the whole story writes itself into the note while recording.
-export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => void; onTidyStart?: () => void } = {}) {
+export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onTidy?: () => void; onTidyStart?: () => void; active?: boolean } = {}) {
   const recorder = useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone: true })
   const [segmentCount, setSegmentCount] = useState(0)
   const [guidingQuestionIndex, setGuidingQuestionIndex] = useState<number | null>(null)
@@ -406,13 +422,33 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
   }, [hasStory])
 
   const isDone = recorder.hasCompletedRecording
+  // The recipe is shared: a swap made on the server (here, or from the Grandkids screen) shows in the finished story.
+  const syncingRef = useRef({ isDone, isRecipeListening })
+  syncingRef.current = { isDone, isRecipeListening }
+  const newestDoc = useRef<RecipeDoc | null>(latestRecipe())
+  const shownRev = useRef<number | null>(null)
+  const followEdits = useCallback(() => {
+    const doc = newestDoc.current
+    if (!doc || doc.rev === shownRev.current || !syncingRef.current.isDone || syncingRef.current.isRecipeListening) return
+    shownRev.current = doc.rev
+    setChanges((current) => (JSON.stringify(current) === JSON.stringify(doc.storyEdits) ? current : doc.storyEdits))
+  }, [])
+  useEffect(() => {
+    const onRecipe = (event: Event) => {
+      newestDoc.current = (event as CustomEvent<RecipeDoc>).detail
+      followEdits()
+    }
+    window.addEventListener(RECIPE_EVENT, onRecipe)
+    return () => window.removeEventListener(RECIPE_EVENT, onRecipe)
+  }, [followEdits])
+  useEffect(() => { if (isDone && !isRecipeListening) followEdits() }, [isDone, isRecipeListening, followEdits])
   const openRecipeChange = useCallback(() => {
     setDoneView('changes')
     setIsRecipeChangeDone(false)
     setIsRecipeListening(true)
   }, [])
   // Once the note is finished, “Hey Popo” opens Recipe change by voice.
-  const wake = useHeyPopo({ onWake: openRecipeChange, paused: !isDone || isRecipeListening })
+  const wake = useHeyPopo({ onWake: openRecipeChange, paused: !isDone || isRecipeListening || !active })
   const armWake = wake.arm
   useEffect(() => { if (isDone) armWake() }, [isDone, armWake])
   const recordingLevel = useBeamLevel(recorder.levelRef)

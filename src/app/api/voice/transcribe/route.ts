@@ -1,5 +1,8 @@
+import { tooMany } from '@/lib/rateLimit'
+
 // Speech to text in the same ElevenLabs account that speaks the replies.
 export async function POST(request: Request) {
+  if (tooMany(request, 'transcribe', 20)) return Response.json({ error: 'Slow down a little.' }, { status: 429 })
   const key = process.env.ELEVENLABS_API_KEY
   if (!key) return Response.json({ error: 'Transcription is not configured.' }, { status: 503 })
 

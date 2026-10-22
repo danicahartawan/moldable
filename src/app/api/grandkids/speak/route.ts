@@ -1,6 +1,9 @@
+import { tooMany } from '@/lib/rateLimit'
+
 const GRANDKIDS_VOICE_ID = 'dqoT2ZtOCpbG5tUUBU2W'
 
 export async function POST(request: Request) {
+  if (tooMany(request, 'speak', 20)) return Response.json({ error: 'Slow down a little.' }, { status: 429 })
   const apiKey = process.env.ELEVENLABS_API_KEY
   if (!apiKey) return Response.json({ error: 'Grandma voice is not configured.' }, { status: 503 })
 

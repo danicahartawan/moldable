@@ -1,9 +1,13 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
-import { KitchenMockup } from '../kitchen/KitchenMockup'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { KitchenMockup, type KitchenVoiceBridge, type Perspective } from '../kitchen/KitchenMockup'
+import { useHeyPopo } from '../voice/useHeyPopo'
+import { useVoiceAssistant } from '../voice/useVoiceAssistant'
 import { GrandmaMinimalPage } from './GrandmaMinimalPage'
+import { announceRecipe } from '../recipe/client'
+import { RecipeSync } from '../recipe/RecipeSync'
 import '../kitchen/type-scale.css'
 import './grandma-welcome.css'
 
@@ -51,14 +55,45 @@ function GrandmaWelcome({ onContinue }: { onContinue: () => void }) {
 // The kitchen with the minimal grandma screen; Tidy takes the recipe straight to the Grandkids view.
 export function GrandmaMinimalKitchen() {
   const [hasEntered, setHasEntered] = useState(false)
+  // A new recipe note starts from Oma's own recipe: any changes saved on the server are put back.
+  const begin = () => {
+    setHasEntered(true)
+    void fetch('/api/recipe/reset', { method: 'POST' }).then((r) => (r.ok ? r.json() : null)).then((r) => { if (r?.recipe) announceRecipe(r.recipe) }).catch(() => {})
+  }
+
+  // On the Grandkids side “Hey Popo” talks to the assistant, which changes the shared recipe and answers aloud. (On the Grandma
+  // side the finished note listens for it itself.)
+  const bridge = useRef<KitchenVoiceBridge | null>(null)
+  const [perspective, setPerspective] = useState<Perspective>('grandma')
+  const onPerspective = useCallback((next: Perspective) => setPerspective(next), [])
+  const assistant = useVoiceAssistant(bridge)
+  const onGrandkids = perspective === 'grandkids'
+  const wake = useHeyPopo({ onWake: () => { void assistant.run() }, paused: !onGrandkids || assistant.status !== 'idle' })
+  const armWake = wake.arm
+  useEffect(() => { if (onGrandkids) armWake() }, [onGrandkids, armWake])
+  const listening = wake.armed && !wake.error
+
+  // The Recipe change button on the recipe starts the same listening, once the microphone is allowed; until then it plays the demo.
+  useEffect(() => {
+    if (!listening) return
+    const onRequest = (event: Event) => {
+      event.preventDefault()
+      void assistant.run()
+    }
+    window.addEventListener('moldable:recipe-change', onRequest)
+    return () => window.removeEventListener('moldable:recipe-change', onRequest)
+  }, [listening, assistant])
 
   return (
     <div className="gm-kitchen">
+      <RecipeSync />
       <KitchenMockup
         fridge
-        grandmaScreen={({ showRecipe, prepareRipple }) => hasEntered
-          ? <div className="gm-welcome__next"><GrandmaMinimalPage onTidy={showRecipe} onTidyStart={prepareRipple} /></div>
-          : <GrandmaWelcome onContinue={() => setHasEntered(true)} />}
+        voiceBridge={bridge}
+        onPerspective={onPerspective}
+        grandmaScreen={({ showRecipe, prepareRipple, perspective: side }) => hasEntered
+          ? <div className="gm-welcome__next"><GrandmaMinimalPage onTidy={showRecipe} onTidyStart={prepareRipple} active={side === 'grandma'} /></div>
+          : <GrandmaWelcome onContinue={begin} />}
       />
     </div>
   )

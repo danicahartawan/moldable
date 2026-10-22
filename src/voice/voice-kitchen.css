@@ -5,3 +5,7 @@
 .vk__arm, .vk__mic { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: #ff4d0d; color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
 .vk__mic { background: #f2f1ef; color: #000; }
 .vk__dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+.vk__trace { display: block; max-width: 420px; margin-top: 2px; overflow: hidden; color: #77726d; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.vk__type input { width: 190px; height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: #f2f1ef; color: #000; font: inherit; font-size: 15px; outline: none; }
+.vk__type input::placeholder { color: #8a8580; }
+.vk__type input:focus { box-shadow: 0 0 0 2px #ff5a1f; }

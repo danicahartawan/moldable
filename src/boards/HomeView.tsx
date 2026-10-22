@@ -3,6 +3,8 @@
 import './home-view.css'
 import type { ClayPlace } from '@/clay/VoiceClay'
 import { VoiceBot } from '@/voice/VoiceBot'
+import { RECIPE_EVENT, latestRecipe, requestChange } from '@/recipe/client'
+import type { RecipeDoc } from '@/recipe/model'
 import type { Vec } from '@/clay/ClaySim'
 import { createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
 import { OrangeBeam } from '@/voice/OrangeBeam'
@@ -111,11 +113,24 @@ const CLAY_MIX_MS = 5300
 // The clay's resting spot in the island, in screen px, until the island has been measured.
 const ISLAND_SPOT: Vec = { x: 62, y: 62 }
 // After "Done", the ingredients open and the clay hops onto each amount it changes; each one is rewritten as it lands.
-type Pass = { kind: 'serves2' | 'kencur'; rows: number[] }
+type Pass = { kind: 'serves2' | 'serves4' | 'kencur' | 'kencur_back' | 'chicken' | 'mild'; rows: number[] }
 const PASSES: Pass[] = [
   { kind: 'serves2', rows: ING.flatMap((r, i) => (r[2] !== r[3] ? [i] : [])) },
   { kind: 'kencur', rows: [KENCUR_ROW] },
 ]
+// Every spoken change that touches an ingredient opens the Ingredients and hops onto the rows it rewrites.
+const SERVES_ROWS = ING.flatMap((r, i) => (r[2] !== r[3] ? [i] : []))
+function passFor(change: RecipeChange | null): Pass | null {
+  switch (change) {
+    case 'serves2': return { kind: 'serves2', rows: SERVES_ROWS }
+    case 'serves4': return { kind: 'serves4', rows: SERVES_ROWS }
+    case 'kencur_swap': return { kind: 'kencur', rows: [KENCUR_ROW] }
+    case 'kencur_back': return { kind: 'kencur_back', rows: [KENCUR_ROW] }
+    case 'chicken': return { kind: 'chicken', rows: [PORK_ROW] }
+    case 'mild': return { kind: 'mild', rows: [SAMBAL_ROW] }
+    default: return null
+  }
+}
 // How the amounts are written: tidied, or as Oma says them. The switch's thumb is liquid (GooSegmented).
 const AMOUNT_MODES = [{ value: 'tidy', label: 'Tidy' }, { value: 'oma', label: 'Oma’s words' }] as const
 // A card (other than Ingredients) folds away in this long, the frost with it.
@@ -180,6 +195,8 @@ export type HomeViewHandle = {
   cancelVoice: () => void
   /** Real voice: the island starts listening and stays that way until told more. */
   voiceListen: () => void
+  /** Real voice: it has asked a question and is listening for the answer. */
+  voiceAsk: () => void
   /** Real voice: what was heard, shown in the island. */
   voiceHeard: (text: string) => void
   /** Real voice: working out what to do. */
@@ -348,6 +365,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     later(5000, () => { setPhase('thinking'); setGlow('thinking') })
     later(5800, () => {
       stage.current = next
+      // The scripted request is made for real too, so the shared recipe changes on the server.
+      void requestChange({ transcript: 'Yes', from: 'grandkid', pending: next === 1 ? [{ type: 'set_servings', value: 2 }] : [{ type: 'set_kencur_swapped', value: true }] }).catch(() => {})
       setPhase('writing')
       setGlow('done')
       setResult(ADJUST_RESULTS[next - 1])
@@ -396,6 +415,13 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     setBlobTeal(false)
     voiceLevel.current = createSimulatedLevel()
   }
+  const voiceAsk = () => {
+    clearTimers()
+    setPhase('listening')
+    setGlow('listening')
+    setHeard('')
+    setBlobTeal(false)
+  }
   const voiceHeard = (text: string) => {
     setHeard(text)
     setGlow('hearing')
@@ -418,7 +444,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     else if (change === 'kencur_swap') setKencur(true)
     else if (change === 'kencur_back') setKencur(false)
     else if (change === 'reset') { setM({ serves2: false, mild: false, chicken: false }); setKencur(false) }
-    const run = change === 'serves2' ? PASSES[0] : change === 'kencur_swap' ? PASSES[1] : null
+    const run = passFor(change)
     const label = change ? VOICE_CHANGE_LABELS[change] : null
     if (!run) {
       later(DONE_HOLD_MS + 1200, () => {
@@ -446,12 +472,41 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const recipeNowRef = useRef<RecipeSnapshotNow>({ servings: 4, mild: false, chicken: false, kencurSwapped: false, versionLabel: null })
   recipeNowRef.current = { servings: m.serves2 ? 2 : 4, mild: m.mild, chicken: m.chicken, kencurSwapped: kencur, versionLabel: versions[0]?.who === 'Grandkid' ? versions[0].what : null }
 
-  const voiceApi = useRef({ beginAdjust, cancelVoice, voiceListen, voiceHeard, voiceThinking, voiceResult })
-  voiceApi.current = { beginAdjust, cancelVoice, voiceListen, voiceHeard, voiceThinking, voiceResult }
+  // The recipe is shared: when another screen (or the assistant) changes it on the server, this one follows. A change this
+  // screen is animating itself is left to finish first.
+  const phaseNow = useRef(phase)
+  phaseNow.current = phase
+  const newestDoc = useRef<RecipeDoc | null>(latestRecipe())
+  const shownRev = useRef<number | null>(null)
+  const followRecipe = () => {
+    const doc = newestDoc.current
+    if (!doc || doc.rev === shownRev.current) return
+    shownRev.current = doc.rev
+    setM({ serves2: doc.mods.servings === 2, mild: doc.mods.mild, chicken: doc.mods.chicken })
+    setKencur(doc.mods.kencurSwapped)
+  }
+  const followRef = useRef(followRecipe)
+  followRef.current = followRecipe
+  useEffect(() => {
+    const onRecipe = (event: Event) => {
+      newestDoc.current = (event as CustomEvent<RecipeDoc>).detail
+      if (phaseNow.current === 'idle') followRef.current()
+    }
+    window.addEventListener(RECIPE_EVENT, onRecipe)
+    followRef.current()
+    return () => window.removeEventListener(RECIPE_EVENT, onRecipe)
+  }, [])
+  useEffect(() => {
+    if (phase === 'idle') followRef.current()
+  }, [phase])
+
+  const voiceApi = useRef({ beginAdjust, cancelVoice, voiceListen, voiceAsk, voiceHeard, voiceThinking, voiceResult })
+  voiceApi.current = { beginAdjust, cancelVoice, voiceListen, voiceAsk, voiceHeard, voiceThinking, voiceResult }
   useImperativeHandle(ref, () => ({
     startVoice: () => voiceApi.current.beginAdjust(),
     cancelVoice: () => voiceApi.current.cancelVoice(),
     voiceListen: () => voiceApi.current.voiceListen(),
+    voiceAsk: () => voiceApi.current.voiceAsk(),
     voiceHeard: (text) => voiceApi.current.voiceHeard(text),
     voiceThinking: () => voiceApi.current.voiceThinking(),
     voiceResult: (change, reply) => voiceApi.current.voiceResult(change, reply),
@@ -658,10 +713,10 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                 {ING.map((r, i) => {
                   // While the clay is rewriting, a row it hasn't reached yet still shows how it was.
                   const waiting = !!pass && pass.rows.indexOf(i) >= landed
-                  const halved = m.serves2 && !(waiting && pass?.kind === 'serves2')
-                  const meat = i === PORK_ROW && m.chicken
-                  const swapped = i === KENCUR_ROW && kencur && !(waiting && pass?.kind === 'kencur')
-                  const spicy = i === SAMBAL_ROW && m.mild
+                  const halved = (m.serves2 && !(waiting && pass?.kind === 'serves2')) || (!m.serves2 && waiting && pass?.kind === 'serves4')
+                  const meat = i === PORK_ROW && m.chicken && !(waiting && pass?.kind === 'chicken')
+                  const swapped = i === KENCUR_ROW && (kencur ? !(waiting && pass?.kind === 'kencur') : waiting && pass?.kind === 'kencur_back')
+                  const spicy = i === SAMBAL_ROW && m.mild && !(waiting && pass?.kind === 'mild')
                   let amt: string = halved ? r[3] : r[2]
                   if (spicy) amt = halved ? '¼ tbsp' : '½ tbsp'
                   if (swapped) amt = `${amt} + zest`

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-theme="light" className={`${interTight.variable} ${archivo.variable} ${archivoItalic.variable}`}>
+    <html lang="en" data-theme="light" suppressHydrationWarning className={`${interTight.variable} ${archivo.variable} ${archivoItalic.variable}`}>
       <body>
         {children}
         <HapticClicks />
