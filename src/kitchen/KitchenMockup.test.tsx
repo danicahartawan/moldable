@@ -41,7 +41,7 @@ describe('KitchenMockup perspectives', () => {
     expect(screen.getByTestId('kitchen-perspective-stage')).toHaveAttribute('data-perspective', 'grandma')
   })
 
-  it('opens the cooking step from the grandkids view, with Oma’s words behind the orb', () => {
+  it('opens the cooking step from the grandkids view', () => {
     render(<KitchenMockup />)
     fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
@@ -49,8 +49,7 @@ describe('KitchenMockup perspectives', () => {
     const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
     expect(within(board).getByRole('button', { name: 'Step 1' })).toHaveAttribute('aria-current', 'step')
     expect(board).toHaveTextContent('half the onions, garlic, sambal')
-    fireEvent.click(within(board).getByRole('button', { name: 'Show Oma Lien’s words' }))
-    expect(board).toHaveTextContent('Blend the aromatics first, little one.')
+    expect(within(board).queryByRole('button', { name: /Oma Lien’s words/ })).not.toBeInTheDocument()
   })
 
   it('shows what the step uses only after Ingredients is pressed', () => {

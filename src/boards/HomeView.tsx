@@ -54,7 +54,7 @@ const TINT = { time: PLAIN, serves: PLAIN, spice: { bg: '#fde3d8', ink: '#c24a24
 // Verb tags, shared with 09 Cooking step.
 const SPOON = 'M10 2.5c1.7 0 2.8 1.6 2.8 3.4S11.7 9.5 10 9.5 7.2 7.7 7.2 5.9 8.3 2.5 10 2.5z M10 9.5v8'
 const V: Record<string, { bg: string; ink: string; icon: string }> = {
-  Blend: { bg: '#fde3d8', ink: '#c24a24', icon: 'M6 3h8l-1.2 9H7.2z M6.5 12h7v5h-7z M10 14.5h.01' },
+  Blend: { bg: '#fde3d8', ink: '#c24a24', icon: 'M5.5 3h9l-1.3 9H6.8z M5 3h10 M6.5 12h7v4.5h-7z M8.6 14.4h2.8' },
   Toast: { bg: '#fbefb4', ink: '#8a6a0c', icon: 'M2 11h11a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z M13 11.5h5' },
   Fry: { bg: '#f8ddd7', ink: '#b2433a', icon: ICON.flame },
   Cook: { bg: '#fbe1d9', ink: '#bb4a30', icon: SPOON },

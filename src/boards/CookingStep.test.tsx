@@ -59,18 +59,11 @@ describe('CookingStepBoard', () => {
     expect(current()).toHaveTextContent('Step 1')
   })
 
-  it('shows Oma’s words from the orb, only on steps that have them, and hides them on a step change', () => {
+  it('has no orb beside the step label, so no hidden button for Oma’s words', () => {
     render(<CookingStepBoard />)
-    const orb = screen.getByRole('button', { name: 'Show Oma Lien’s words' })
-    fireEvent.click(orb)
-    expect(current()).toHaveTextContent('Don’t make it watery')
-    expect(current()).toHaveTextContent('Oma Lien')
-    fireEvent.click(screen.getByRole('button', { name: 'Hide Oma Lien’s words' }))
-    expect(current()).not.toHaveTextContent('Don’t make it watery')
-    fireEvent.click(screen.getByRole('button', { name: 'Show Oma Lien’s words' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Step 2' }))
-    expect(screen.queryByText(/Don’t make it watery/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Oma Lien’s words/ })).not.toBeInTheDocument()
+    expect(document.querySelector('.cs-orb')).not.toBeInTheDocument()
+    expect(current()).toHaveTextContent('Step 1')
   })
 
   it('opens the ingredients pop-up, which blocks step changes and closes with Done, the backdrop or Escape', () => {

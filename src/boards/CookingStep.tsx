@@ -23,7 +23,7 @@ const SPOON = 'M10 2.5c1.7 0 2.8 1.6 2.8 3.4S11.7 9.5 10 9.5 7.2 7.7 7.2 5.9 8.3
 
 // The verb tag's colour and icon (20×20, stroke) for each verb.
 const TAGS: Record<string, Tag> = {
-  Blend: { bg: '#fde3d8', ink: '#c24a24', icon: 'M6 3h8l-1.2 9H7.2z M6.5 12h7v5h-7z M10 14.5h.01' },
+  Blend: { bg: '#fde3d8', ink: '#c24a24', icon: 'M5.5 3h9l-1.3 9H6.8z M5 3h10 M6.5 12h7v4.5h-7z M8.6 14.4h2.8' },
   Toast: { bg: '#fbefb4', ink: '#8a6a0c', icon: 'M2 11h11a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z M13 11.5h5' },
   Fry: { bg: '#f8ddd7', ink: '#b2433a', icon: 'M10 17c-2.9 0-5-2-5-4.7 0-2.7 2.1-4 2.6-6.6 1 1.1 1.5 2.1 1.5 3.4C10.3 7.4 11.3 5.2 10.8 3c2.7 1.7 4.2 4.6 4.2 7.4C15 14.6 13 17 10 17z' },
   Cook: { bg: '#fbe1d9', ink: '#bb4a30', icon: SPOON },
@@ -279,13 +279,6 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
               >
                 <div className="cs-label" aria-hidden={away > 0}>
                   <span>Step {k + 1}</span>
-                  {s.quote && away === 0 && (
-                    <button type="button" className={`cs-orb${quoteOpen ? ' is-open' : ''}`} aria-expanded={quoteOpen}
-                      aria-label={quoteOpen ? `Hide ${recipe.cook}’s words` : `Show ${recipe.cook}’s words`}
-                      onClick={() => setQuoteOpen((o) => !o)}>
-                      <span aria-hidden="true" />
-                    </button>
-                  )}
                 </div>
                 <p ref={(el) => { sentences.current[k] = el }} className="cs-sentence" aria-hidden={away > 0}>
                   <VerbTag verb={s.verb} /> <Sentence text={s.text} />

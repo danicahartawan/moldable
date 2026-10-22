@@ -30,7 +30,7 @@ function SettlingTool({ label, active }: { label: string; active: boolean }) {
   }, [active, reducedMotion])
 
   return settled
-    ? <TranscriptToolChip label={label} iconWeight="fill" entrance="pop-up" />
+    ? <TranscriptToolChip label={label} iconWeight="bold" entrance="pop-up" />
     : <span className="gm-tool-pending">{label}</span>
 }
 
@@ -114,7 +114,7 @@ export function NoteStory({ text, visibleLength, interimText, photos, changes = 
       <span className="grandma-transcript__accessible">{text.replace(/\[([^\]]+)\]/g, '$1')}</span>
       <div aria-hidden="true">
         {pieces}
-        {interimText ? <span className="gm-story__interim"> {renderTranscriptText(interimText, 'fill')}</span> : null}
+        {interimText ? <span className="gm-story__interim"> {renderTranscriptText(interimText, 'bold')}</span> : null}
       </div>
     </div>
   )
