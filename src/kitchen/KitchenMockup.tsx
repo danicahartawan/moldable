@@ -204,7 +204,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
       </div>
 
       <div className={`kitchen__loading${ready ? ' is-gone' : ''}`}>
-        <p>{failed ? 'The table could not be set. Reload the page to try again.' : 'Setting the table…'}</p>
+        {failed ? <p>The table could not be set. Reload the page to try again.</p> : null}
       </div>
     </div>
   )

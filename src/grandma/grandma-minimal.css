@@ -155,28 +155,33 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   position: relative;
   min-height: 0;
   flex: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  touch-action: pan-y;
 }
+.gm-note__story::-webkit-scrollbar { display: none; }
 .gm-note__story.is-overflowing {
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 0, 0, .04) 6%,
-    rgba(0, 0, 0, .14) 14%,
-    rgba(0, 0, 0, .34) 23%,
-    rgba(0, 0, 0, .62) 33%,
-    rgba(0, 0, 0, .86) 42%,
-    #000 51%
+    rgba(0, 0, 0, .04) 4%,
+    rgba(0, 0, 0, .14) 10%,
+    rgba(0, 0, 0, .34) 17%,
+    rgba(0, 0, 0, .62) 25%,
+    rgba(0, 0, 0, .86) 32%,
+    #000 39%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 0, 0, .04) 6%,
-    rgba(0, 0, 0, .14) 14%,
-    rgba(0, 0, 0, .34) 23%,
-    rgba(0, 0, 0, .62) 33%,
-    rgba(0, 0, 0, .86) 42%,
-    #000 51%
+    rgba(0, 0, 0, .04) 4%,
+    rgba(0, 0, 0, .14) 10%,
+    rgba(0, 0, 0, .34) 17%,
+    rgba(0, 0, 0, .62) 25%,
+    rgba(0, 0, 0, .86) 32%,
+    #000 39%
   );
 }
 .gm-story {

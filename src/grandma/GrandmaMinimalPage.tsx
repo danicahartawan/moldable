@@ -383,12 +383,19 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
     const box = story.current
     const content = box?.firstElementChild
     if (!box || !content) return
+    // Scrolling up to read stops the follow; scrolling back to the bottom picks it up again.
+    let stuck = true
+    const onScroll = () => { stuck = box.scrollHeight - box.scrollTop - box.clientHeight < 28 }
+    box.addEventListener('scroll', onScroll, { passive: true })
     const follow = new ResizeObserver(() => {
-      if (isFollowing.current) box.scrollTop = box.scrollHeight
+      if (isFollowing.current && stuck) box.scrollTop = box.scrollHeight
       setIsStoryOverflowing(box.scrollHeight > box.clientHeight)
     })
     follow.observe(content)
-    return () => follow.disconnect()
+    return () => {
+      follow.disconnect()
+      box.removeEventListener('scroll', onScroll)
+    }
   }, [hasStory])
 
   const isDone = recorder.hasCompletedRecording
