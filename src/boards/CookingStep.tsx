@@ -33,7 +33,7 @@ const TAGS: Record<string, Tag> = {
   Serve: { bg: '#fbefb4', ink: '#8a6a0c', icon: 'M3 14h14 M4.5 14a5.5 5.5 0 0 1 11 0 M10 7v1.5 M2 16.5h16' },
 }
 
-// Lelawar Bali. Swap in another recipe by passing `recipe`.
+// Lawar Bali. Swap in another recipe by passing `recipe`.
 export const LELAWAR_BALI: Recipe = {
   cook: 'Oma Lien',
   steps: [

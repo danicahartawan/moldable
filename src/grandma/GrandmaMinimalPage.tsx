@@ -1,16 +1,18 @@
 'use client'
 
-import { BowlFood } from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
-import { DotSpinner } from '../Icon'
-import { ClayBody } from '../clay/ClayBody'
+import { ArrowsClockwise, Check } from '@phosphor-icons/react'
+import { BotAvatar } from 'bot-avatars'
 import { HomeViewFrame } from '../home/HomeViewFrame'
 import { useVoiceRecorder } from '../useVoiceRecorder'
+import { VoiceBeam } from 'voice-glow'
+import { LineIcon } from './LineIcon'
+import { simulatedLevel } from './RecordingWaveform'
+import { VoiceNotification } from '../voice/VoiceNotification'
 import { transcribeAudio } from './transcribe'
 import { demoStorySegments } from './GrandmaPage'
 import { guidingQuestions } from './GuidingQuestionRail'
 import { CameraButton, NoteStory, useTypedLength, type StoryChange, type StoryPhoto } from './NoteStory'
-import { simulatedLevel } from './RecordingWaveform'
 import './grandma.css'
 import './grandma-minimal.css'
 
@@ -23,13 +25,12 @@ const segmentStartTimes = demoStorySegments.reduce<number[]>((times, _segment, i
   return [...times, times[index - 1] + previous.length * TYPING_MS_PER_CHAR + PAUSE_BETWEEN_SEGMENTS_MS]
 }, [])
 
-const DEMO_NAME = 'Lawar Bali, Popo’s way'
+const DEMO_NAME = 'Lawar Bali'
 const DEMO_TITLE = 'Lawar Bali'
-const DEMO_VARIATION = 'Popo’s way'
 const TITLE_TYPING_MS_PER_CHAR = 70
 
 // The recipe's name types itself into the title spot, then its family variation appears underneath.
-function TypedTitle({ text, onDone }: { text: string; onDone: () => void }) {
+function TypedTitle({ text }: { text: string }) {
   const [length, setLength] = useState(0)
 
   useEffect(() => {
@@ -46,34 +47,29 @@ function TypedTitle({ text, onDone }: { text: string; onDone: () => void }) {
     return () => window.clearInterval(typing)
   }, [text])
 
-  useEffect(() => {
-    if (length >= text.length) onDone()
-  }, [length, text, onDone])
-
   return (
     <h1 className="gm-note__title" aria-label={text}>
       <span aria-hidden="true">{text.slice(0, length)}</span>
     </h1>
   )
 }
+
+export function TitlePreview() {
+  return (
+    <p className="gm-note__title gm-note__title-preview" aria-label="New Recipe">
+      <span>New Recipe</span>
+    </p>
+  )
+}
 // The first question waits until grandma has been talking for a while.
-const QUESTION_INTERVAL_MS = 30_000
+const QUESTION_INTERVAL_MS = 12_000
 const QUESTION_TYPING_MS_PER_CHAR = 40
 
-// A lump of orange clay that listens: loud words pull it longer, pauses let it relax back to round.
-function ListeningClay({ levelRef, isPaused, className = '', size = 92 }: { levelRef: RefObject<number | null>; isPaused: boolean; className?: string; size?: number }) {
-  const start = useRef(0)
-  // Read every frame by the clay's own loop: her live level, or a stand-in while there's no microphone.
-  const level = useCallback(() => {
-    const live = levelRef.current
-    if (live !== null) return live
-    if (!start.current) start.current = performance.now()
-    return simulatedLevel((performance.now() - start.current) / 1000)
-  }, [levelRef])
-
+// A little orange bot that listens in the corner: awake while she talks, asleep when paused.
+export function ListeningClay({ isPaused, className = '', size = 96 }: { levelRef?: RefObject<number | null>; isPaused: boolean; className?: string; size?: number; showEyes?: boolean }) {
   return (
     <span className={`gm-clay${isPaused ? ' is-paused' : ''}${className ? ` ${className}` : ''}`} role="status" aria-label="Listening">
-      <ClayBody width={size} height={size} home={{ x: size / 2, y: size / 2 }} radius={size * 0.35} level={isPaused ? undefined : level} />
+      <BotAvatar type="circle" color="#ff5a1f" ink="#fff" brightness={1.4} saturation={1.8} shading="smooth" size={size} state={isPaused ? 'sleeping' : 'default'} />
     </span>
   )
 }
@@ -81,50 +77,90 @@ function ListeningClay({ levelRef, isPaused, className = '', size = 92 }: { leve
 // Recipe change: the screen fogs over and the clay listens in the middle. After a fixed
 // five seconds of her talking it answers, typed out, then the fog lifts onto the marked changes.
 const RECIPE_CHANGE_LISTEN_MS = 5_000
+const RECIPE_CHANGE_FADE_MS = 1_300
 const RECIPE_CHANGE_REPLY = 'Ok, got it!'
-const RECIPE_CHANGE_SETTLE_MS = 1_400
 // A photo's chip never splits a word: it waits for the word being typed to finish (and its punctuation).
 function wordEndAt(text: string, at: number) {
   const next = text.slice(at).search(/\s/)
   return next === -1 ? text.length : at + next
 }
 
+// Tidy: the note dissolves into a mosaic of pixel blocks, each popping in at its own moment.
+const MOSAIC_SIZE = 12
+const MOSAIC_COLORS = ['#fff3ec', '#ffe3d8', '#ffd2b0', '#ffb27a', '#ff8a4c', '#ff5a1f']
+const MOSAIC = Array.from({ length: MOSAIC_SIZE * MOSAIC_SIZE }, (_, i) => {
+  // A fixed scatter, so the mosaic looks the same every time.
+  const noise = (seed: number) => { const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x) }
+  return { color: MOSAIC_COLORS[Math.floor(noise(i + 1) * MOSAIC_COLORS.length)], delay: Math.round(noise(i + 101) * 380) }
+})
+
 const SEARCH_SCROLL_MS = 1_600
-const CRUMPLE_MS = 950
+const RIPPLE_MS = 900
 // The change she asks for in the demo.
 const DEMO_CHANGE: StoryChange = { find: 'pork', replace: 'beef' }
 
-function RecipeChangeOverlay({ levelRef, onClose }: { levelRef: RefObject<number | null>; onClose: () => void }) {
+// The Recipe change beam in the brand orange: a bright core with softer peach lobes either side.
+const RECIPE_CHANGE_BEAM_COLORS = ['#ff5a1f', '#ff8a4c', '#ff8a4c', '#ffb27a', '#ffb27a', '#ffd2b0', '#ffd2b0']
+
+// Her live level, or a stand-in swell while there's no microphone.
+function useBeamLevel(levelRef: RefObject<number | null>) {
+  const start = useRef(0)
+  return useCallback(() => {
+    const live = levelRef.current
+    if (live !== null) return live
+    if (!start.current) start.current = performance.now()
+    return simulatedLevel((performance.now() - start.current) / 1000)
+  }, [levelRef])
+}
+
+// The voice beam along the bottom edge, in the brand orange.
+function OrangeBeam({ level, active, className }: { level: () => number; active: boolean; className?: string }) {
+  return (
+    <VoiceBeam
+      type="mobile"
+      theme="light"
+      strength={0.7}
+      level={level}
+      active={active}
+      colors={RECIPE_CHANGE_BEAM_COLORS}
+      bandColors={{ core: '#ff5a1f', above: '#ffb27a', mid: '#ff8a4c', below: '#ffd2b0' }}
+      staticColors
+    >
+      <div className={className ?? 'gm-recipe-change__beam-host'} />
+    </VoiceBeam>
+  )
+}
+
+export function RecipeChangeOverlay({ levelRef, onClose, onHeard }: { levelRef: RefObject<number | null>; onClose: () => void; onHeard?: () => void }) {
   const [hasHeard, setHasHeard] = useState(false)
-  const reply = useTypedLength(hasHeard ? RECIPE_CHANGE_REPLY : '')
 
   useEffect(() => {
-    const heard = window.setTimeout(() => setHasHeard(true), RECIPE_CHANGE_LISTEN_MS)
+    const heard = window.setTimeout(() => {
+      setHasHeard(true)
+      onHeard?.()
+    }, RECIPE_CHANGE_LISTEN_MS)
     return () => window.clearTimeout(heard)
-  }, [])
+  }, [onHeard])
 
-  // Once the reply has finished typing, the fog lifts by itself (a tap lifts it sooner).
+  // After "Ok, got it!" the beam fades out, then the fog lifts onto the marked changes.
   useEffect(() => {
-    if (!hasHeard || reply < RECIPE_CHANGE_REPLY.length) return
-    const settle = window.setTimeout(onClose, RECIPE_CHANGE_SETTLE_MS)
-    return () => window.clearTimeout(settle)
-  }, [hasHeard, reply, onClose])
+    if (!hasHeard) return
+    const lift = window.setTimeout(onClose, RECIPE_CHANGE_FADE_MS)
+    return () => window.clearTimeout(lift)
+  }, [hasHeard, onClose])
+
+  const state = hasHeard ? 'done' : 'listening'
+  const level = useBeamLevel(levelRef)
 
   return (
-    <div className="gm-fog" role="dialog" aria-label="Recipe change" onClick={hasHeard ? onClose : undefined}>
-      <ListeningClay levelRef={levelRef} isPaused={hasHeard} className="gm-clay--center" size={150} />
-      {hasHeard ? (
-        <p className="gm-fog__reply" aria-live="polite">
-          <span className="gm-question__accessible">{RECIPE_CHANGE_REPLY}</span>
-          <span aria-hidden="true">{RECIPE_CHANGE_REPLY.slice(0, reply)}</span>
-        </p>
-      ) : (
-        <p className="gm-cradle" aria-label="Listening"><span /><span /><span /></p>
-      )}
+    <div className="gm-recipe-change" role="dialog" aria-label="Recipe change">
+      <OrangeBeam level={level} active={!hasHeard} />
+      <VoiceNotification state={state} heard="" result={RECIPE_CHANGE_REPLY} doneStatus="" level={level} />
     </div>
   )
 }
 
+// The next guiding question types out in the middle of the screen, above the bot.
 function TypedQuestion({ text }: { text: string }) {
   const [length, setLength] = useState(0)
 
@@ -152,13 +188,12 @@ function TypedQuestion({ text }: { text: string }) {
 }
 
 // The grandma screen as a recipe note: the whole story writes itself into the note while recording.
-export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
+export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => void; onTidyStart?: () => void } = {}) {
   const recorder = useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone: true })
   const [segmentCount, setSegmentCount] = useState(0)
   const [guidingQuestionIndex, setGuidingQuestionIndex] = useState<number | null>(null)
   const [demoName, setDemoName] = useState('')
   const [noteBody, setNoteBody] = useState('')
-  const [isTitleTyped, setIsTitleTyped] = useState(false)
   const demoClock = useRef({ elapsed: 0, questions: 0 })
   const isRecording = recorder.status === 'recording'
   const isPaused = recorder.isPaused
@@ -197,7 +232,7 @@ export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
 
   useEffect(() => {
     if (!isRecording) return
-    const naming = window.setTimeout(() => setDemoName(DEMO_NAME), 5_000)
+    const naming = window.setTimeout(() => setDemoName(DEMO_NAME), 7_000)
     return () => window.clearTimeout(naming)
   }, [isRecording])
 
@@ -210,7 +245,6 @@ export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
   }, [recorder])
 
   const demoTranscript = demoStorySegments.slice(0, segmentCount).join(' ')
-  const markTitleTyped = useCallback(() => setIsTitleTyped(true), [])
   const noteText = hasSpokenTranscript ? recorder.transcript : demoTranscript
   const visibleLength = useTypedLength(noteText)
   const visibleLengthRef = useRef(visibleLength)
@@ -221,24 +255,28 @@ export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   // Recipe change opens the fog overlay; Tidy only shows it's chosen for now.
   const [doneView, setDoneView] = useState<'changes' | 'tidy' | null>(null)
-  const [isCrumpling, setIsCrumpling] = useState(false)
+  const [isRippling, setIsRippling] = useState(false)
 
-  // Tidy: the note crumples into a ball, then the kitchen hands over to the Grandkids recipe, which opens like a book.
+  // Tidy: a ripple clears the note, then the kitchen hands over to the Grandkids recipe.
   const tidy = () => {
+    onTidyStart?.()
     setDoneView('tidy')
-    setIsCrumpling(true)
+    setIsRippling(true)
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    window.setTimeout(() => onTidy?.(), reducedMotion ? 0 : CRUMPLE_MS)
-    // Smooth the page back out once it's out of sight, ready for a return visit.
-    window.setTimeout(() => setIsCrumpling(false), (reducedMotion ? 0 : CRUMPLE_MS) + 900)
+    window.setTimeout(() => onTidy?.(), reducedMotion ? 0 : RIPPLE_MS)
+    window.setTimeout(() => setIsRippling(false), (reducedMotion ? 0 : RIPPLE_MS) + 900)
   }
   const [changes, setChanges] = useState<StoryChange[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [isRecipeListening, setIsRecipeListening] = useState(false)
+  const [isRecipeChangeDone, setIsRecipeChangeDone] = useState(false)
+  const markRecipeChangeDone = useCallback(() => setIsRecipeChangeDone(true), [])
   const applyRecipeChange = useCallback(() => {
     setIsRecipeListening(false)
     setIsSearching(true)
     setChanges([DEMO_CHANGE])
+    setDoneView(null)
+    setIsRecipeChangeDone(false)
   }, [])
 
   // The note scrolls through the story as if looking for the change, then marks it once it lands there.
@@ -290,27 +328,21 @@ export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
   }, [hasStory])
 
   const isDone = recorder.hasCompletedRecording
+  const recordingLevel = useBeamLevel(recorder.levelRef)
 
   return (
-    <HomeViewFrame label="Grandma HomeView" className={`grandma-homeview grandma-minimal${isCrumpling ? ' is-crumpling' : ''}`}>
+    <HomeViewFrame label="Grandma HomeView" className={`grandma-homeview grandma-minimal${isRippling ? ' is-rippling' : ''}`}>
       <div className="gm-sheet">
-      <section className={`gm-note${isCameraOpen ? ' is-beside-camera' : ''}`} aria-label="Note">
+      <div className="gm-mosaic" aria-hidden="true">{MOSAIC.map((cell, i) => <span key={i} style={{ background: cell.color, animationDelay: `${cell.delay}ms` }} />)}</div>
+      <section className={`gm-note${isCameraOpen ? ' is-beside-camera' : ''}${isRecording ? ' is-recording' : ''}`} aria-label="Note">
         <div className="gm-note__head">
           {demoName ? (
-            <TypedTitle text={DEMO_TITLE} onDone={markTitleTyped} />
+            <TypedTitle text={DEMO_TITLE} />
           ) : isDone ? (
             <h1 className="gm-note__title">{DEMO_TITLE}</h1>
           ) : (
-            <p className="gm-note__title gm-note__title--starting" aria-live="polite"><DotSpinner /><span>Starting</span></p>
+            <TitlePreview />
           )}
-        </div>
-        <div className="gm-note__chips">
-          {isTitleTyped ? (
-            <span className="gm-note__chip">
-              <BowlFood size={18} aria-hidden="true" />
-              <span className="gm-note__chip-label">{DEMO_VARIATION}</span>
-            </span>
-          ) : null}
         </div>
         {hasStory ? (
           <div ref={story} className={`gm-note__story${isStoryOverflowing ? ' is-overflowing' : ''}${isSearching ? ' is-searching' : ''}`}>
@@ -339,25 +371,28 @@ export function GrandmaMinimalPage({ onTidy }: { onTidy?: () => void } = {}) {
       {isRecording ? (
         <div className="gm-controls" role="group" aria-label="Recording">
           <button className="grandma-waveform__pause" type="button" aria-label={isPaused ? 'Resume recording' : 'Pause recording'} aria-pressed={isPaused} onClick={recorder.togglePause}>
-            {isPaused ? <span className="grandma-waveform__play" /> : <><span /><span /></>}
+            <LineIcon name={isPaused ? 'play' : 'pause'} />
           </button>
           <button className="grandma-waveform__stop" type="button" aria-label="Stop recording" onClick={recorder.toggle}>
-            <span />
+            <LineIcon name="stop" />
           </button>
         </div>
       ) : null}
       {isDone ? (
         <div className="gm-done-bar">
-          <ListeningClay levelRef={recorder.levelRef} isPaused className="gm-clay--beside" size={52} />
           <div className="gm-controls gm-controls--done" role="group" aria-label="Story">
-            <button type="button" aria-pressed={doneView === 'changes'} onClick={() => { setDoneView('changes'); setIsRecipeListening(true) }}>Recipe change</button>
+            <button className={`gm-recipe-change-button${isRecipeChangeDone ? ' is-done' : ''}`} type="button" aria-pressed={doneView === 'changes'} onClick={() => { setDoneView('changes'); setIsRecipeChangeDone(false); setIsRecipeListening(true) }}>
+              <span className="gm-recipe-change-button__default"><ArrowsClockwise size={22} aria-hidden="true" /><span>Recipe change</span></span>
+              <Check className="gm-recipe-change-button__done" size={27} weight="bold" aria-label="Done" />
+            </button>
             <button type="button" aria-pressed={doneView === 'tidy'} onClick={tidy}>Tidy</button>
           </div>
         </div>
       ) : null}
       {isRecording ? <CameraButton onCapture={addPhoto} onOpenChange={setIsCameraOpen} /> : null}
-      {isRecording ? <ListeningClay levelRef={recorder.levelRef} isPaused={isPaused} /> : null}
-      {isRecipeListening ? <RecipeChangeOverlay levelRef={recorder.levelRef} onClose={applyRecipeChange} /> : null}
+      {isRecording ? <div className="gm-recording-beam" aria-hidden="true"><OrangeBeam level={recordingLevel} active={!isPaused} /></div> : null}
+      {isRecording ? <ListeningClay isPaused={isPaused} /> : null}
+      {isRecipeListening ? <RecipeChangeOverlay levelRef={recorder.levelRef} onClose={applyRecipeChange} onHeard={markRecipeChangeDone} /> : null}
       {guidingQuestionIndex !== null ? (
         <TypedQuestion text={guidingQuestions[guidingQuestionIndex]} />
       ) : null}

@@ -15,9 +15,20 @@
 .kitchen__gl { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
 .kitchen__css { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
 .kitchen__screen { position: absolute; left: 0; top: 0; width: 640px; height: 640px; overflow: hidden; border-radius: 68px; background: #fff; transform-origin: 0 0; pointer-events: auto; }
-.kitchen__host { position: absolute; inset: 0; transition: opacity 520ms cubic-bezier(.2,.8,.2,1), filter 520ms ease, transform 520ms cubic-bezier(.2,.8,.2,1); }
-.kitchen__host--grandma.is-off { opacity: 0; filter: blur(9px); transform: translateX(-42px) scale(.985); pointer-events: none; }
-.kitchen__host--grandkids.is-off { opacity: 0; filter: blur(9px); transform: translateX(42px) scale(.985); pointer-events: none; }
+.kitchen__host {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 980ms cubic-bezier(.22, .72, .18, 1),
+    filter 980ms ease,
+    transform 1100ms cubic-bezier(.22, .72, .18, 1);
+  will-change: transform, opacity;
+}
+.kitchen__host--grandma.is-off { opacity: 0; filter: blur(3px); transform: translateX(-100%); pointer-events: none; }
+.kitchen__host--grandkids.is-off { opacity: 0; filter: blur(3px); transform: translateX(100%); pointer-events: none; }
+.kitchen[data-transition='ripple'] .kitchen__host { transition: opacity 700ms ease, filter 700ms ease, transform 900ms cubic-bezier(.22, .72, .18, 1); }
+.kitchen[data-transition='ripple'] .kitchen__host--grandma.is-off,
+.kitchen[data-transition='ripple'] .kitchen__host--grandkids.is-off { transform: scale(1.04); filter: blur(10px); }
 .kitchen__grandkids-view { position: absolute; inset: 0; transition: transform 700ms cubic-bezier(.22, 1, .36, 1), opacity 500ms ease, filter 600ms ease; }
 /* Home → cooking step is a blur crossfade, not a sideways push: the home view eases back and blurs away
    while the step screen fades in and its first step rises into place. */

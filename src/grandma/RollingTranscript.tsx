@@ -22,19 +22,26 @@ const transcriptTools: Record<string, { id: ToolId; Icon: Icon }> = {
 
 const toolMarkerPattern = /(\[(?:Blend|Microwave|Temperature|Timer|Weigh)\])/g
 
+export function TranscriptToolChip({ label, iconWeight = 'regular', entrance }: { label: string; iconWeight?: IconWeight; entrance?: 'pop-up' }) {
+  const tool = transcriptTools[label]
+  if (!tool) return <>{label}</>
+
+  const ToolIcon = tool.Icon
+  return (
+    <span className="grandma-transcript-tool-chip" data-tool={tool.id} data-entrance={entrance}>
+      <ToolIcon size={19} weight={iconWeight} />
+      <span className="grandma-transcript-tool-chip__label">{label}</span>
+    </span>
+  )
+}
+
 export function renderTranscriptText(text: string, iconWeight: IconWeight = 'regular') {
   return text.split(toolMarkerPattern).map((segment, index) => {
     const label = segment.startsWith('[') && segment.endsWith(']') ? segment.slice(1, -1) : ''
     const tool = transcriptTools[label]
     if (!tool) return segment
 
-    const ToolIcon = tool.Icon
-    return (
-      <span className="grandma-transcript-tool-chip" data-tool={tool.id} key={`${label}-${index}`}>
-        <ToolIcon size={19} weight={iconWeight} />
-        <span className="grandma-transcript-tool-chip__label">{label}</span>
-      </span>
-    )
+    return <TranscriptToolChip label={label} iconWeight={iconWeight} key={`${label}-${index}`} />
   })
 }
 

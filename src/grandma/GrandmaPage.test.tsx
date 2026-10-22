@@ -94,7 +94,7 @@ describe('GrandmaPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Recipe change' }))
     expect(screen.getByRole('region', { name: 'Recipe' })).toHaveTextContent('Toast the grated coconut')
     fireEvent.click(screen.getByRole('button', { name: 'Tidy' }))
-    expect(await screen.findByRole('heading', { name: 'Lelawar Bali' }, { timeout: 4000 })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Lawar Bali' }, { timeout: 4000 })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Live transcript' })).not.toBeInTheDocument()
   })
 

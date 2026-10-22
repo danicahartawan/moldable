@@ -9,7 +9,7 @@ import { AmbienceToggle } from '@/ambience/AmbienceToggle'
 
 type Perspective = 'grandma' | 'grandkids'
 
-type KitchenControls = { showGrandkids: () => void; showRecipe: () => void }
+type KitchenControls = { showGrandkids: () => void; showRecipe: () => void; prepareRipple: () => void }
 
 // `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
 export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean } = {}) {
@@ -19,14 +19,18 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   const perspectiveRef = useRef<Perspective>('grandma')
   const [perspective, setPerspectiveState] = useState<Perspective>('grandma')
   const [instructionStep, setInstructionStep] = useState<number | null>(null)
-  // With `fridge`, Grandkids starts on the fridge cookbooks; tapping Lelawar Bali dives into the recipe.
+  // With `fridge`, Grandkids starts on the fridge cookbooks; tapping Lawar Bali dives into the recipe.
   // The grandma screen can hand over straight to the recipe: the fridge is rebuilt already open on it.
   const [recipeHandover, setRecipeHandover] = useState(0)
   // Done at the end of cooking closes the recipe back onto the fridge door.
   const [fridgeClose, setFridgeClose] = useState(0)
   const [leavingStep, setLeavingStep] = useState<number | null>(null)
+  // Tidy hands over with a ripple dissolve instead of the sideways slide.
+  const [isRippleSwap, setIsRippleSwap] = useState(false)
   // The swipe moves the Grandkids host straight through its style, so a drag doesn't re-render the kitchen on every move.
   const host = useRef<HTMLDivElement>(null)
+  const grandmaHost = useRef<HTMLDivElement>(null)
+  const dragEl = useRef<HTMLDivElement | null>(null)
   const draggingRef = useRef(false)
   const [dragging, setDragging] = useState(false)
   const [ready, setReady] = useState(false)
@@ -68,26 +72,30 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
   }
 
   const moveSwipe = (event: React.PointerEvent<HTMLElement>) => {
-    if (swipeStart.current === null || perspectiveRef.current !== 'grandkids') return
+    if (swipeStart.current === null) return
+    const onGrandma = perspectiveRef.current === 'grandma'
     const distance = event.clientX - swipeStart.current
     if (Math.abs(distance) < 8) return
     const scale = (screen.current?.getBoundingClientRect().width ?? 640) / 640 || 1
-    const el = host.current
+    const el = onGrandma ? grandmaHost.current : host.current
     if (!el) return
     if (!draggingRef.current) {
       draggingRef.current = true
+      dragEl.current = el
       el.classList.add('is-dragging')
-      setDragging(true)
+      if (!onGrandma) setDragging(true)
     }
-    el.style.transform = `translateX(${distance / scale}px)`
+    // Grandma slides away to the left toward Grandkids, whichever way the swipe goes.
+    el.style.transform = `translateX(${(onGrandma ? -Math.abs(distance) : distance) / scale}px)`
   }
 
   // Class and transform go together, so the host glides back with its transition on.
   const clearDrag = () => {
     if (!draggingRef.current) return
     draggingRef.current = false
-    host.current?.classList.remove('is-dragging')
-    if (host.current) host.current.style.transform = ''
+    dragEl.current?.classList.remove('is-dragging')
+    if (dragEl.current) dragEl.current.style.transform = ''
+    dragEl.current = null
     setDragging(false)
   }
 
@@ -105,7 +113,10 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
       goToStep(1)
       return
     }
-    if (distance < -56) setPerspective('grandkids')
+    if (perspective === 'grandma') {
+      if (Math.abs(distance) > 56) setPerspective('grandkids')
+      return
+    }
     if (distance > 56) setPerspective('grandma')
   }
 
@@ -114,6 +125,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
       className="kitchen"
       data-testid="kitchen-perspective-stage"
       data-perspective={perspective}
+      data-transition={isRippleSwap ? 'ripple' : 'slow-slide'}
       onPointerDown={beginSwipe}
       onPointerMove={moveSwipe}
       onPointerUp={endSwipe}
@@ -122,8 +134,8 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false 
       <canvas ref={canvas} className="kitchen__gl" aria-hidden="true" />
       <div className="kitchen__css">
         <div ref={screen} className="kitchen__screen">
-          <div data-testid="kitchen-grandma" className={`kitchen__host kitchen__host--grandma${perspective === 'grandma' ? '' : ' is-off'}`} aria-hidden={perspective !== 'grandma'} inert={perspective !== 'grandma'}>
-            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids'), showRecipe: () => { setPerspective('grandkids'); setRecipeHandover((n) => n + 1) } }) : grandmaScreen}
+          <div ref={grandmaHost} data-testid="kitchen-grandma" className={`kitchen__host kitchen__host--grandma${perspective === 'grandma' ? '' : ' is-off'}`} aria-hidden={perspective !== 'grandma'} inert={perspective !== 'grandma'}>
+            {typeof grandmaScreen === 'function' ? grandmaScreen({ showGrandkids: () => setPerspective('grandkids'), showRecipe: () => { setIsRippleSwap(true); window.setTimeout(() => setIsRippleSwap(false), 2400); setPerspective('grandkids'); setRecipeHandover((n) => n + 1) }, prepareRipple: () => setIsRippleSwap(true) }) : grandmaScreen}
           </div>
           <div ref={host} data-testid="kitchen-grandkids" className={`kitchen__host kitchen__host--grandkids${perspective === 'grandkids' ? '' : ' is-off'}${dragging ? ' is-dragging' : ''}`} aria-hidden={perspective !== 'grandkids'} inert={perspective !== 'grandkids'}>
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>

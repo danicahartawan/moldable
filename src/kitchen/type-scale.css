@@ -21,15 +21,19 @@
 .gm-kitchen textarea { font-family: inherit; }
 
 /* Titles */
-.gm-kitchen .gm-note__title { font-size: var(--type-title); line-height: 38px; letter-spacing: var(--type-tight); font-weight: var(--type-weight); }
+/* The recipe title matches the Grandkids side (.hm-title). */
+.gm-kitchen .gm-note__title { font-family: "Archivo", "Helvetica Neue", system-ui, sans-serif; font-size: 60px; line-height: 64px; letter-spacing: -.03em; font-weight: 500; }
 
 /* Headings */
-.gm-kitchen .gm-question { font-size: var(--type-heading); line-height: 28px; letter-spacing: var(--type-snug); font-weight: var(--type-weight); }
+.gm-kitchen .gm-question { font-family: "Archivo", "Helvetica Neue", system-ui, sans-serif; font-size: 24px; line-height: 32px; letter-spacing: -.012em; font-weight: 400; }
+
+/* The live transcript matches the recipe description on the Grandkids side (.hm-sentence). */
+.gm-kitchen .gm-story { font-family: "Archivo", "Helvetica Neue", system-ui, sans-serif; font-size: 30px; line-height: 39px; letter-spacing: -.012em; font-weight: 400; }
 
 /* Body: the text you read and tap */
-.gm-kitchen .gm-story,
 .gm-kitchen .gm-note__body,
 .gm-kitchen .gm-controls--done button { font-size: var(--type-body); font-weight: var(--type-weight); }
+.gm-kitchen .gm-controls--done button { font-size: 22px; }
 
 /* Small: supporting text */
 .gm-kitchen .gm-note__chip { font-size: var(--type-small); font-weight: var(--type-weight); }

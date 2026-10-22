@@ -13,6 +13,7 @@ describe('KitchenMockup perspectives', () => {
     const stage = screen.getByTestId('kitchen-perspective-stage')
 
     expect(stage).toHaveAttribute('data-perspective', 'grandma')
+    expect(stage).toHaveAttribute('data-transition', 'slow-slide')
     expect(screen.getByRole('button', { name: 'Grandma' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: 'Grandkids' })).toHaveAttribute('aria-pressed', 'false')
 
@@ -21,7 +22,7 @@ describe('KitchenMockup perspectives', () => {
 
     expect(stage).toHaveAttribute('data-perspective', 'grandkids')
     expect(screen.getByRole('button', { name: 'Grandkids' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeVisible()
 
     fireEvent.pointerDown(stage, { clientX: 120 })
     fireEvent.pointerUp(stage, { clientX: 520 })

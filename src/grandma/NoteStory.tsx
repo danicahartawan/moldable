@@ -1,20 +1,63 @@
 'use client'
 
-import { Camera, X } from '@phosphor-icons/react'
+import { X } from '@phosphor-icons/react'
+import { LineIcon } from './LineIcon'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { renderTranscriptText } from './RollingTranscript'
+import { renderTranscriptText, TranscriptToolChip } from './RollingTranscript'
 
 export type StoryPhoto = { id: number; at: number; src: string }
 export type StoryChange = { find: string; replace: string }
 
+const TOOL_SETTLE_MS = 1_500
+const toolMarkerPattern = /(\[(?:Blend|Microwave|Temperature|Timer|Weigh)\])/g
+const ingredientPattern = /(lime leaves|lime juice|ground beef|white rice|green beans|grated coconut|spice paste|onion|garlic|chili|kencur|pepper|pork|beef|coconut|chives|lime|rice|salt)/gi
+
+function SettlingTool({ label, active }: { label: string; active: boolean }) {
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const [settled, setSettled] = useState(Boolean(reducedMotion) && active)
+
+  useEffect(() => {
+    if (!active) {
+      setSettled(false)
+      return
+    }
+    if (reducedMotion) {
+      setSettled(true)
+      return
+    }
+    const timer = window.setTimeout(() => setSettled(true), TOOL_SETTLE_MS)
+    return () => window.clearTimeout(timer)
+  }, [active, reducedMotion])
+
+  return settled
+    ? <TranscriptToolChip label={label} iconWeight="fill" entrance="pop-up" />
+    : <span className="gm-tool-pending">{label}</span>
+}
+
+function renderSettlingTranscript(text: string, colorize: boolean) {
+  return text.split(toolMarkerPattern).map((segment, index) => {
+    const label = segment.startsWith('[') && segment.endsWith(']') ? segment.slice(1, -1) : ''
+    return label ? <SettlingTool label={label} active={colorize} key={`${label}-${index}`} /> : segment
+  })
+}
+
+function renderIngredients(text: string, keyPrefix: string) {
+  return text.split(ingredientPattern).map((part, index) => (
+    index % 2 === 1
+      ? <span className="gm-ingredient-word" data-effect="ink-reveal" key={`${keyPrefix}-ingredient-${index}`}>{part}</span>
+      : part
+  ))
+}
+
 // Marks each requested change in orange: the old word struck through, the new one beside it.
-function renderWithChanges(text: string, changes: StoryChange[]): ReactNode[] {
-  return renderTranscriptText(text, 'fill').flatMap((node, index) => {
-    if (typeof node !== 'string' || !changes.length) return [node]
+function renderWithChanges(text: string, changes: StoryChange[], colorize: boolean): ReactNode[] {
+  return renderSettlingTranscript(text, colorize).flatMap((node, index) => {
+    if (typeof node !== 'string') return [node]
+    if (!changes.length) return colorize ? renderIngredients(node, `${index}`) : [node]
     const pattern = new RegExp(`\\b(${changes.map((change) => change.find).join('|')})\\b`, 'g')
-    return node.split(pattern).map((part, partIndex) => {
+    return node.split(pattern).flatMap((part, partIndex) => {
       const change = changes.find((candidate) => candidate.find === part)
-      if (!change) return part
+      if (!change) return colorize ? renderIngredients(part, `${index}-${partIndex}`) : [part]
       return (
         <mark className="gm-change" key={`change-${index}-${partIndex}`}>
           <s>{change.find}</s><span className="gm-change__new"> {change.replace}</span>
@@ -53,18 +96,18 @@ export function useTypedLength(target: string) {
 }
 
 // The story as typed so far, with a numbered [Image n] marker wherever a photo was taken.
-export function NoteStory({ text, visibleLength, interimText, photos, changes = [] }: { text: string; visibleLength: number; interimText: string; photos: StoryPhoto[]; changes?: StoryChange[] }) {
+export function NoteStory({ text, visibleLength, interimText, photos, changes = [], colorize = true }: { text: string; visibleLength: number; interimText: string; photos: StoryPhoto[]; changes?: StoryChange[]; colorize?: boolean }) {
   const pieces: ReactNode[] = []
   let cursor = 0
   for (const photo of [...photos].sort((a, b) => a.at - b.at)) {
     const at = Math.min(photo.at, visibleLength)
-    if (at > cursor) pieces.push(<span key={`text-${cursor}`}>{renderWithChanges(text.slice(cursor, at), changes)}</span>)
+    if (at > cursor) pieces.push(<span key={`text-${cursor}`}>{renderWithChanges(text.slice(cursor, at), changes, colorize)}</span>)
     pieces.push(
       <span key={`photo-${photo.id}`} className="gm-image-chip">[Image {photo.id}]</span>,
     )
     cursor = Math.max(cursor, at)
   }
-  if (visibleLength > cursor) pieces.push(<span key={`text-${cursor}`}>{renderWithChanges(text.slice(cursor, visibleLength), changes)}</span>)
+  if (visibleLength > cursor) pieces.push(<span key={`text-${cursor}`}>{renderWithChanges(text.slice(cursor, visibleLength), changes, colorize)}</span>)
 
   return (
     <div className="gm-story" aria-live="polite">
@@ -132,7 +175,7 @@ export function CameraButton({ onCapture, onOpenChange }: { onCapture: (src: str
     <>
       {view === 'closed' ? (
         <button type="button" className="gm-camera" aria-label="Take a photo" onClick={open}>
-          <Camera size={22} weight="fill" />
+          <LineIcon name="camera" />
         </button>
       ) : (
         <div className="gm-viewfinder" role="dialog" aria-label="Camera">

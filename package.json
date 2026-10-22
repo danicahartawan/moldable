@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "bot-avatars": "^0.2.2",
     "next": "^16.4.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "three": "^0.160.1"
+    "three": "^0.160.1",
+    "voice-glow": "^0.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

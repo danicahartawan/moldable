@@ -3,7 +3,7 @@
 
 .gm-note {
   position: absolute;
-  top: calc(7% + 44px);
+  top: 7%;
   right: 7%;
   bottom: 24%;
   left: 7%;
@@ -13,24 +13,57 @@
   gap: 14px;
 }
 
+.gm-note.is-recording { bottom: calc(4% + 176px); }
 .gm-note__head { display: flex; align-items: center; gap: 16px; max-width: 62%; }
 .gm-note__head .gm-note__title { width: auto; min-width: 4ch; flex: 0 1 auto; field-sizing: content; }
 
 /* Listening: a lump of orange clay in the bottom-right corner (ClayBody), pulled longer as she speaks. */
 .gm-clay {
   position: absolute;
-  right: 5%;
   bottom: 4%;
+  left: 50%;
   z-index: 3;
   display: inline-flex;
-  width: 92px;
-  height: 92px;
+  width: 96px;
+  height: 96px;
+  margin-left: -48px;
   flex: none;
   align-items: center;
   justify-content: center;
-  animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
+  transform-origin: 50% 50%;
+  animation: gm-clay-pop 640ms cubic-bezier(.2, 1.3, .3, 1) both;
 }
+@keyframes gm-clay-pop { from { opacity: 0; transform: scale(.1); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .gm-clay { animation: none; } }
+
+.gm-clay__face {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  transform: translateX(-50%);
+  animation: gm-clay-look-around 2.4s cubic-bezier(.3, 0, .2, 1) both;
+}
+.gm-clay__eye { display: block; width: 11px; height: 19px; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgba(122, 34, 0, .12); }
+.gm-clay.has-eyes .clay { transform-origin: 50% 60%; animation: gm-clay-curious-nod 2.4s cubic-bezier(.3, 0, .2, 1) both; }
+@keyframes gm-clay-look-around {
+  0% { opacity: 0; transform: translateX(-50%) scaleY(.12); }
+  8% { opacity: 1; transform: translateX(-50%) scaleY(1); }
+  16%, 30% { transform: translateX(calc(-50% + 7px)); }
+  38%, 52% { transform: translateX(calc(-50% - 7px)); }
+  60%, 74% { transform: translateX(-50%); }
+  80% { transform: translateX(-50%) translateY(4px) scaleY(.72); }
+  90% { transform: translateX(-50%) translateY(-1px) scaleY(1); }
+  100% { opacity: 1; transform: translateX(-50%); }
+}
+@keyframes gm-clay-curious-nod {
+  0%, 72% { transform: none; }
+  80% { transform: translateY(5px) rotate(3deg) scaleY(.94); }
+  90% { transform: translateY(-2px) rotate(-1deg) scaleY(1.03); }
+  100% { transform: none; }
+}
 
 .gm-note__title {
   width: 100%;
@@ -40,18 +73,28 @@
   color: #000;
   font: inherit;
   font-size: 34px;
-  font-weight: 300;
-  letter-spacing: -.02em;
-  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -.03em;
+  line-height: 1.07;
   outline: none;
 }
 .gm-note__title::placeholder { color: #000; }
 h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000; text-transform: none; white-space: nowrap; }
-.gm-note__title--starting { display: inline-flex; align-items: center; gap: 12px; }
-.gm-note__title--starting .md-dots { width: 26px; height: 26px; }
-.gm-note__title--starting .md-dots circle { fill: currentColor; animation: gm-dot-pulse 900ms ease-in-out infinite; }
-@keyframes gm-dot-pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .gm-note__title--starting .md-dots circle { animation: none; } }
+/* Loading state: colour sweeps across "New Recipe" from left to right, no popping. */
+.gm-note__title-preview { display: block; }
+.gm-note__title-preview span {
+  display: inline-block;
+  background: linear-gradient(90deg, #b9b5b0 0%, #b9b5b0 35%, #ff6a33 50%, #b9b5b0 65%, #b9b5b0 100%) 100% 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: gm-title-sweep 2s linear infinite;
+}
+@keyframes gm-title-sweep { to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .gm-note__title-preview span { animation: none; background: none; color: #b9b5b0; -webkit-text-fill-color: #b9b5b0; }
+}
 
 .gm-note__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
@@ -114,20 +157,61 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   flex: 1;
   overflow: hidden;
 }
-.gm-note__story.is-overflowing { mask-image: linear-gradient(to bottom, transparent 0, #000 22%); }
+.gm-note__story.is-overflowing {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, .04) 8%,
+    rgba(0, 0, 0, .14) 18%,
+    rgba(0, 0, 0, .34) 30%,
+    rgba(0, 0, 0, .62) 43%,
+    rgba(0, 0, 0, .86) 55%,
+    #000 66%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, .04) 8%,
+    rgba(0, 0, 0, .14) 18%,
+    rgba(0, 0, 0, .34) 30%,
+    rgba(0, 0, 0, .62) 43%,
+    rgba(0, 0, 0, .86) 55%,
+    #000 66%
+  );
+}
 .gm-story {
   margin: 0;
-  color: #1f1c19;
-  font-size: 18px;
+  color: #8c8884;
+  font-family: inherit;
+  font-size: 27px;
   font-weight: 300;
-  line-height: 1.45;
+  letter-spacing: -.025em;
+  line-height: 1.18;
 }
 .gm-story__interim { color: #85827e; }
+
+.gm-tool-pending { color: inherit; font-weight: inherit; }
+.gm-ingredient-word {
+  background-color: #8c8884;
+  background-image: linear-gradient(90deg, #161412, #161412);
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-clip: text;
+  color: transparent;
+  font-weight: 300;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gm-ingredient-ink 720ms cubic-bezier(.22, .7, .2, 1) forwards;
+}
+@keyframes gm-ingredient-ink {
+  to { background-size: 100% 100%; }
+}
 
 /* Camera: a gray round button under the pause/stop pill, in the same style. */
 .gm-camera {
   position: absolute;
-  top: calc(6% + 104px);
+  top: calc(6% + 84px);
   right: 5%;
   z-index: 4;
   display: flex;
@@ -138,21 +222,22 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   padding: 0;
   border: 0;
   border-radius: 24px;
-  background: #f4f4f3;
-  color: #000;
+  background: #f2f1ef;
+  color: #1f1c19;
   cursor: pointer;
   animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
 }
-.gm-camera:hover { background: #ebebe9; }
+.gm-camera { margin-right: 10px; }
+.gm-camera:hover { background: #e8e6e2; }
 .gm-camera:active { transform: scale(.95); }
-.gm-note { right: calc(5% + 64px); transition: right 460ms cubic-bezier(.2, .9, .25, 1); }
+.gm-note { right: calc(5% + 72px); transition: right 460ms cubic-bezier(.2, .9, .25, 1); }
 /* While the viewfinder is open, the note narrows so the text flows down the left of it. */
 .gm-note.is-beside-camera { right: calc(5% + 44% + 18px); }
 
 /* The viewfinder grows out of the camera button into a card on the right. */
 .gm-viewfinder {
   position: absolute;
-  top: calc(6% + 104px);
+  top: calc(6% + 84px);
   right: 5%;
   z-index: 10;
   width: 44%;
@@ -211,34 +296,44 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 /* Questions type out at the bottom, where the transcript used to be. */
 .gm-question {
   position: absolute;
-  right: calc(5% + 104px);
-  bottom: 6%;
-  left: 8%;
+  right: 4%;
+  bottom: calc(4% + 112px);
+  left: 4%;
   z-index: 3;
+  display: block;
   margin: 0;
-  color: #85827e;
-  font-size: 21px;
-  font-weight: 300;
-  line-height: 1.45;
-  text-align: right;
+  color: #161412;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  line-height: 32px;
+  text-align: center;
+  white-space: nowrap;
 }
 .gm-question__accessible { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* Tool chips in the note match the text size and read as soft pills. */
+/* Tool chips arrive as compact annotations, lifting into place from the transcript. */
 .gm-note__story .grandma-transcript-tool-chip {
   --chip-bg: #eceae6;
   --chip-fg: #4a4743;
   min-height: 0;
-  gap: 5px;
+  gap: 4px;
   margin: 0 2px;
-  padding: 0 10px 0 8px;
+  padding: 2px 12px 2px 10px;
   border-radius: 999px;
   background: var(--chip-bg);
   box-shadow: none;
   color: var(--chip-fg);
   font-size: 1em;
-  line-height: inherit;
+  line-height: 1.05;
   vertical-align: baseline;
+  animation: gm-tool-settle 360ms cubic-bezier(.2, .85, .25, 1) both;
+}
+@keyframes gm-tool-settle {
+  0% { opacity: 0; transform: translateY(10px) scale(.88); }
+  68% { opacity: 1; transform: translateY(-2px) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 /* Each tool takes one colour from the palette: a soft tint behind, a deeper shade for the icon and word. */
 .gm-note__story .grandma-transcript-tool-chip[data-tool="blend"] { --chip-bg: #ffe3d8; --chip-fg: #e04a17; }
@@ -249,28 +344,45 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 .gm-image-chip { margin: 0 4px; padding: 0 8px; border-radius: 999px; background: #ececea; color: #85827e; }
 .gm-note__story .grandma-transcript-tool-chip[data-tool="microwave"] { --chip-bg: #f3e2b8; --chip-fg: #a0700c; }
 .gm-note__story .grandma-transcript-tool-chip svg { width: .9em; height: .9em; }
+@media (prefers-reduced-motion: reduce) {
+  .gm-ingredient-word {
+    background: none;
+    color: #161412;
+    -webkit-text-fill-color: #161412;
+    animation: none;
+  }
+  .gm-note__story .grandma-transcript-tool-chip { animation: none; }
+}
 
 /* Pause and stop: a quiet pill in the top-right corner. */
 .gm-controls {
   position: absolute;
-  top: calc(6% + 44px);
+  top: 6%;
   right: 5%;
   z-index: 4;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 24px;
-  background: #f4f4f3;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid rgba(31, 28, 25, .07);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .82);
+  box-shadow: 0 4px 14px rgba(31, 28, 25, .07);
   animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
 }
-.gm-controls button { width: 36px; height: 36px; border-radius: 18px; }
+.gm-controls { padding: 6px 10px; border-radius: 30px; }
+.gm-controls button { width: 48px; height: 48px; border-radius: 24px; }
+/* Pause, stop and camera match the Grandkids chips: soft grey with dark ink. */
+.gm-controls:not(.gm-controls--done) button { background: #f2f1ef; transition: background-color 180ms ease; }
+.gm-controls:not(.gm-controls--done) button:hover { background: #e8e6e2; }
+.gm-controls button { color: #1f1c19; }
 @media (prefers-reduced-motion: reduce) { .gm-controls { animation: none; } }
 
 /* After stopping: "Recipe change / Tidy" as plain words split by a slash; a small dot marks the one chosen. */
 .gm-controls.gm-controls--done {
   gap: 2px;
-  padding: 4px 8px;
+  padding: 6px 10px;
+  border-radius: 30px;
   border: 1px solid rgba(0, 0, 0, .05);
   background: rgba(255, 255, 255, .78);
   box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
@@ -278,14 +390,14 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 .gm-controls--done button {
   display: inline-flex;
   width: auto;
-  height: 36px;
+  height: 48px;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
+  gap: 10px;
+  padding: 0 14px;
   border: 0;
-  border-radius: 18px;
+  border-radius: 24px;
   background: transparent;
-  color: #1f1c19;
+  color: #000;
   font: inherit;
   font-size: 17px;
   font-weight: 300;
@@ -294,34 +406,67 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 /* Only while hovered: a translucent orange wash with orange text. */
 .gm-controls--done button { transition: background-color 180ms ease, color 180ms ease; }
 .gm-controls--done button:hover,
-.gm-controls--done button:focus-visible { background: rgba(255, 90, 38, .14); color: #e04a17; }
+.gm-controls--done button:focus-visible { background: rgba(255, 90, 38, .14); color: #000; }
 
-/* Recipe change: fog over the note, the clay listening in the middle. */
-.gm-fog {
-  position: absolute;
-  inset: 0;
-  z-index: 12;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Mymind-inspired action: a quiet gray pill dissolves into a soft colour cloud and clay mark. */
+.gm-controls--done .gm-recipe-change-button {
+  position: relative;
+  min-width: 196px;
   justify-content: center;
-  gap: 18px;
-  background: rgba(255, 255, 255, .55);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  animation: gm-fog-in 520ms ease-out both;
+  overflow: hidden;
+  background: #efefed;
+  color: #77736f;
+  isolation: isolate;
 }
-@keyframes gm-fog-in { from { opacity: 0; -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); } to { opacity: 1; } }
-.gm-clay.gm-clay--center { position: static; width: 150px; height: 150px; }
-/* Listening: a Newton's cradle of orange balls; the outer two take turns swinging out and knocking back. */
-.gm-cradle { display: flex; height: 30px; align-items: center; margin: 0; }
-.gm-cradle span { width: 16px; height: 16px; border-radius: 50%; background: #ff5a26; }
-.gm-cradle span:first-child { animation: gm-cradle-left 1.1s cubic-bezier(.45, 0, .55, 1) infinite; }
-.gm-cradle span:last-child { animation: gm-cradle-right 1.1s cubic-bezier(.45, 0, .55, 1) infinite; }
-@keyframes gm-cradle-left { 0%, 50%, 100% { transform: none; } 25% { transform: translate(-14px, -4px); } }
-@keyframes gm-cradle-right { 0%, 50%, 100% { transform: none; } 75% { transform: translate(14px, -4px); } }
-.gm-fog__reply { min-height: 30px; margin: 0; color: #000; font-size: 26px; font-weight: 300; letter-spacing: -.01em; }
-@media (prefers-reduced-motion: reduce) { .gm-fog, .gm-cradle span { animation: none; } }
+.gm-recipe-change-button__default { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 10px; transition: opacity 220ms ease, filter 260ms ease, transform 360ms ease; }
+.gm-recipe-change-button__done { position: absolute; top: 50%; left: 50%; z-index: 3; color: #fff; opacity: 0; filter: blur(4px); transform: translate(-50%, -50%) scale(.45); transition: opacity 260ms ease, filter 320ms ease, transform 420ms cubic-bezier(.2, 1.4, .3, 1); }
+.gm-recipe-change-button::before {
+  position: absolute;
+  inset: -70%;
+  z-index: 0;
+  border-radius: 50%;
+  background: conic-gradient(#ff5a1f, #ff8a4c, #ffb27a, #ff6a33, #ffa070, #ff7a3d, #ff5a1f);
+  content: '';
+  opacity: 0;
+  filter: blur(14px) saturate(1.15);
+  transform: scale(.25) rotate(0deg);
+}
+.gm-recipe-change-button[aria-pressed='true'] .gm-recipe-change-button__default { opacity: 0; filter: blur(5px); transform: scale(.92); }
+.gm-recipe-change-button[aria-pressed='true']::before { animation: gm-recipe-button-listen 1.8s ease-in-out infinite alternate; }
+.gm-recipe-change-button.is-done::before { animation: gm-recipe-button-bloom 900ms cubic-bezier(.2, .7, .2, 1) both; }
+.gm-recipe-change-button.is-done .gm-recipe-change-button__done { opacity: 1; filter: none; transform: translate(-50%, -50%) scale(1); }
+@keyframes gm-recipe-button-listen {
+  from { opacity: .16; transform: scale(.55) rotate(0deg); }
+  to { opacity: .38; transform: scale(1.12) rotate(32deg); }
+}
+@keyframes gm-recipe-button-bloom {
+  0% { opacity: 0; transform: scale(.2) rotate(0deg); }
+  28% { opacity: .5; }
+  70% { opacity: .34; }
+  100% { opacity: 0; transform: scale(1.35) rotate(80deg); }
+}
+
+/* When recording stops the buttons melt from solid orange into an orange wash, like a marked change. */
+.gm-controls--done button { color: #000; animation: gm-done-button-melt 1.1s cubic-bezier(.2, .7, .2, 1) both; }
+.gm-controls--done .gm-recipe-change-button { animation: none; }
+.gm-controls--done .gm-recipe-change-button { background: #ff5a1f; color: #fff; }
+.gm-controls--done .gm-recipe-change-button:hover,
+.gm-controls--done .gm-recipe-change-button:focus-visible { background: #ff6f3a; color: #fff; }
+.gm-controls--done button:hover,
+.gm-controls--done button:focus-visible { background: #ffd2c0; color: #000; }
+@keyframes gm-done-button-melt { from { background: #ff5a1f; color: #fff; } }
+@media (prefers-reduced-motion: reduce) { .gm-controls--done button { animation: none; } }
+
+/* Recipe change reuses the Grandkids voice glow and notification over the Grandma screen. */
+.gm-recipe-change { --sg-radius: 56px; position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+.gm-recipe-change > [data-voice-beam], .gm-recipe-change__beam-host { position: absolute; inset: 0; }
+.gm-recording-beam { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.gm-recording-beam > [data-voice-beam] { position: absolute; inset: 0; }
+.gm-recipe-change .vn { --vn-radius: 26px; top: auto; bottom: 16px; min-height: 78px; padding-block: 10px; transform: translateY(24px) scale(.96); }
+.gm-recipe-change .vn:not([data-state='idle']) { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .gm-recipe-change-button[aria-pressed='true']::before { animation: none; }
+}
 
 /* A change she asked for: marked in orange, old word struck through, new word beside it. */
 .gm-change {
@@ -339,54 +484,19 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 .gm-note__story.is-searching .gm-change s { opacity: 1; text-decoration: none; }
 .gm-note__story.is-searching .gm-change__new { display: none; }
 
-/* Tidy: the note is a sheet of paper that scrunches into a ball and drops away. */
-.gm-sheet { position: absolute; inset: 0; background: #fff; transform-origin: 50% 55%; }
-.grandma-minimal.is-crumpling { background: #e9e7e3; transition: background 200ms ease; }
-.grandma-minimal.is-crumpling .gm-sheet {
-  pointer-events: none;
-  animation: gm-crumple 950ms cubic-bezier(.55, 0, .7, .4) both;
+/* Tidy: soft translucent colour waves wash through the page before it clears. */
+.gm-sheet { position: absolute; inset: 0; overflow: hidden; background: #fff; }
+.gm-mosaic { position: absolute; inset: 0; z-index: 20; display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(12, 1fr); opacity: 0; pointer-events: none; }
+.gm-mosaic span { opacity: 0; transform: scale(.4); }
+.grandma-minimal.is-rippling .gm-sheet { pointer-events: none; }
+.grandma-minimal.is-rippling .gm-mosaic { opacity: 1; }
+.grandma-minimal.is-rippling .gm-mosaic span { animation: gm-mosaic-cell 520ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes gm-mosaic-cell {
+  0% { opacity: 0; transform: scale(.4); }
+  55% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
 }
-.gm-sheet::after {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  background:
-    linear-gradient(115deg, transparent 30%, rgba(0, 0, 0, .1) 31%, transparent 34%),
-    linear-gradient(62deg, transparent 55%, rgba(0, 0, 0, .12) 56%, transparent 59%),
-    linear-gradient(160deg, transparent 18%, rgba(255, 255, 255, .7) 19%, transparent 23%),
-    linear-gradient(20deg, transparent 70%, rgba(0, 0, 0, .1) 71%, transparent 75%),
-    radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, .14) 100%);
-  content: '';
-  opacity: 0;
-  pointer-events: none;
-}
-.grandma-minimal.is-crumpling .gm-sheet::after { animation: gm-crumple-creases 950ms ease-in both; }
-@keyframes gm-crumple {
-  0% {
-    clip-path: polygon(0% 0%, 25% 0%, 50% 0%, 75% 0%, 100% 0%, 100% 25%, 100% 50%, 100% 75%, 100% 100%, 75% 100%, 50% 100%, 25% 100%, 0% 100%, 0% 75%, 0% 50%, 0% 25%);
-    transform: none;
-    filter: none;
-  }
-  35% {
-    clip-path: polygon(4% 6%, 27% 2%, 49% 8%, 76% 1%, 96% 7%, 99% 28%, 93% 49%, 98% 77%, 94% 95%, 73% 99%, 52% 92%, 24% 98%, 5% 94%, 1% 72%, 8% 51%, 2% 27%);
-    transform: scale(.82) rotate(-4deg) skew(3deg, -2deg);
-    filter: brightness(.97);
-  }
-  70% {
-    clip-path: polygon(22% 18%, 34% 9%, 52% 20%, 70% 8%, 84% 22%, 91% 38%, 80% 52%, 92% 68%, 78% 86%, 64% 78%, 50% 91%, 33% 80%, 16% 88%, 20% 66%, 9% 50%, 18% 33%);
-    transform: scale(.42) rotate(10deg) skew(-8deg, 5deg);
-    filter: brightness(.93);
-    opacity: 1;
-  }
-  100% {
-    clip-path: polygon(38% 34%, 44% 28%, 52% 33%, 60% 27%, 66% 36%, 70% 44%, 64% 50%, 71% 58%, 63% 68%, 56% 63%, 50% 71%, 42% 65%, 33% 69%, 36% 57%, 29% 50%, 35% 42%);
-    transform: scale(.16) rotate(-24deg) translateY(30%);
-    filter: brightness(.88);
-    opacity: 0;
-  }
-}
-@keyframes gm-crumple-creases { 0% { opacity: 0; } 30% { opacity: .7; } 100% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .grandma-minimal.is-crumpling .gm-sheet, .grandma-minimal.is-crumpling .gm-sheet::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .grandma-minimal.is-rippling .gm-mosaic span { animation: none; opacity: 1; transform: none; } }
 
 /* In this kitchen the Grandkids recipe sits on plain white; the cards take a light gray so they still read as cards. */
 .gm-kitchen .hv-screen { background: #fff; }
@@ -414,23 +524,34 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 .gm-kitchen .hv-title { text-transform: none; }
 
 /* After stopping, the clay sits beside the Recipe change / Tidy pill instead of the bottom corner. */
-.gm-done-bar { position: absolute; top: calc(6% + 44px); right: 5%; z-index: 4; display: flex; align-items: center; gap: 4px; }
-.gm-done-bar .gm-controls { position: static; }
-.gm-clay.gm-clay--beside { position: static; width: 52px; height: 52px; }
-
-/* The note hangs like a sticky note: a slightly darker band across the top, with two punched holes. */
-.gm-sheet::before {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
-  height: 44px;
-  background:
-    radial-gradient(circle at 52px 24px, #c9c9c5 0 12px, transparent 12.5px),
-    radial-gradient(circle at calc(100% - 52px) 24px, #c9c9c5 0 12px, transparent 12.5px),
-    linear-gradient(#ecece9, #f2f2f0);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, .05);
-  content: '';
-  pointer-events: none;
+.gm-done-bar { position: absolute; top: 8%; right: 5%; z-index: 4; display: flex; align-items: center; gap: 4px; }
+.gm-done-bar .gm-controls { position: static; animation: gm-done-controls-arrive 900ms cubic-bezier(.2, .75, .2, 1) both; }
+.gm-clay.gm-clay--beside {
+  position: static;
+  width: 68px;
+  height: 68px;
+  transform-origin: 50% 50%;
+  animation: gm-clay-travel-up 980ms cubic-bezier(.32, .02, .18, 1) both;
 }
+.gm-clay--beside .clay { transform-origin: 50% 62%; animation: gm-clay-droplet-pull 980ms cubic-bezier(.32, .02, .18, 1) both; }
+@keyframes gm-clay-travel-up {
+  0% { transform: translate(202px, 430px) scale(1.76); }
+  18% { transform: translate(194px, 360px) scale(1.62); }
+  56% { transform: translate(112px, 152px) scale(1.24); }
+  82% { transform: translate(20px, 22px) scale(1.04); }
+  92% { transform: translate(-3px, -3px) scale(.98); }
+  100% { transform: none; }
+}
+@keyframes gm-clay-droplet-pull {
+  0%, 8% { border-radius: 50%; transform: scale(1); }
+  28% { border-radius: 46% 46% 52% 52%; transform: scaleX(.82) scaleY(1.28) translateY(-3px); }
+  58% { border-radius: 44% 44% 54% 54%; transform: scaleX(.78) scaleY(1.36) translateY(-2px); }
+  80% { border-radius: 48%; transform: scaleX(.9) scaleY(1.13); }
+  92% { border-radius: 50%; transform: scaleX(1.06) scaleY(.94); }
+  100% { border-radius: 50%; transform: none; }
+}
+@keyframes gm-done-controls-arrive {
+  0%, 62% { opacity: 0; transform: translateY(8px) scale(.97); }
+  100% { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { .gm-clay.gm-clay--beside, .gm-clay--beside .clay, .gm-clay__face, .gm-done-bar .gm-controls { animation: none; } }

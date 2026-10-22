@@ -22,7 +22,7 @@ const amountOf = (card: HTMLElement, name: string) => within(card).getByText(nam
 describe('HomeViewBoard 07b layout', () => {
   it('shows the title, the sentence, the tags and the photo with Ingredients and Start cooking', () => {
     render(<HomeViewBoard />)
-    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeInTheDocument()
     expect(screen.getByText(/Balinese minced/)).toHaveTextContent('Balinese minced pork with toasted coconut, fried in a fresh spice paste and served on pandan rice.')
     expect(screen.getByRole('button', { name: /8 steps/ })).toBeInTheDocument()
     expect(tag(/40 min/)).toBeInTheDocument()
@@ -177,7 +177,7 @@ describe('HomeViewBoard talk corner (speaking glow, island and clay)', () => {
     render(<HomeViewBoard clay />)
     fireEvent.click(talk())
     advance(2000)
-    fireEvent.pointerDown(screen.getByRole('heading', { name: 'Lelawar Bali' }))
+    fireEvent.pointerDown(screen.getByRole('heading', { name: 'Lawar Bali' }))
     expect(glow()).toHaveAttribute('data-state', 'idle')
     expect(island()).toHaveAttribute('data-state', 'idle')
     advance(320)

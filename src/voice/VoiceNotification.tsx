@@ -20,6 +20,8 @@ type Props = {
    * (the clay home view does, so the same clay can leave the island for the ingredient rows).
    */
   ownClay?: boolean
+  /** Optional replacement for the small status above a completed result. Empty hides it. */
+  doneStatus?: string
 }
 
 const STATUS: Record<GlowState, string> = {
@@ -58,8 +60,9 @@ function CardClay({ state, teal, level }: { state: GlowState; teal: boolean; lev
  * A frosted card that drops in at the top of the screen and narrates the voice request.
  * The clay box on its left holds the clay: its own, or space for the screen's one clay.
  */
-export const VoiceNotification = forwardRef<HTMLDivElement, Props>(function VoiceNotification({ state, heard, result, teal = false, level, ownClay = true }, ref) {
+export const VoiceNotification = forwardRef<HTMLDivElement, Props>(function VoiceNotification({ state, heard, result, teal = false, level, ownClay = true, doneStatus }, ref) {
   const main = state === 'done' ? result : heard ? `“${heard}”` : ''
+  const status = state === 'done' && doneStatus !== undefined ? doneStatus : STATUS[state]
 
   return (
     <div ref={ref} className="vn" data-state={state} role="status" aria-live="polite" aria-hidden={state === 'idle'}>
@@ -67,7 +70,7 @@ export const VoiceNotification = forwardRef<HTMLDivElement, Props>(function Voic
         {ownClay && state !== 'idle' && <CardClay state={state} teal={teal} level={level} />}
       </span>
       <span className="vn__text">
-        <span className="vn__status">{STATUS[state]}</span>
+        {status ? <span className="vn__status">{status}</span> : null}
         {main ? (
           <span key={main} className={`vn__main${state === 'done' ? ' is-result' : ''}`}>{main}</span>
         ) : (

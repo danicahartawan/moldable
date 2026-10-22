@@ -210,7 +210,7 @@ type FridgeProps = {
   onStartCooking?: () => void
   /** Record her telling it: leads to the record-grandma flow. Without it, it links to /grandma. */
   onRecord?: () => void
-  /** Open straight onto Lelawar Bali (e.g. handed over from the grandma screen). */
+  /** Open straight onto Lawar Bali (e.g. handed over from the grandma screen). */
   startOpen?: boolean
   /** Whether the screen is showing; the opening zoom waits until it is. */
   active?: boolean

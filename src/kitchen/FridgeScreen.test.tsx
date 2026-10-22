@@ -51,7 +51,7 @@ describe('FridgeScreen', () => {
     expect(screen.queryByRole('button', { name: 'Back to the fridge' })).not.toBeInTheDocument()
   })
 
-  it('dives into Lelawar Bali for the recipe home view, and Back returns to the fridge', () => {
+  it('dives into Lawar Bali for the recipe home view, and Back returns to the fridge', () => {
     render(<FridgeScreen />)
     advance(1600)
     fireEvent.click(note(/Lawar Bali, 40/))
@@ -62,14 +62,14 @@ describe('FridgeScreen', () => {
     advance(100)
     expect(fly.style.background).toBe('rgb(255, 255, 255)')
     advance(600)
-    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Back to the fridge' }))
     // The page fades out over the card's white first, then the card shrinks back, orange again, onto its note.
     advance(120)
     expect(document.querySelector('.fz-page.fz-out')).toBeInTheDocument()
     expect(document.querySelector('.fz-fly')).toHaveClass('is-big')
     advance(200)
-    expect(screen.queryByRole('heading', { name: 'Lelawar Bali' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Lawar Bali' })).not.toBeInTheDocument()
     expect((document.querySelector('.fz-fly') as HTMLElement).style.background).toBe('rgb(255, 74, 0)')
     advance(700)
     expect(document.querySelector('.fz-fly')).not.toBeInTheDocument()
@@ -108,16 +108,16 @@ describe('FridgeScreen', () => {
 
   it('can open straight onto the recipe, handed over from the grandma screen', () => {
     render(<FridgeScreen startOpen />)
-    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Back to the fridge' })).toBeInTheDocument()
   })
 
   it('closes the open recipe back onto the door when asked (Done at the end of cooking)', () => {
     const { rerender } = render(<FridgeScreen startOpen closeRequest={0} />)
-    expect(screen.getByRole('heading', { name: 'Lelawar Bali' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Lawar Bali' })).toBeInTheDocument()
     rerender(<FridgeScreen startOpen closeRequest={1} />)
     advance(1000)
-    expect(screen.queryByRole('heading', { name: 'Lelawar Bali' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Lawar Bali' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Lawar Bali, 40 minutes/ })).toBeVisible()
     expect(cam()).toContain('scale(1.6)')
   })

@@ -6,7 +6,7 @@ import type { Vec } from '@/clay/ClaySim'
 import { SpeakingGlow, createSimulatedLevel, type GlowState } from '@/voice/SpeakingGlow'
 import { VoiceNotification } from '@/voice/VoiceNotification'
 import { GRANDKIDS_RECIPE_CONTEXT } from '@/grandkids/recipeContext'
-import { VersionList, initialVersions, newVersion, type VersionEntry } from './VersionHistory'
+import { VersionList, initialVersions, newVersion, type RecipeSnapshot, type VersionEntry } from './VersionHistory'
 import { canPour, pourClose, pourOpen, rectIn, type Rect } from './liquid'
 import { GooSegmented } from '@/goo/GooSegmented'
 import Link from 'next/link'
@@ -20,6 +20,7 @@ import Image from 'next/image'
 type AdjustPhase = 'idle' | 'listening' | 'thinking' | 'writing'
 type ModKey = 'serves2' | 'mild' | 'chicken'
 type Mods = Record<ModKey, boolean>
+const REVERT_RIPPLE_MS = 1000
 type Popup = '' | 'steps' | 'ingr' | 'photo' | 'versions'
 
 const PHOTO = '/assets/lelawar-photo.png'
@@ -185,7 +186,25 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const [tidy, setTidy] = useState(true)
   // Every change adds a version; the button next to the tags opens the history.
   const [versions, setVersions] = useState<VersionEntry[]>(initialVersions)
-  const record = (what: string) => setVersions((cur) => newVersion(cur, what))
+  // The recipe as it stands now, kept in a ref so a version recorded from a timer sees the latest.
+  const snapshot = useRef<RecipeSnapshot>({ serves2: false, mild: false, chicken: false, kencur: false, tidy: true })
+  const record = (what: string, shot: Partial<RecipeSnapshot> = {}) => setVersions((cur) => newVersion(cur, what, { ...snapshot.current, ...shot }))
+  // Going back to an earlier version ripples over the screen, then puts that version's recipe back.
+  const [isRippling, setIsRippling] = useState(false)
+  const revertTo = (entry: VersionEntry) => {
+    if (isRippling) return
+    setIsRippling(true)
+    later(REVERT_RIPPLE_MS * 0.45, () => {
+      setM({ serves2: entry.snapshot.serves2, mild: entry.snapshot.mild, chicken: entry.snapshot.chicken })
+      setKencur(entry.snapshot.kencur)
+      setTidy(entry.snapshot.tidy)
+      stage.current = (entry.snapshot.serves2 ? 1 : 0) + (entry.snapshot.kencur ? 1 : 0)
+      setVersions((cur) => newVersion(cur, `Went back to v${entry.version}`, entry.snapshot))
+      setOpen('')
+      setClosing(false)
+    })
+    later(REVERT_RIPPLE_MS, () => setIsRippling(false))
+  }
   const setAmounts = (next: boolean) => {
     if (next === tidy) return
     setTidy(next)
@@ -378,6 +397,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   }, [open])
 
   const look: Look = { ...m, kencur }
+  snapshot.current = { ...m, kencur, tidy }
   const mins = 40 - (m.serves2 ? 10 : 0) - (m.chicken ? 5 : 0)
   const sentenceKey = `${m.serves2}${m.mild}${m.chicken}`
   const current = versions[0]?.version ?? 1
@@ -402,7 +422,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
         {/* The page, as one layer, so it can ease back while the voice glow has the focus. */}
         <div className="hv-content" inert={!!open}>
           <section className="hm-over" aria-label="Recipe overview">
-            <h1 className="hm-title">Lelawar Bali</h1>
+            <h1 className="hm-title">Lawar Bali</h1>
             <p key={sentenceKey} className="hm-sentence hm-blurin">
               Balinese minced <strong className={m.chicken ? 'hm-mark' : undefined}>{m.chicken ? 'chicken' : 'pork'}</strong> with toasted{' '}
               <strong>coconut</strong>, fried in a <span className={m.mild ? 'hm-mark' : undefined}>{m.mild ? 'gentle spice paste' : 'fresh spice paste'}</span>{' '}
@@ -431,7 +451,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
             <button ref={ingrPill} type="button" className={`hm-tap hm-pill${open === 'ingr' ? ' is-poured' : ''}`} aria-haspopup="dialog" aria-expanded={open === 'ingr' && !closing} aria-label="Ingredients" title="Ingredients" onClick={() => setOpen('ingr')}>
               <Icon d={ICON.steps} size={20} width={1.7} />
             </button>
-            {startCooking('hm-tap hm-go', 18)}
+            {startCooking('hm-tap hm-go', 22)}
           </div>
         </div>
 
@@ -531,7 +551,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
           <div className={`hm-center${closing ? ' is-closing' : ''}`}>
             <div className="hm-card hm-card--versions" {...dialog('Version history')}>
               <p className="hm-card__title"><b>Version history</b> v{current}</p>
-              <VersionList entries={versions} />
+              <VersionList entries={versions} onRevert={revertTo} />
               <button type="button" className="hm-tap hm-done" onClick={close}>Done</button>
             </div>
           </div>
@@ -539,6 +559,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
         {/* The wake word, in the wireframe: an unmarked corner you can tap (or reach with the keyboard). */}
         <button type="button" className="hv-talk" aria-label="Talk to Moldable" onClick={beginAdjust} />
+
+        {isRippling ? <div className="hm-ripple" aria-hidden="true"><span /><span /><span /></div> : null}
 
         <SpeakingGlow state={glow} level={() => voiceLevel.current()} onDone={() => setGlow('idle')} />
         <VoiceNotification state={islandState} heard={heard} result={result} teal={blobTeal} level={() => voiceLevel.current()} ownClay={!clay} />
