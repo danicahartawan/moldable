@@ -233,7 +233,7 @@ function FridgeName({ book, current, onRename }: { book: Book; current: boolean;
  * Close and Save sit in the white pill top right. The name is picked out of what was said (“It's Uncle Budi's cookbook”
  * → Uncle Budi). Enter keeps it, Escape (or close) leaves the fridge as it was.
  */
-function FridgeNamer({ book, fresh, onSave, onClose }: { book: Book; fresh: boolean; onSave: (name: string) => void; onClose: () => void }) {
+function FridgeNamer({ book, fresh, onSave, onClose }: { book: Book; fresh: boolean; onSave: (name: string) => void; onClose: (named: boolean) => void }) {
   const [value, setValue] = useState(book.name)
   const [listening, setListening] = useState(false)
   const [heard, setHeard] = useState('')
@@ -261,21 +261,28 @@ function FridgeNamer({ book, fresh, onSave, onClose }: { book: Book; fresh: bool
   listenRef.current = listen
   // A new fridge listens for its name at once (the tap that made it is the gesture the microphone needs).
   useEffect(() => { if (fresh) void listenRef.current() }, [fresh])
-  const save = () => {
-    const name = cleanBookName(value)
-    if (name && name !== book.name) onSave(name)
-    onClose()
+  // Closing (✕) or keeping the name (✓) dissolves the page away, as it came in, onto the named fridge.
+  const [leaving, setLeaving] = useState(false)
+  const finish = (keep: boolean) => {
+    if (leaving) return
+    const name = cleanBookName(live || value)
+    const named = keep && !!name
+    if (named && name !== book.name) onSave(name)
+    setLeaving(true)
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    window.setTimeout(() => onClose(named), reduced ? 0 : 440)
   }
   const live = listening && heard ? nameFromSpeech(heard) : ''
   return (
-    <div className="fz-namer" role="dialog" aria-label={fresh ? 'Name the new fridge' : `Rename ${book.label}`} onPointerDown={(e) => e.stopPropagation()}>
-      <form className="fz-namer__page" onSubmit={(e) => { e.preventDefault(); save() }}>
-        <h2 className="fz-namer__title">{fresh ? 'Whose cookbook is this?' : 'What should this fridge be called?'}</h2>
+    <div className={`fz-namer${leaving ? ' is-leaving' : ''}`} role="dialog" aria-label={fresh ? 'Name the new fridge' : `Rename ${book.label}`} onPointerDown={(e) => e.stopPropagation()}>
+      <form className="fz-namer__page" onSubmit={(e) => { e.preventDefault(); finish(true) }}>
+        <h2 className="fz-namer__title">{fresh ? <>Whose cookbook{' '}<br />is this?</> : 'What should this fridge be called?'}</h2>
         <input className="fz-namer__name" aria-label="Fridge name" value={live || value} maxLength={24} placeholder="Type a name" autoComplete="off"
-          onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose() } }} />
+          onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); finish(false) } }} />
         <div className="fz-namer__actions">
-          <button type="button" aria-label="Not now" onClick={onClose}><Icon d="M5.5 5.5l9 9M14.5 5.5l-9 9" size={22} width={1.8} /></button>
-          <button type="submit" aria-label="Save" disabled={!cleanBookName(live || value)}><Icon d="M4.5 10.5l3.6 3.6 7.4-8" size={22} width={1.9} /></button>
+          <button type="button" aria-label="Not now" onClick={() => finish(false)}><Icon d="M5.5 5.5l9 9M14.5 5.5l-9 9" size={22} width={1.8} /></button>
+          {/* ✓ looks the same as ✕ at all times; with no name yet it simply closes. */}
+          <button type="submit" aria-label="Save"><Icon d="M4.5 10.5l3.6 3.6 7.4-8" size={22} width={1.9} /></button>
         </div>
       </form>
       <button type="button" className={`fz-namer__clay${listening ? ' is-listening' : ''}`} aria-label={listening ? 'Listening' : 'Say the name'} onClick={() => void listen()}>
@@ -460,8 +467,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setView('over')
     lock.current = Date.now() + 1350
     later('zoom', 850, () => { setView('door'); setFresh(-1) })
-    // Once it's in view, it asks whose cookbook it is.
-    later('name', 1500, () => setNaming({ id, fresh: true }))
+    // It asks whose cookbook it is straight away; the new fridge settles behind the page meanwhile.
+    setNaming({ id, fresh: true })
   }
 
   // One world unit in screen px: the screen's real on-screen scale times the camera's.
@@ -795,7 +802,19 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
       {naming && books.some((b) => b.id === naming.id) && (
         <FridgeNamer key={naming.id} book={books.find((b) => b.id === naming.id)!} fresh={naming.fresh}
-          onSave={(name) => void changeCookbooks({ type: 'rename_book', id: naming.id, name })} onClose={() => setNaming(null)} />
+          onSave={(name) => void changeCookbooks({ type: 'rename_book', id: naming.id, name })}
+          onClose={(named) => {
+            const { id, fresh: isNew } = naming
+            setNaming(null)
+            // A new fridge closed without a name isn't kept: it goes, and the fridge before it comes back into view.
+            if (isNew && !named) {
+              void changeCookbooks({ type: 'remove_book', id })
+              const back = Math.max(0, books.findIndex((b) => b.id === id) - 1)
+              aimAt(back)
+              setI(back)
+              setView('door')
+            }
+          }} />
       )}
 
       {shown && page?.kind === 'saved' && (

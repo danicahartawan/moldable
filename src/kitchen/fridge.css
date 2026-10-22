@@ -154,6 +154,9 @@ a.fz-tap { text-decoration: none; }
    straight onto the page under it (no box), close and save in the white pill top right, the clay listening at the foot. */
 .fz-namer { position: absolute; z-index: 40; inset: 0; background: #fff; color: #1f1c19; animation: fz-namer-in 600ms ease both; }
 @keyframes fz-namer-in { from { opacity: 0; filter: blur(10px); transform: scale(1.03); } }
+/* ✕ or ✓: the page dissolves away the way it came, onto the fridge. */
+.fz-namer.is-leaving { animation: fz-namer-out 440ms cubic-bezier(.4, 0, .2, 1) both; pointer-events: none; }
+@keyframes fz-namer-out { to { opacity: 0; filter: blur(10px); transform: scale(1.03); } }
 .fz-namer__page { position: absolute; inset: 0; padding: 44px 48px 0; }
 .fz-namer__title { max-width: 452px; margin: 0; font-size: 50px; font-weight: 500; line-height: 54px; letter-spacing: -.03em; text-transform: none; text-wrap: balance; }
 .fz-namer__name { display: block; width: 100%; box-sizing: border-box; margin-top: 22px; padding: 0; border: 0; background: transparent; color: #1f1c19; caret-color: #ff5a1f; font: inherit; font-size: 40px; font-weight: 400; line-height: 48px; letter-spacing: -.02em; outline: none; }
@@ -161,10 +164,9 @@ a.fz-tap { text-decoration: none; }
 .fz-namer__actions { position: absolute; top: 34px; right: 38px; display: flex; align-items: center; gap: 2px; padding: 6px 10px; border: 1px solid rgba(31, 28, 25, .07); border-radius: 30px; background: rgba(255, 255, 255, .82); box-shadow: 0 4px 14px rgba(31, 28, 25, .07); }
 .fz-namer__actions button { display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 24px; background: #f2f1ef; color: #1f1c19; cursor: pointer; transition: background-color 180ms ease, transform 140ms cubic-bezier(.2, .8, .2, 1), opacity 180ms ease; }
 .fz-namer__actions button:hover { background: #e8e6e2; }
-.fz-namer__actions button:disabled { opacity: .4; cursor: default; }
 .fz-namer__clay { position: absolute; bottom: 70px; left: 50%; display: inline-flex; width: 96px; height: 96px; align-items: center; justify-content: center; margin-left: -48px; padding: 0; border: 0; background: none; cursor: pointer; animation: fz-namer-clay 640ms cubic-bezier(.2, 1.3, .3, 1) 200ms both; }
 @keyframes fz-namer-clay { from { opacity: 0; transform: scale(.1); } }
 .fz-namer__hint { position: absolute; right: 48px; bottom: 34px; left: 48px; margin: 0; color: #6b665f; font-size: 18px; line-height: 24px; text-align: center; }
 .fz-namer button:active { transform: scale(.96); }
 .fz-namer button:focus-visible { outline: 2px solid #1f1c19; outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .fz-namer, .fz-namer__clay { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .fz-namer, .fz-namer.is-leaving, .fz-namer__clay { animation: none; } }

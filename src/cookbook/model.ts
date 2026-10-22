@@ -33,6 +33,7 @@ export type Cookbooks = {
 
 export type CookbookOp =
   | { type: 'add_book'; id: string }
+  | { type: 'remove_book'; id: string }
   | { type: 'rename_book'; id: string; name: string }
   | { type: 'add_recipe'; book: string; recipe: SavedRecipe }
   | { type: 'reset' }
@@ -40,6 +41,7 @@ export type CookbookOp =
 // The colours new fridges come in, in turn.
 export const FRIDGE_COLOURS = ['#8fc6ba', '#e8d9b8', '#86a3d8', '#f0b54a']
 export const OMA_ID = 'oma-lien'
+const BUILT_IN = [OMA_ID, 'tante-ani']
 
 export function defaultCookbooks(now = new Date()): Cookbooks {
   return {
@@ -99,6 +101,7 @@ export function cleanOp(value: unknown): CookbookOp | null {
   const o = value as Record<string, unknown>
   switch (o.type) {
     case 'add_book': return typeof o.id === 'string' && ID.test(o.id) ? { type: 'add_book', id: o.id } : null
+    case 'remove_book': return typeof o.id === 'string' && ID.test(o.id) ? { type: 'remove_book', id: o.id } : null
     case 'rename_book': {
       const name = cleanBookName(typeof o.name === 'string' ? o.name : '')
       return typeof o.id === 'string' && ID.test(o.id) && name ? { type: 'rename_book', id: o.id, name } : null
@@ -121,6 +124,11 @@ export function applyCookbookOp(doc: Cookbooks, op: CookbookOp, now = new Date()
       // Adding the same fridge twice (a retried request) is a no-op.
       if (books.length >= MAX_BOOKS || books.some((b) => b.id === op.id)) return doc
       books = [...books, { id: op.id, name: '', colour: FRIDGE_COLOURS[(books.length - 2 + FRIDGE_COLOURS.length * 4) % FRIDGE_COLOURS.length], recipes: [] }]
+      break
+    case 'remove_book':
+      // Only an empty fridge (one just made and not named) can go, and never Oma Lien's or Tante Ani's.
+      if (!books.some((b) => b.id === op.id && b.recipes.length === 0 && !BUILT_IN.includes(b.id))) return doc
+      books = books.filter((b) => b.id !== op.id)
       break
     case 'rename_book':
       if (!books.some((b) => b.id === op.id && b.name !== op.name)) return doc

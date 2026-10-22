@@ -66,6 +66,20 @@ describe('FridgeScreen', () => {
     expect(screen.getByRole('button', { name: 'Rename Nana Sri’s cookbook' })).toBeInTheDocument()
   })
 
+  it('a new fridge closed without a name is not kept', () => {
+    render(<FridgeScreen />)
+    advance(1600)
+    fireEvent.click(screen.getByRole('button', { name: 'New fridge' }))
+    advance(3000)
+    fireEvent.click(screen.getByRole('button', { name: 'Build a new fridge for another cookbook' }))
+    expect(screen.getAllByRole('button', { name: /cookbook$/ }).map((b) => b.getAttribute('aria-label'))).toContain('New cookbook')
+    fireEvent.click(screen.getByRole('button', { name: 'Not now' }))
+    advance(600)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'New cookbook' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tante Ani’s cookbook' })).toHaveAttribute('aria-current', 'true')
+  })
+
   it('a new fridge asks whose cookbook it is and listens for the name', async () => {
     // The browser's speech recognition, hearing one sentence.
     class Hear {
@@ -81,12 +95,16 @@ describe('FridgeScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'New fridge' }))
     advance(3000)
     fireEvent.click(screen.getByRole('button', { name: 'Build a new fridge for another cookbook' }))
-    advance(1600)
+    // It asks straight away.
     expect(screen.getByRole('dialog', { name: 'Name the new fridge' })).toHaveTextContent('Whose cookbook is this?')
     expect(screen.getByRole('dialog', { name: 'Name the new fridge' })).toHaveTextContent('Listening')
     await act(async () => { vi.advanceTimersByTime(400) })
     expect(screen.getByRole('textbox', { name: 'Fridge name' })).toHaveValue('Uncle Budi')
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    // The page dissolves away onto the named fridge.
+    expect(screen.getByRole('dialog', { name: 'Name the new fridge' })).toHaveClass('is-leaving')
+    advance(500)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Rename Uncle Budi’s cookbook' })).toHaveTextContent('UNCLE BUDI')
     delete (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
   })
