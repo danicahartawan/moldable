@@ -40,6 +40,27 @@ describe('FridgeScreen', () => {
     expect(screen.getAllByRole('button', { name: /Make your own recipe/ })[1]).not.toBeDisabled()
   })
 
+  it('renames a fridge from its name: the badge, the cookbook and the cards follow; Escape keeps the old name', () => {
+    render(<FridgeScreen />)
+    advance(1600)
+    fireEvent.click(screen.getByRole('button', { name: 'Rename Oma Lien’s cookbook' }))
+    const field = screen.getByRole('textbox', { name: 'Fridge name' })
+    expect(field).toHaveValue('Oma Lien')
+    fireEvent.change(field, { target: { value: '  Nana   Sri ' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    fireEvent.blur(field)
+    expect(screen.getByRole('button', { name: 'Rename Nana Sri’s cookbook' })).toHaveTextContent('NANA SRI')
+    expect(screen.getByRole('button', { name: 'Nana Sri’s cookbook' })).toBeInTheDocument()
+    expect(screen.getAllByText('Nana Sri’s Recipe').length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rename Nana Sri’s cookbook' }))
+    const again = screen.getByRole('textbox', { name: 'Fridge name' })
+    fireEvent.change(again, { target: { value: 'Somebody else' } })
+    fireEvent.keyDown(again, { key: 'Escape' })
+    fireEvent.blur(again)
+    expect(screen.getByRole('button', { name: 'Rename Nana Sri’s cookbook' })).toBeInTheDocument()
+  })
+
   it('drags a note without opening it', () => {
     render(<FridgeScreen />)
     advance(1600)

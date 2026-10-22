@@ -25,10 +25,10 @@ const VIEWS = { over: { k: 0.48, fx: 300, fy: 630 }, door: { k: 1.6, fx: 300, fy
 type View = keyof typeof VIEWS
 
 type Recipe = [name: string, mins: number, level: string]
-type Book = { badge: string; label: string; from: string; owner: string; base: string; recipes: Recipe[] }
+type Book = { name: string; badge: string; label: string; from: string; owner: string; base: string; recipes: Recipe[] }
 const START: Book[] = [
-  { badge: 'OMA LIEN', label: 'Oma Lien’s cookbook', from: 'Oma Lien’s cards', owner: 'Oma Lien’s recipe', base: '#c42b22', recipes: [['Lawar Bali', 40, 'Hard']] },
-  { badge: 'TANTE ANI', label: 'Tante Ani’s cookbook', from: 'Tante Ani’s notebook', owner: 'Tante Ani’s recipe', base: '#e4a0b1', recipes: [] },
+  { name: 'Oma Lien', badge: 'OMA LIEN', label: 'Oma Lien’s cookbook', from: 'Oma Lien’s cards', owner: 'Oma Lien’s recipe', base: '#c42b22', recipes: [['Lawar Bali', 40, 'Hard']] },
+  { name: 'Tante Ani', badge: 'TANTE ANI', label: 'Tante Ani’s cookbook', from: 'Tante Ani’s notebook', owner: 'Tante Ani’s recipe', base: '#e4a0b1', recipes: [] },
 ]
 const NEW_COLOURS = ['#8fc6ba', '#e8d9b8', '#86a3d8', '#f0b54a']
 // Where cards sit on the door, by how many cards the fridge has (the last is always Make your own): [x, y, rotation].
@@ -177,8 +177,46 @@ function MakeFace({ owner, foot }: { owner: string; foot: string }) {
   )
 }
 
-// The fridge body: rolled sides, domed top, freezer door and seal, chrome hinge, ribbed base, badge and handles.
-function FridgeBody({ base, badge }: { base: string; badge: string }) {
+// A fridge's name drives its chrome badge, its cookbook's label and the owner line on its cards.
+const renamed = (b: Book, name: string): Book => ({
+  ...b,
+  name,
+  badge: name.toUpperCase(),
+  label: `${name}’s cookbook`,
+  owner: `${name}’s recipe`,
+  from: b.name && b.from.includes(b.name) ? b.from.replace(b.name, name) : `${name}’s cookbook`,
+})
+
+// The chrome name on the fridge's top door. On the fridge in front, tapping it turns it into a field in the same place:
+// Enter or tapping away keeps the new name, Escape keeps the old one.
+function FridgeName({ book, current, onRename }: { book: Book; current: boolean; onRename: (name: string) => void }) {
+  const [editing, setEditing] = useState(false)
+  const cancelled = useRef(false)
+  if (!current) return <p className="fz-badge" aria-hidden="true">{book.badge}</p>
+  if (editing) {
+    const done = (value: string) => {
+      setEditing(false)
+      const name = value.trim().replace(/\s+/g, ' ')
+      if (!cancelled.current && name && name !== book.name) onRename(name)
+      cancelled.current = false
+    }
+    return (
+      <input className="fz-badge fz-badge--edit" aria-label="Fridge name" defaultValue={book.name} maxLength={14} autoFocus
+        onFocus={(e) => e.currentTarget.select()} onPointerDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+          if (e.key === 'Escape') { cancelled.current = true; e.currentTarget.blur() }
+        }}
+        onBlur={(e) => done(e.currentTarget.value)} />
+    )
+  }
+  return (
+    <button type="button" className="fz-badge fz-badge--btn" aria-label={`Rename ${book.label}`} onClick={() => setEditing(true)}>{book.badge}</button>
+  )
+}
+
+// The fridge body: rolled sides, domed top, freezer door and seal, chrome hinge, ribbed base and handles.
+function FridgeBody({ base }: { base: string }) {
   return (
     <>
       <div className="fz-floor" aria-hidden="true" />
@@ -192,7 +230,6 @@ function FridgeBody({ base, badge }: { base: string; badge: string }) {
         <div className="fz-body__hinge" />
         <div className="fz-body__ribs" />
       </div>
-      <p className="fz-badge" aria-hidden="true">{badge}</p>
       <div className="fz-handle fz-handle--top" aria-hidden="true"><div className="fz-handle__post" /><div className="fz-handle__bar" /><div className="fz-handle__shine" /></div>
       <div className="fz-handle fz-handle--bottom" aria-hidden="true"><div className="fz-handle__post" /><div className="fz-handle__bar" /><div className="fz-handle__shine" /></div>
     </>
@@ -332,7 +369,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
   const addFridge = () => {
     const n = books.length
-    const b: Book = { badge: 'NEW BOOK', label: 'New cookbook', from: 'your new cookbook', owner: 'Your recipe', base: NEW_COLOURS[(n - 2 + NEW_COLOURS.length) % NEW_COLOURS.length], recipes: [] }
+    const b: Book = { name: '', badge: 'NEW BOOK', label: 'New cookbook', from: 'your new cookbook', owner: 'Your recipe', base: NEW_COLOURS[(n - 2 + NEW_COLOURS.length) % NEW_COLOURS.length], recipes: [] }
     setBooks((cur) => [...cur, b])
     setFresh(n)
     setPos((cur) => [...cur, layoutFor(1)])
@@ -527,7 +564,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
           const locked = !cur || !!open
           return (
             <div key={bi} className={`fz-book${bi === fresh ? ' fz-pop' : ''}`} style={{ left: bi * (W + GAP), opacity: cur ? 1 : Math.abs(d) === 1 ? 0.6 : 0 }}>
-              <FridgeBody base={b.base} badge={b.badge} />
+              <FridgeBody base={b.base} />
+              <FridgeName book={b} current={cur && !open} onRename={(name) => setBooks((all) => all.map((x, j) => (j === bi ? renamed(x, name) : x)))} />
               {Math.abs(d) === 1 && !open && (
                 <button type="button" className="fz-book__pick" aria-label={`Go to ${b.label}`} onClick={() => go(bi)} />
               )}

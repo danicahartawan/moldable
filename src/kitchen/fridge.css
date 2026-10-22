@@ -34,7 +34,14 @@ a.fz-tap { text-decoration: none; }
 .fz-body__ribs { top: 1150px; bottom: 0; background: repeating-linear-gradient(180deg, rgba(255, 255, 255, .3) 0 2px, rgba(255, 255, 255, 0) 2px 8px, rgba(0, 0, 0, .26) 8px 12px); box-shadow: inset 0 3px 4px rgba(0, 0, 0, .25); }
 
 /* The cookbook's name, embossed in chrome. */
-.fz-badge { position: absolute; top: 112px; right: 0; left: 0; margin: 0; padding-left: .55em; background: linear-gradient(#fff, #c3c6cb 48%, #f4f5f6 56%, #8b9097); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 38px; font-weight: 700; line-height: 44px; letter-spacing: .55em; text-align: center; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .4)); }
+.fz-badge { position: absolute; top: 112px; right: 0; left: 0; margin: 0; box-sizing: border-box; padding-left: .55em; background: linear-gradient(#fff, #c3c6cb 48%, #f4f5f6 56%, #8b9097); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 38px; font-weight: 700; line-height: 44px; letter-spacing: .55em; text-align: center; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .4)); }
+/* Tap the name on the fridge in front to rename it: the field sits where the chrome letters were, at their size. */
+.fz-badge--btn, .fz-badge--edit { font-family: inherit; }
+/* `.fz button { font: inherit }` would shrink the name back to body text: keep the badge's own letters. */
+.fz .fz-badge--btn { font-size: 38px; font-weight: 700; line-height: 44px; }
+.fz-badge--btn { height: 44px; padding-top: 0; padding-bottom: 0; padding-right: 0; border: 0; border-radius: 14px; cursor: text; }
+.fz-badge--btn:focus-visible { outline: 3px solid rgba(255, 255, 255, .85); outline-offset: 6px; }
+.fz-badge--edit { right: 48px; left: 48px; height: 56px; margin-top: -6px; padding-top: 0; padding-bottom: 0; padding-right: 0; border: 0; border-radius: 16px; outline: none; background: rgba(255, 255, 255, .22); -webkit-background-clip: border-box; background-clip: border-box; color: #fff; caret-color: #fff; text-transform: uppercase; filter: none; text-shadow: 0 2px 2px rgba(0, 0, 0, .35); }
 
 .fz-handle { position: absolute; left: 64px; width: 268px; height: 40px; }
 .fz-handle--top { top: 304px; }
