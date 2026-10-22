@@ -28,7 +28,7 @@ type Recipe = [name: string, mins: number, level: string]
 type Book = { badge: string; label: string; from: string; owner: string; base: string; recipes: Recipe[] }
 const START: Book[] = [
   { badge: 'OMA LIEN', label: 'Oma Lien’s cookbook', from: 'Oma Lien’s cards', owner: 'Oma Lien’s recipe', base: '#c42b22', recipes: [['Lawar Bali', 40, 'Hard']] },
-  { badge: 'TANTE ANI', label: 'Tante Ani’s cookbook', from: 'Tante Ani’s notebook', owner: 'Tante Ani’s recipe', base: '#e4a0b1', recipes: [['Klepon', 45, 'Easy'], ['Kue lapis', 90, 'Medium']] },
+  { badge: 'TANTE ANI', label: 'Tante Ani’s cookbook', from: 'Tante Ani’s notebook', owner: 'Tante Ani’s recipe', base: '#e4a0b1', recipes: [] },
 ]
 const NEW_COLOURS = ['#8fc6ba', '#e8d9b8', '#86a3d8', '#f0b54a']
 // Where cards sit on the door, by how many cards the fridge has (the last is always Make your own): [x, y, rotation].

@@ -35,7 +35,9 @@ describe('FridgeScreen', () => {
     expect(screen.getByRole('button', { name: 'Tante Ani’s cookbook' })).toHaveAttribute('aria-current', 'true')
     advance(1700)
     expect(cam()).toContain('scale(1.6)')
-    expect(note(/Klepon/)).not.toBeDisabled()
+    // Tante Ani's pink fridge holds only the grey Make your own card.
+    expect(screen.queryByRole('button', { name: /Klepon|Kue lapis/ })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Make your own recipe/ })[1]).not.toBeDisabled()
   })
 
   it('drags a note without opening it', () => {
