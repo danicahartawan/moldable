@@ -416,6 +416,10 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 }
 /* The thumb is as tall as the buttons, inside the capsule's 6px padding. */
 .gm-controls--done .goo-seg__blob { top: 6px; bottom: 6px; }
+/* A new recipe's one next step, Tidy: the orange pill. Grey until there's enough told to tidy. */
+.gm-controls--done button.gm-tidy-now { min-width: 120px; justify-content: center; background: #ff5a1f; color: #fff; font-weight: 400; }
+.gm-controls--done button.gm-tidy-now:hover { background: #ff6f3a; color: #fff; }
+.gm-controls--done button.gm-tidy-now:disabled { background: #f2f1ef; color: #a9a39b; cursor: default; }
 .gm-controls--done button {
   display: inline-flex;
   width: auto;

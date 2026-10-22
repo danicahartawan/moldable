@@ -14,6 +14,7 @@ import { OrangeBeam } from '../voice/OrangeBeam'
 import { LineIcon } from './LineIcon'
 import { simulatedLevel } from './RecordingWaveform'
 import { transcribeAudio } from './transcribe'
+import { requestGeneratedTitle, shouldGenerateTitle } from './title'
 import { demoStorySegments } from './GrandmaPage'
 import { guidingQuestions } from './GuidingQuestionRail'
 import { CameraButton, NoteStory, useTypedLength, type StoryChange, type StoryPhoto } from './NoteStory'
@@ -255,8 +256,12 @@ function TypedQuestion({ text }: { text: string }) {
   )
 }
 
+/** A real new recipe (from a fridge's Make your own) instead of the Lawar Bali demo: no demo story, title or questions; the
+    note is what she says (or types), named by the AI, and Tidy hands the story on to be tidied. */
+export type NewRecipeDraft = { book: string; onTidy: (story: string, title: string) => void }
+
 // The grandma screen as a recipe note: the whole story writes itself into the note while recording.
-export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onTidy?: () => void; onTidyStart?: () => void; active?: boolean } = {}) {
+export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true, draft }: { onTidy?: () => void; onTidyStart?: () => void; active?: boolean; draft?: NewRecipeDraft } = {}) {
   const recorder = useVoiceRecorder({ transcribeAudio, allowWithoutMicrophone: true })
   const [segmentCount, setSegmentCount] = useState(0)
   const [guidingQuestionIndex, setGuidingQuestionIndex] = useState<number | null>(null)
@@ -275,7 +280,8 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
       setGuidingQuestionIndex(null)
       return
     }
-    if (isPaused) return
+    // A new recipe has no demo story to play, and the demo's questions are about Lawar Bali.
+    if (isPaused || draft) return
 
     const begin = Date.now()
     const timers = segmentStartTimes.map((at, index) =>
@@ -296,13 +302,13 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
       timers.forEach((timer) => window.clearTimeout(timer))
       clock.elapsed += Date.now() - begin
     }
-  }, [isRecording, isPaused])
+  }, [isRecording, isPaused, draft])
 
   useEffect(() => {
-    if (!isRecording) return
+    if (!isRecording || draft) return
     const naming = window.setTimeout(() => setDemoName(DEMO_NAME), 7_000)
     return () => window.clearTimeout(naming)
-  }, [isRecording])
+  }, [isRecording, draft])
 
   // No Record button: the screen starts listening as soon as it appears.
   const hasAutoStarted = useRef(false)
@@ -313,7 +319,17 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
   }, [recorder])
 
   const demoTranscript = demoStorySegments.slice(0, segmentCount).join(' ')
-  const noteText = hasSpokenTranscript ? recorder.transcript : demoTranscript
+  const noteText = hasSpokenTranscript ? recorder.transcript : draft ? '' : demoTranscript
+  // A new recipe is named by the AI once she has told enough of it (once; with no key it simply stays “New Recipe”).
+  const [draftTitle, setDraftTitle] = useState('')
+  const titleAsked = useRef(false)
+  useEffect(() => {
+    if (!draft || titleAsked.current || !shouldGenerateTitle(noteText)) return
+    titleAsked.current = true
+    requestGeneratedTitle(noteText).then((title) => { if (title) setDraftTitle(title) }).catch(() => {})
+  }, [draft, noteText])
+  // What Tidy takes: her spoken story, or what she typed when nothing was heard.
+  const told = (noteText || noteBody).trim()
   const visibleLength = useTypedLength(noteText)
   const visibleLengthRef = useRef(visibleLength)
   visibleLengthRef.current = visibleLength
@@ -429,7 +445,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
   const shownRev = useRef<number | null>(null)
   const followEdits = useCallback(() => {
     const doc = newestDoc.current
-    if (!doc || doc.rev === shownRev.current || !syncingRef.current.isDone || syncingRef.current.isRecipeListening) return
+    if (!doc || doc.rev === shownRev.current || !syncingRef.current.isDone || syncingRef.current.isRecipeListening || draft) return
     shownRev.current = doc.rev
     setChanges((current) => (JSON.stringify(current) === JSON.stringify(doc.storyEdits) ? current : doc.storyEdits))
   }, [])
@@ -448,7 +464,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
     setIsRecipeListening(true)
   }, [])
   // Once the note is finished, “Hey Popo” opens Recipe change by voice.
-  const wake = useHeyPopo({ onWake: openRecipeChange, paused: !isDone || isRecipeListening || !active })
+  const wake = useHeyPopo({ onWake: openRecipeChange, paused: !isDone || isRecipeListening || !active || !!draft })
   const armWake = wake.arm
   useEffect(() => { if (isDone) armWake() }, [isDone, armWake])
   const recordingLevel = useBeamLevel(recorder.levelRef)
@@ -459,7 +475,9 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
       <div className="gm-ripple" aria-hidden="true"><span /><span /><span /></div>
       <section className={`gm-note${isCameraOpen ? ' is-beside-camera' : ''}${isRecording ? ' is-recording' : ''}`} aria-label="Note">
         <div className="gm-note__head">
-          {demoName ? (
+          {draft ? (
+            draftTitle ? <TypedTitle text={draftTitle} /> : <TitlePreview />
+          ) : demoName ? (
             <TypedTitle text={DEMO_TITLE} />
           ) : isDone ? (
             <h1 className="gm-note__title">{DEMO_TITLE}</h1>
@@ -485,7 +503,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
           <textarea
             className="gm-note__body"
             value={noteBody}
-            placeholder="Write notes, or press '/' for templates"
+            placeholder={draft ? 'Tell the recipe out loud, or type it here' : "Write notes, or press '/' for templates"}
             aria-label="Note"
             onChange={(event) => setNoteBody(event.target.value)}
           />
@@ -513,7 +531,14 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
           </button>
         </div>
       ) : null}
-      {isDone ? (
+      {isDone && draft ? (
+        <div className="gm-done-bar">
+          {/* A new recipe has one next step: tidy it (once there's enough told to tidy). */}
+          <div className="gm-controls gm-controls--done" role="group" aria-label="Story">
+            <button type="button" className="gm-tidy-now" disabled={told.length < 20} onClick={() => draft.onTidy(told, draftTitle)}>Tidy</button>
+          </div>
+        </div>
+      ) : isDone ? (
         <div className="gm-done-bar">
           {/* One liquid switch, like Tidy / Oma's words: the orange thumb flows to the chosen action (tap or slide). */}
           <GooSegmented className="gm-controls gm-controls--done" aria-label="Story" value={doneView === 'tidy' ? 'tidy' : 'changes'}

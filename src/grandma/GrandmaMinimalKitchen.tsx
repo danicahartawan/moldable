@@ -8,6 +8,7 @@ import { useVoiceAssistant } from '../voice/useVoiceAssistant'
 import { GrandmaMinimalPage } from './GrandmaMinimalPage'
 import { announceRecipe } from '../recipe/client'
 import { RecipeSync } from '../recipe/RecipeSync'
+import { TidyRecipe } from '../cookbook/TidyRecipe'
 import '../kitchen/type-scale.css'
 import './grandma-welcome.css'
 
@@ -55,6 +56,10 @@ function GrandmaWelcome({ onContinue }: { onContinue: () => void }) {
 // The kitchen with the minimal grandma screen; Tidy takes the recipe straight to the Grandkids view.
 export function GrandmaMinimalKitchen() {
   const [hasEntered, setHasEntered] = useState(false)
+  // A real new recipe, started from a fridge's Make your own: told on Grandma's screen, tidied, then saved to that fridge.
+  const [making, setMaking] = useState<{ book: { id: string; name: string }; key: number; told: { story: string; title: string } | null } | null>(null)
+  const [fridgeFocus, setFridgeFocus] = useState<{ book: string; recipe?: string; n: number } | undefined>(undefined)
+  const onMakeRecipe = useCallback((book: { id: string; name: string }) => setMaking({ book, key: Date.now(), told: null }), [])
   // A new recipe note starts from Oma's own recipe: any changes saved on the server are put back.
   const begin = () => {
     setHasEntered(true)
@@ -91,9 +96,23 @@ export function GrandmaMinimalKitchen() {
         fridge
         voiceBridge={bridge}
         onPerspective={onPerspective}
-        grandmaScreen={({ showRecipe, prepareRipple, perspective: side }) => hasEntered
-          ? <div className="gm-welcome__next"><GrandmaMinimalPage onTidy={showRecipe} onTidyStart={prepareRipple} active={side === 'grandma'} /></div>
-          : <GrandmaWelcome onContinue={begin} />}
+        onMakeRecipe={onMakeRecipe}
+        fridgeFocus={fridgeFocus}
+        grandmaScreen={({ showRecipe, showGrandkids, prepareRipple, perspective: side }) => making
+          ? making.told
+            // Saved: back to the Grandkids side, where its fridge comes forward with the new card on it; Grandma's screen
+            // goes back to its welcome for the next story.
+            ? <TidyRecipe key={making.key} book={making.book} story={making.told.story} title={making.told.title}
+                onSaved={(recipe) => {
+                  setFridgeFocus({ book: making.book.id, recipe: recipe.id, n: Date.now() })
+                  showGrandkids()
+                  window.setTimeout(() => { setMaking(null); setHasEntered(false) }, 1200)
+                }} />
+            : <div className="gm-welcome__next"><GrandmaMinimalPage key={making.key} active={side === 'grandma'}
+                draft={{ book: making.book.name, onTidy: (story, title) => setMaking((m) => (m ? { ...m, told: { story, title } } : m)) }} /></div>
+          : hasEntered
+            ? <div className="gm-welcome__next"><GrandmaMinimalPage onTidy={showRecipe} onTidyStart={prepareRipple} active={side === 'grandma'} /></div>
+            : <GrandmaWelcome onContinue={begin} />}
       />
     </div>
   )

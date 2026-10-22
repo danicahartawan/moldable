@@ -1,10 +1,14 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FridgeScreen } from './FridgeScreen'
+import { announceCookbooks } from '@/cookbook/client'
+import { defaultCookbooks } from '@/cookbook/model'
 import { router } from '@/testSetup'
 
 beforeEach(() => vi.useFakeTimers())
 afterEach(() => {
+  // The cookbooks are shared across the page; each test starts from the two built-in fridges.
+  announceCookbooks(defaultCookbooks(), true)
   cleanup()
   vi.useRealTimers()
 })
@@ -59,6 +63,32 @@ describe('FridgeScreen', () => {
     fireEvent.keyDown(again, { key: 'Escape' })
     fireEvent.blur(again)
     expect(screen.getByRole('button', { name: 'Rename Nana Sri’s cookbook' })).toBeInTheDocument()
+  })
+
+  it('shows a saved recipe on its fridge, opens it to its page, and pops one that was just saved', () => {
+    const doc = defaultCookbooks()
+    doc.books[1].recipes.push({
+      id: 'r-klepon', name: 'Klepon', summary: 'Green rice balls with palm sugar inside.', minutes: 45, serves: 4,
+      ingredients: [{ name: 'Glutinous rice flour', amount: '2 cups', said: 'two cups' }], steps: ['Roll small balls.', 'Boil until they float.'],
+      tools: ['Pot'], questions: ['How much grated coconut?'], transcript: '', createdAt: '2026-10-21T00:00:00.000Z',
+    })
+    announceCookbooks({ ...doc, rev: 5 }, true)
+    const { rerender } = render(<FridgeScreen focus={{ book: 'tante-ani', recipe: 'r-klepon', n: 0 }} />)
+    rerender(<FridgeScreen focus={{ book: 'tante-ani', recipe: 'r-klepon', n: 1 }} />)
+    advance(1200)
+    expect(screen.getByRole('button', { name: 'Tante Ani’s cookbook' })).toHaveAttribute('aria-current', 'true')
+    advance(700)
+    const card = note(/Klepon, 45 minutes/)
+    expect(card).toHaveClass('fz-note--pop')
+    fireEvent.click(card)
+    advance(700)
+    const page = screen.getByRole('article', { name: 'Klepon' })
+    expect(page).toHaveTextContent('Green rice balls with palm sugar inside.')
+    expect(page).toHaveTextContent('Glutinous rice flour2 cups')
+    expect(page).toHaveTextContent('Still to askHow much grated coconut?')
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the fridge' }))
+    advance(1000)
+    expect(screen.queryByRole('article', { name: 'Klepon' })).not.toBeInTheDocument()
   })
 
   it('drags a note without opening it', () => {

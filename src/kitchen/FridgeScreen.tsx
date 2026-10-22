@@ -3,7 +3,10 @@
 import './fridge.css'
 import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import { useRouter } from 'next/navigation'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { changeCookbooks, useCookbooks } from '@/cookbook/client'
+import { OMA_ID, newId, type Cookbook, type SavedRecipe } from '@/cookbook/model'
+import { RecipePage } from '@/cookbook/RecipePage'
 
 /* 10 Fridge cookbooks. Each cookbook is a retro fridge; its recipes are postcard notes held on by magnets.
    You see a fridge whole, then the camera zooms in until the door fills the screen. Swipe between fridges,
@@ -16,8 +19,8 @@ const NW = 130
 const NH = 150
 // Lawar Bali, the featured recipe, is its own taller card: a grid of dots, the name big at the foot.
 const LAWAR_NH = 188
-// Make your own is the same tall card, Lawar Bali's companion.
-const noteH = (bi: number, k: number, kind?: 'recipe' | 'new') => (kind === 'new' || (bi === 0 && k === 0) ? LAWAR_NH : NH)
+// Make your own is the same tall card, Lawar Bali's companion. Saved recipes are the shorter postcards.
+const noteH = (kind?: 'recipe' | 'saved' | 'new') => (kind === 'new' || kind === 'recipe' ? LAWAR_NH : NH)
 // Its 3 × 3 dots, white or apricot, row by row.
 const LAWAR_DOTS = [[1, 0, 0], [1, 0, 0], [1, 1, 1]]
 // Camera: the whole fridge, or zoomed in until the door fills the screen.
@@ -25,12 +28,20 @@ const VIEWS = { over: { k: 0.48, fx: 300, fy: 630 }, door: { k: 1.6, fx: 300, fy
 type View = keyof typeof VIEWS
 
 type Recipe = [name: string, mins: number, level: string]
-type Book = { name: string; badge: string; label: string; from: string; owner: string; base: string; recipes: Recipe[] }
-const START: Book[] = [
-  { name: 'Oma Lien', badge: 'OMA LIEN', label: 'Oma Lien’s cookbook', from: 'Oma Lien’s cards', owner: 'Oma Lien’s recipe', base: '#c42b22', recipes: [['Lawar Bali', 40, 'Hard']] },
-  { name: 'Tante Ani', badge: 'TANTE ANI', label: 'Tante Ani’s cookbook', from: 'Tante Ani’s notebook', owner: 'Tante Ani’s recipe', base: '#e4a0b1', recipes: [] },
-]
-const NEW_COLOURS = ['#8fc6ba', '#e8d9b8', '#86a3d8', '#f0b54a']
+// Lawar Bali is built into Oma Lien's fridge; every other card comes from the shared cookbooks (see src/cookbook).
+const LAWAR: Recipe = ['Lawar Bali', 40, 'Hard']
+type Book = { id: string; name: string; badge: string; label: string; owner: string; base: string; lawar: boolean; saved: SavedRecipe[] }
+// A fridge's name drives its chrome badge, its cookbook's label and the owner line on its cards.
+const bookFrom = (c: Cookbook): Book => ({
+  id: c.id,
+  name: c.name,
+  badge: c.name ? c.name.toUpperCase() : 'NEW BOOK',
+  label: c.name ? `${c.name}’s cookbook` : 'New cookbook',
+  owner: c.name ? `${c.name}’s recipe` : 'Your recipe',
+  base: c.colour,
+  lawar: c.id === OMA_ID,
+  saved: c.recipes,
+})
 // Where cards sit on the door, by how many cards the fridge has (the last is always Make your own): [x, y, rotation].
 type Spot = [number, number, number]
 const LAYOUTS: Record<number, Spot[]> = {
@@ -56,12 +67,21 @@ const ICON = {
 }
 const FRIDGE_RADIUS = '130px 130px 34px 34px / 104px 104px 34px 34px'
 
-type Item = { kind: 'recipe'; r: Recipe } | { kind: 'new' }
-const itemsOf = (b: Book): Item[] => [...b.recipes.map((r) => ({ kind: 'recipe' as const, r })), { kind: 'new' as const }]
-const layoutFor = (n: number): Spot[] => LAYOUTS[Math.min(4, n)].map((s) => [...s] as Spot)
+type Item = { kind: 'recipe'; r: Recipe } | { kind: 'saved'; s: SavedRecipe } | { kind: 'new' }
+const itemsOf = (b: Book): Item[] => [
+  ...(b.lawar ? [{ kind: 'recipe' as const, r: LAWAR }] : []),
+  ...b.saved.map((s) => ({ kind: 'saved' as const, s })),
+  { kind: 'new' as const },
+]
+// Cards are known by what they are, not where they sit, so a new magnet doesn't move the ones already placed.
+const itemKey = (it: Item | undefined) => (it?.kind === 'recipe' ? 'lawar' : it?.kind === 'saved' ? it.s.id : 'new')
+// Where the k-th of n cards starts. Past four, they settle in two columns down the door, alternately tilted.
+const spotFor = (n: number, k: number): Spot => (n <= 4
+  ? [...LAYOUTS[Math.max(1, n)][k]] as Spot
+  : [k % 2 ? 306 : 118, Math.min(DOOR_BOTTOM - LAWAR_NH, 458 + Math.floor(k / 2) * 168), k % 2 ? 3 : -3])
 function cardFor(bi: number, k: number, kind: Item['kind']) {
   if (kind === 'new') return { paper: NEWCARD[0], top: NEWCARD[1], bottom: NEWCARD[2] }
-  if (bi === 0 && k === 0) return { paper: '#ff4a00', top: '#ff4a00', bottom: '#ff7350' }
+  if (kind === 'recipe') return { paper: '#ff4a00', top: '#ff4a00', bottom: '#ff7350' }
   const c = CARDS[(bi * 2 + k) % CARDS.length]
   return { paper: c[0], top: c[1], bottom: c[2] }
 }
@@ -177,16 +197,6 @@ function MakeFace({ owner, foot }: { owner: string; foot: string }) {
   )
 }
 
-// A fridge's name drives its chrome badge, its cookbook's label and the owner line on its cards.
-const renamed = (b: Book, name: string): Book => ({
-  ...b,
-  name,
-  badge: name.toUpperCase(),
-  label: `${name}’s cookbook`,
-  owner: `${name}’s recipe`,
-  from: b.name && b.from.includes(b.name) ? b.from.replace(b.name, name) : `${name}’s cookbook`,
-})
-
 // The chrome name on the fridge's top door. On the fridge in front, tapping it turns it into a field in the same place:
 // Enter or tapping away keeps the new name, Escape keeps the old one.
 function FridgeName({ book, current, onRename }: { book: Book; current: boolean; onRename: (name: string) => void }) {
@@ -237,13 +247,14 @@ function FridgeBody({ base }: { base: string }) {
 }
 
 type Open = { b: number; k: number }
-type Drag = { bi: number; k: number; sx: number; sy: number; ox: number; oy: number; moved: boolean; u: number; fy: number }
+type Drag = { bi: number; k: number; key: string; rot: number; sx: number; sy: number; ox: number; oy: number; moved: boolean; u: number; fy: number }
 
 type FridgeProps = {
   /** Start cooking, from the recipe home view inside the fridge: leads to the cooking-step screen. */
   onStartCooking?: () => void
-  /** Make your own: hands the display over to Grandma's screen. Without it, the page moves to /grandma. */
-  onRecord?: () => void
+  /** Make your own, on a fridge: hands the display over to Grandma's screen to tell that fridge a new recipe.
+      Without it, the page moves to /grandma. */
+  onRecord?: (book: { id: string; name: string }) => void
   /** Open straight onto Lawar Bali (e.g. handed over from the grandma screen). */
   startOpen?: boolean
   /** Whether the screen is showing; the opening zoom waits until it is. */
@@ -252,28 +263,31 @@ type FridgeProps = {
   closeRequest?: number
   /** Lets a host (the voice page) reach the recipe screen's voice island. */
   homeRef?: React.Ref<HomeViewHandle>
+  /** Bumped (`n`) to go to a fridge and pop one of its cards, e.g. a recipe just saved from Grandma's screen. */
+  focus?: { book: string; recipe?: string; n: number }
 }
 
-export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, active = true, closeRequest = 0, homeRef }: FridgeProps) {
+export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, active = true, closeRequest = 0, homeRef, focus }: FridgeProps) {
   const router = useRouter()
-  const [books, setBooks] = useState<Book[]>(() => START.map((b) => ({ ...b, recipes: b.recipes.slice() })))
+  const cookbooks = useCookbooks()
+  const books = useMemo(() => cookbooks.books.map(bookFrom), [cookbooks])
   const [i, setI] = useState(0)
   const [view, setView] = useState<View>(startOpen ? 'door' : 'over')
   // Where the door view is scrolled to (its centre, in world units). A scroll writes the camera straight to the DOM,
   // so the door stays under the finger; React only re-renders as a scroll starts and once it settles.
-  const fyRef = useRef(clampFy(START_SPOT[1] + noteH(0, 0) / 2))
+  const fyRef = useRef(clampFy(START_SPOT[1] + noteH('recipe') / 2))
   const fyTarget = useRef(fyRef.current)
   const camEl = useRef<HTMLDivElement>(null)
   const [panning, setPanning] = useState(false)
   const panningRef = useRef(false)
   const panIdle = useRef<number | undefined>(undefined)
   const glide = useRef(0)
-  // Zooming in aims the door view at the fridge's main card (its first), wherever it has been moved to.
-  const aimAt = (bi: number) => {
+  // Zooming in aims the door view at the fridge's main card (its first), or the card asked for, wherever it has been moved to.
+  const aimAt = (bi: number, k = 0) => {
     cancelAnimationFrame(glide.current)
     glide.current = 0
-    const spot = posRef.current[bi]?.[0] ?? layoutFor(1)[0]
-    fyRef.current = fyTarget.current = clampFy(spot[1] + noteH(bi, 0, kindAt(bi, 0)) / 2)
+    const spot = spotIn(posRef.current, bi, k)
+    fyRef.current = fyTarget.current = clampFy(spot[1] + noteH(kindAt(bi, k)) / 2)
   }
   // What a fridge's k-th card is; a fridge being added (not in this render yet) holds only Make your own.
   const kindAt = (bi: number, k: number) => (bi < books.length ? itemsOf(books[bi])[k]?.kind : 'new')
@@ -306,10 +320,16 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   }
   const [ready, setReady] = useState(startOpen)
   const [fresh, setFresh] = useState(-1)
-  const [pos, setPos] = useState<Spot[][]>(() => START.map((b) => layoutFor(itemsOf(b).length)))
+  // Where cards have been dragged to, by fridge and card; the rest sit where their fridge's layout puts them.
+  const [pos, setPos] = useState<Record<string, Spot>>({})
   const posRef = useRef(pos)
   posRef.current = pos
-  const [order, setOrder] = useState<number[][]>(() => START.map((b) => itemsOf(b).map((_, k) => k)))
+  const keyOf = (bi: number, k: number) => `${books[bi]?.id ?? 'next'}:${itemKey(books[bi] ? itemsOf(books[bi])[k] : undefined)}`
+  const spotIn = (placed: Record<string, Spot>, bi: number, k: number): Spot => placed[keyOf(bi, k)] ?? spotFor(books[bi] ? itemsOf(books[bi]).length : 1, k)
+  // The cards picked up most recently sit on top, in the order they were last touched.
+  const [raised, setRaised] = useState<string[]>([])
+  // A card that has just arrived (a recipe saved from Grandma's screen) pops onto the door.
+  const [popped, setPopped] = useState<string | null>(null)
   const [dragging, setDragging] = useState<[number, number] | null>(null)
   const [open, setOpen] = useState<Open | null>(startOpen ? { b: 0, k: 0 } : null)
   const [phase, setPhase] = useState(startOpen ? 2 : 0)
@@ -369,11 +389,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
 
   const addFridge = () => {
     const n = books.length
-    const b: Book = { name: '', badge: 'NEW BOOK', label: 'New cookbook', from: 'your new cookbook', owner: 'Your recipe', base: NEW_COLOURS[(n - 2 + NEW_COLOURS.length) % NEW_COLOURS.length], recipes: [] }
-    setBooks((cur) => [...cur, b])
+    void changeCookbooks({ type: 'add_book', id: newId('fridge') })
     setFresh(n)
-    setPos((cur) => [...cur, layoutFor(1)])
-    setOrder((cur) => [...cur, [0]])
     setI(n)
     aimAt(n)
     setView('over')
@@ -390,9 +407,10 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const startDrag = (event: ReactPointerEvent, bi: number, k: number) => {
     if (open || bi !== i) return
     event.stopPropagation()
-    const p = pos[bi][k]
-    drag.current = { bi, k, sx: event.clientX, sy: event.clientY, ox: p[0], oy: p[1], moved: false, u: unit(), fy: fyRef.current }
-    setOrder((cur) => cur.map((o, b) => (b === bi ? [...o.filter((x) => x !== k), k] : o)))
+    const p = spotIn(pos, bi, k)
+    const key = keyOf(bi, k)
+    drag.current = { bi, k, key, rot: p[2], sx: event.clientX, sy: event.clientY, ox: p[0], oy: p[1], moved: false, u: unit(), fy: fyRef.current }
+    setRaised((cur) => [...cur.filter((x) => x !== key), key])
     setDragging([bi, k])
   }
 
@@ -407,7 +425,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     // display hands over to her (in the kitchen) or the page moves to /grandma. Once the kitchen's slide (1.1s) has
     // carried the fridge out of sight, the card is put back, so the fridge is ready when you come back.
     if (itemsOf(books[i])[k].kind === 'new') {
-      later('record', 480, () => (onRecord ? onRecord() : router.push('/grandma')))
+      const book = { id: books[i].id, name: books[i].name }
+      later('record', 480, () => (onRecord ? onRecord(book) : router.push('/grandma')))
       later('close', 480 + 1200, () => { setOpen(null); setPhase(0) })
       return
     }
@@ -428,6 +447,30 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   const closeRef = useRef(closeNote)
   closeRef.current = closeNote
   useEffect(() => { if (closeRequest) closeRef.current() }, [closeRequest])
+
+  // Asked from outside (a recipe just saved from Grandma's screen): close anything open, glide to that fridge's door,
+  // aim at the new card and pop it on.
+  const focusRef = useRef(() => {})
+  focusRef.current = () => {
+    if (!focus) return
+    const n = books.findIndex((b) => b.id === focus.book)
+    if (n < 0) return
+    const k = focus.recipe ? itemsOf(books[n]).findIndex((it) => it.kind === 'saved' && it.s.id === focus.recipe) : 0
+    started.current = true
+    setReady(true)
+    setOpen(null)
+    setPhase(0)
+    Object.values(timers.current).forEach((t) => window.clearTimeout(t))
+    setView('over')
+    later('slide', n === i ? 0 : 300, () => { aimAt(n, Math.max(0, k)); setI(n) })
+    later('zoom', n === i ? 500 : 1200, () => setView('door'))
+    if (k >= 0 && focus.recipe) {
+      const key = `${focus.book}:${focus.recipe}`
+      later('pop', n === i ? 1100 : 1800, () => setPopped(key))
+      later('unpop', (n === i ? 1100 : 1800) + 1200, () => setPopped(null))
+    }
+  }
+  useEffect(() => { if (focus?.n) focusRef.current() }, [focus?.n])
   const clickNote = (bi: number, k: number) => {
     if (suppress.current) { suppress.current = false; return }
     if (bi === i) openNote(k)
@@ -456,10 +499,10 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     const dy = (event.clientY - d.sy) / d.u + (fyRef.current - d.fy)
     if (!d.moved && Math.abs(dx) + Math.abs(dy) < 4) return
     d.moved = true
-    const h = noteH(d.bi, d.k, kindAt(d.bi, d.k))
+    const h = noteH(kindAt(d.bi, d.k))
     const x = Math.max(DOOR_SIDE, Math.min(W - NW - DOOR_SIDE, d.ox + dx))
     const y = Math.max(DOOR_TOP, Math.min(DOOR_BOTTOM - h, d.oy + dy))
-    setPos((cur) => cur.map((spots, b) => (b === d.bi ? spots.map((s, k) => (k === d.k ? [x, y, s[2]] as Spot : s)) : spots)))
+    setPos((cur) => ({ ...cur, [d.key]: [x, y, d.rot] }))
     // Carrying a note past the top or bottom of the screen scrolls the fridge with it.
     if (view === 'door') {
       const fy = fyRef.current
@@ -522,33 +565,32 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   // the page it opens on the way (Lawar Bali's orange becomes its home view's white), so the page fades in over itself.
   let fly: CSSProperties | null = null
   let flyFace: { k: number; h: number; kind: 'lawar' | 'make'; name: string; mins: number; owner: string; foot: string } | null = null
-  let page: { kind: 'main' | 'paper'; name: string; from: string; book: string; paper: string; tags: { icon: string; label: string }[] } | null = null
+  let page: { kind: 'main' } | { kind: 'saved'; recipe: SavedRecipe; by: string } | null = null
   if (open) {
     const ob = books[open.b]
     const it = itemsOf(ob)[open.k]
     const oc = camFor(view, open.b, fyRef.current)
-    const p = pos[open.b][open.k]
+    const p = spotIn(pos, open.b, open.k)
     const c = cardFor(open.b, open.k, it.kind)
     const w = NW * oc.k
-    const h = noteH(open.b, open.k, it.kind) * oc.k
+    const h = noteH(it.kind) * oc.k
     const left = oc.tx + (open.b * (W + GAP) + p[0]) * oc.k
     const top = oc.ty + p[1] * oc.k
     const dx = 320 - (left + w / 2)
     const dy = 320 - (top + h / 2)
     const S = Math.max(640 / w, 640 / h) * 1.2
-    const main = open.b === 0 && open.k === 0
-    const pageBg = main ? '#fff' : c.paper
+    const main = it.kind === 'recipe'
+    // Lawar Bali's and saved recipes' pages are white: the card turns white as it grows into them.
+    const pageBg = it.kind === 'new' ? c.paper : '#fff'
     fly = {
       left: Math.round(left), top: Math.round(top), width: Math.round(w), height: Math.round(h), background: phase > 0 ? pageBg : c.paper, borderRadius: phase > 0 ? 0 : 2,
       transform: phase > 0 ? `translate(${dx}px, ${dy}px) rotate(0deg) scale(${S.toFixed(3)})` : `rotate(${p[2]}deg)`,
     }
     // The Lawar Bali and Make your own cards carry their faces as they grow, fading them on the way.
-    if (main && it.kind === 'recipe') flyFace = { k: oc.k, h: LAWAR_NH, kind: 'lawar', name: it.r[0], mins: it.r[1], owner: ob.owner, foot: c.bottom }
+    if (it.kind === 'recipe') flyFace = { k: oc.k, h: LAWAR_NH, kind: 'lawar', name: it.r[0], mins: it.r[1], owner: ob.owner, foot: c.bottom }
     if (it.kind === 'new') flyFace = { k: oc.k, h: LAWAR_NH, kind: 'make', name: '', mins: 0, owner: ob.owner, foot: c.bottom }
-    page = it.kind === 'new'
-      ? null
-      : { kind: open.b === 0 && open.k === 0 ? 'main' : 'paper', name: it.r[0], from: ob.from, book: ob.label, paper: c.paper,
-        tags: [{ icon: ICON.clock, label: `${it.r[1]} min` }, { icon: ICON.level, label: it.r[2] }] }
+    if (main) page = { kind: 'main' }
+    if (it.kind === 'saved') page = { kind: 'saved', recipe: it.s, by: `From ${ob.label}` }
   }
   const shown = !!open && phase >= 2
   const leaving = phase === 3 ? ' fz-out' : ''
@@ -563,30 +605,33 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
           const cur = d === 0
           const locked = !cur || !!open
           return (
-            <div key={bi} className={`fz-book${bi === fresh ? ' fz-pop' : ''}`} style={{ left: bi * (W + GAP), opacity: cur ? 1 : Math.abs(d) === 1 ? 0.6 : 0 }}>
+            <div key={b.id} className={`fz-book${bi === fresh ? ' fz-pop' : ''}`} style={{ left: bi * (W + GAP), opacity: cur ? 1 : Math.abs(d) === 1 ? 0.6 : 0 }}>
               <FridgeBody base={b.base} />
-              <FridgeName book={b} current={cur && !open} onRename={(name) => setBooks((all) => all.map((x, j) => (j === bi ? renamed(x, name) : x)))} />
+              <FridgeName book={b} current={cur && !open} onRename={(name) => void changeCookbooks({ type: 'rename_book', id: b.id, name })} />
               {Math.abs(d) === 1 && !open && (
                 <button type="button" className="fz-book__pick" aria-label={`Go to ${b.label}`} onClick={() => go(bi)} />
               )}
               {itemsOf(b).map((it, k) => {
-                const p = pos[bi][k]
+                const p = spotIn(pos, bi, k)
                 const c = cardFor(bi, k, it.kind)
                 const mag = MAGS[(bi + k) % MAGS.length]
                 const isNew = it.kind === 'new'
-                const main = bi === 0 && k === 0
+                const main = it.kind === 'recipe'
+                const key = keyOf(bi, k)
                 const lifted = !!dragging && dragging[0] === bi && dragging[1] === k
+                const name = it.kind === 'recipe' ? it.r[0] : it.kind === 'saved' ? it.s.name : ''
+                const mins = it.kind === 'recipe' ? it.r[1] : it.kind === 'saved' ? it.s.minutes : null
                 return (
                   <button
-                    key={k}
+                    key={key}
                     type="button"
-                    className={`fz-note${main ? ' fz-note--lawar' : ''}${isNew ? ' fz-note--make' : ''}${lifted ? ' fz-drag' : ''}`}
+                    className={`fz-note${main ? ' fz-note--lawar' : ''}${isNew ? ' fz-note--make' : ''}${lifted ? ' fz-drag' : ''}${popped === key ? ' fz-note--pop' : ''}`}
                     disabled={locked}
-                    aria-label={isNew ? 'Make your own recipe. Drag to move, tap to start.' : `${it.r[0]}, ${it.r[1]} minutes. Drag to move, tap to open.`}
+                    aria-label={isNew ? 'Make your own recipe. Drag to move, tap to start.' : `${name}${mins ? `, ${mins} minutes` : ''}. Drag to move, tap to open.`}
                     onPointerDown={(event) => startDrag(event, bi, k)}
                     onClick={() => clickNote(bi, k)}
                     style={{
-                      left: Math.round(p[0]), top: Math.round(p[1]), height: noteH(bi, k, it.kind), zIndex: 10 + order[bi].indexOf(k), background: c.paper,
+                      left: Math.round(p[0]), top: Math.round(p[1]), height: noteH(it.kind), zIndex: 10 + k + (raised.indexOf(key) + 1) * 20, background: c.paper,
                       cursor: cur ? (lifted ? 'grabbing' : 'grab') : 'default',
                       transform: `rotate(${lifted ? 0 : p[2]}deg) scale(${lifted ? 1.06 : 1})`,
                       boxShadow: lifted ? '0 22px 30px rgba(31,28,25,.34)' : '0 6px 10px rgba(31,28,25,.24), 0 1px 2px rgba(31,28,25,.2)',
@@ -597,13 +642,13 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
                       <LawarFace name={it.r[0]} mins={it.r[1]} owner={b.owner} foot={c.bottom} />
                     ) : isNew ? (
                       <MakeFace owner={b.owner} foot={c.bottom} />
-                    ) : it.kind === 'recipe' && (
+                    ) : (
                       <>
                         <span className="fz-note__top" aria-hidden="true" style={{ background: c.top }}><span /></span>
                         <span className="fz-note__body">
                           <span className="fz-note__line">
-                            <span className="fz-note__name">{it.r[0]}</span>
-                            <span className="fz-note__mins">{it.r[1]} mins</span>
+                            <span className="fz-note__name">{name}</span>
+                            {mins ? <span className="fz-note__mins">{mins} mins</span> : null}
                           </span>
                           <span className="fz-note__owner">{b.owner}</span>
                         </span>
@@ -637,7 +682,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
       <div className="fz-dots" style={{ opacity: open ? 0 : 1 }}>
         <nav aria-label="Cookbooks">
           {books.map((b, bi) => (
-            <button key={bi} type="button" className="fz-tap" aria-label={b.label} aria-current={bi === i ? 'true' : undefined} onClick={() => go(bi)}>
+            <button key={b.id} type="button" className="fz-tap" aria-label={b.label} aria-current={bi === i ? 'true' : undefined} onClick={() => go(bi)}>
               <span className="fz-dot" style={{ width: bi === i ? 22 : 6, background: bi === i ? '#1f1c19' : '#a9a39b' }} />
             </button>
           ))}
@@ -672,24 +717,11 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
         </div>
       )}
 
-      {shown && page?.kind === 'paper' && (
-        <article className={`fz-in fz-page${leaving}`} aria-label={page.name} style={{ background: page.paper }}>
-          <section className="fz-paper">
-            <h1 className="fz-page__title fz-page__title--big">{page.name}</h1>
-            <p className="fz-page__lede">From <b>{page.from}</b>.</p>
-            <div className="fz-paper__tags">
-              {page.tags.map((t) => <span key={t.label} className="fz-paper__tag"><Icon d={t.icon} size={17} />{t.label}</span>)}
-            </div>
-          </section>
-          <p className="fz-paper__note">Placeholder recipe in the wireframe</p>
+      {shown && page?.kind === 'saved' && (
+        <article className={`fz-in fz-page${leaving}`} aria-label={page.recipe.name} style={{ background: '#fff' }}>
+          <RecipePage recipe={page.recipe} by={page.by}
+            actions={<button type="button" aria-label="Back to the fridge" onClick={() => closeNote(true)}><ShrinkIcon /></button>} />
         </article>
-      )}
-
-      {/* The recipe's own page carries Back in its title-row pill (titleActions above); the others float it here. */}
-      {shown && page?.kind !== 'main' && (
-        <div className={`fz-in-late fz-back fz-back--${page?.kind}${leaving}`}>
-          <button type="button" className="fz-tap fz-back__btn" aria-label="Back to the fridge" onClick={() => closeNote(true)}><ShrinkIcon /></button>
-        </div>
       )}
     </div>
   )

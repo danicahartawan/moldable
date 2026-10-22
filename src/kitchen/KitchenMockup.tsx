@@ -26,7 +26,17 @@ export type KitchenVoiceBridge = {
 }
 
 // `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
-export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false, voiceBridge, startOnRecipe = false, onPerspective }: { grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode); fridge?: boolean; voiceBridge?: MutableRefObject<KitchenVoiceBridge | null>; startOnRecipe?: boolean; onPerspective?: (perspective: Perspective) => void } = {}) {
+// `onMakeRecipe`: Make your own was tapped on a fridge (the display then shows Grandma's screen to tell it).
+// `fridgeFocus`: bumped to bring a fridge forward and pop a card on it (a recipe just saved from Grandma's screen).
+export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false, voiceBridge, startOnRecipe = false, onPerspective, onMakeRecipe, fridgeFocus }: {
+  grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode)
+  fridge?: boolean
+  voiceBridge?: MutableRefObject<KitchenVoiceBridge | null>
+  startOnRecipe?: boolean
+  onPerspective?: (perspective: Perspective) => void
+  onMakeRecipe?: (book: { id: string; name: string }) => void
+  fridgeFocus?: { book: string; recipe?: string; n: number }
+} = {}) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const screen = useRef<HTMLDivElement>(null)
   const swipeStart = useRef<number | null>(null)
@@ -174,7 +184,8 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
             <div className={`kitchen__grandkids-view${instructionStep === null ? '' : ' is-off'}`} inert={instructionStep !== null}>
               {fridge ? (
                 <FridgeScreen homeRef={homeRef} key={recipeHandover} startOpen={recipeHandover > 0} active={perspective === 'grandkids'} closeRequest={fridgeClose}
-                  onStartCooking={() => goToStep(1)} onRecord={() => setPerspective('grandma')} />
+                  onStartCooking={() => goToStep(1)} focus={fridgeFocus}
+                  onRecord={(book) => { onMakeRecipe?.(book); setPerspective('grandma') }} />
               ) : (
                 <HomeViewBoard ref={homeRef} onStartCooking={() => goToStep(1)} />
               )}

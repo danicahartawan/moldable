@@ -59,6 +59,10 @@ a.fz-tap { text-decoration: none; }
 /* Postcard notes: a darker top band with a pin dot, the title at the foot of the body, a lighter bottom band. */
 .fz-note { position: absolute; display: flex; width: 130px; height: 150px; box-sizing: border-box; flex-direction: column; padding: 0; overflow: visible; border: 0; border-radius: 2px; color: #1f1c19; text-align: left; touch-action: none; transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease, left .35s cubic-bezier(.22, 1, .36, 1), top .35s cubic-bezier(.22, 1, .36, 1); }
 .fz-note.fz-drag { transition: transform .15s ease, box-shadow .15s ease; }
+/* A card that has just arrived (a recipe saved from Grandma's screen) pops onto the door. `scale`, so its tilt is kept. */
+@keyframes fz-note-pop { from { opacity: 0; scale: .3; } 60% { opacity: 1; scale: 1.08; } to { opacity: 1; scale: 1; } }
+.fz-note--pop { animation: fz-note-pop 900ms cubic-bezier(.2, 1.1, .3, 1) both; }
+@media (prefers-reduced-motion: reduce) { .fz-note--pop { animation: none; } }
 .fz-note:focus-visible { outline: 3px solid #1f1c19; outline-offset: 5px; }
 .fz-note:disabled { cursor: default; }
 .fz-note__top { position: relative; height: 22px; flex: none; border-radius: 2px 2px 0 0; }
@@ -131,17 +135,11 @@ a.fz-tap { text-decoration: none; }
 .fz:has(.hm-frost.is-closing) .fz-back__btn { filter: none; opacity: 1; }
 .fz:has(.hm-frost.is-quick) .fz-back__btn { transition: filter .3s cubic-bezier(.4, 0, .7, .2), opacity .3s cubic-bezier(.4, 0, .7, .2); }
 .fz-back--main { top: 52px; }
-.fz-back--paper { top: 106px; }
 
 .fz-page__title { margin: 0; font-size: 60px; font-weight: 500; line-height: 64px; letter-spacing: -.03em; text-transform: none; }
 .fz-page__title--big { font-size: 64px; line-height: 68px; }
 .fz-page__lede { margin: 14px 0 0; font-size: 30px; line-height: 39px; letter-spacing: -.012em; }
 .fz-page__lede b { font-weight: 600; }
-.fz-paper { position: absolute; top: 96px; right: 48px; left: 48px; }
-.fz-paper .fz-page__lede { margin-top: 16px; line-height: 40px; }
-.fz-paper__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-.fz-paper__tag { display: inline-flex; height: 36px; align-items: center; gap: 7px; padding: 0 14px 0 12px; border-radius: 999px; background: rgba(255, 255, 255, .6); font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
-.fz-paper__note { position: absolute; bottom: 40px; left: 48px; margin: 0; font-size: 17px; line-height: 22px; opacity: .7; }
 
 @media (prefers-reduced-motion: reduce) {
   .fz-in, .fz-in-late, .fz-pop { animation: fz-in-fade .2s ease both; }

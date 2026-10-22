@@ -111,6 +111,7 @@ const NUMBER_WORDS: Record<string, string> = { a: '1', an: '1', one: '1', two: '
 const UNIT = '(?:cups?|tablespoons?|tbsp|teaspoons?|tsp|grams?|g|kilos?|kg|ml|millilit(?:er|re)s?|lit(?:er|re)s?|cloves?|pieces?|slices?|stalks?|sticks?|cans?|handfuls?|pinch(?:es)?|bunch(?:es)?|leaves|eggs?)'
 const AMOUNT = `(\\d+(?:[.,/]\\d+)?|a half|a quarter|half|a|an|one|two|three|four|five|six|seven|eight|nine|ten|twelve)\\s*(${UNIT})?\\s*(?:of\\s+)?`
 
+export const NAME_QUESTION = 'What do you call this dish?'
 const capital = (s: string) => (s ? s[0].toLocaleUpperCase() + s.slice(1) : s)
 const sentences = (text: string) => text.replace(/\[([^\]]+)\]/g, '$1').split(/(?<=[.!?])\s+|\n+/).map((s) => s.trim()).filter(Boolean)
 
@@ -175,12 +176,17 @@ export function fallbackTidy(transcript: string, title = '', answers: Answer[] =
     const much = /how much (.+?)\??$/i.exec(a.question)
     if (much) {
       const item = ingredients.find((i) => i.name.toLowerCase() === much[1].toLowerCase())
-      if (item && a.answer.trim()) { item.amount = a.answer.trim().slice(0, 40); item.said ||= a.answer.trim().slice(0, 80) }
+      // “A cup of grated coconut” is kept as “a cup”: the ingredient's own name isn't part of its amount.
+      const amount = a.answer.trim().replace(new RegExp(`\\s*(?:of\\s+)?(?:the\\s+)?${much[1].replace(/ /g, '\\s+')}[.!]*$`, 'i'), '').trim()
+      if (item && amount) { item.amount = amount.slice(0, 40); item.said ||= a.answer.trim().slice(0, 80) }
     }
   }
+  // With no name from the story, she is asked what she calls it, and her answer is the name.
+  const called = answers.find((a) => a.question === NAME_QUESTION)?.answer.trim().replace(/^(?:it'?s|we call it|i call it|that'?s|it is)\s+/i, '').replace(/[.!?]+$/, '')
 
   const asked = new Set(answers.map((a) => a.question))
   const questions = [
+    title || called ? '' : NAME_QUESTION,
     ...ingredients.filter((i) => !i.amount && !i.said && !/^(salt|pepper|water|oil)$/i.test(i.name)).slice(0, 2).map((i) => `How much ${i.name.toLowerCase()}?`),
     minutes === null ? 'How long does it take, start to finish?' : '',
     serves === null ? 'How many people does it feed?' : '',
@@ -189,7 +195,7 @@ export function fallbackTidy(transcript: string, title = '', answers: Answer[] =
 
   const first = lines[0] ?? ''
   return {
-    name: title || capital(found[0] ? `${found[0]} recipe` : 'New recipe'),
+    name: title || (called ? capital(called).slice(0, 60) : capital(found[0] ? `${found[0]} recipe` : 'New recipe')),
     summary: first.length > 140 ? `${first.slice(0, 137).trim()}…` : first,
     minutes,
     serves,

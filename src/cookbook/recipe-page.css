@@ -1,0 +1,29 @@
+/* A saved recipe on the 640 × 640 display, in Lawar Bali's voice: Archivo, a big name, one sentence, grey chips. */
+.rp { --rp-ink: #1f1c19; --rp-muted: #6b665f; --rp-line: #efedea; position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: 44px 48px 56px; box-sizing: border-box; background: #fff; color: var(--rp-ink); font-family: "Archivo", "archivo Fallback", system-ui, sans-serif; font-weight: 400; scrollbar-width: none; touch-action: pan-y; }
+.rp::-webkit-scrollbar { display: none; }
+.rp-head { display: flex; align-items: flex-start; gap: 16px; }
+.rp-head__text { flex: 1; min-width: 0; }
+.rp-title { margin: 0; font-size: 60px; font-weight: 500; line-height: 64px; letter-spacing: -.03em; text-transform: none; text-wrap: balance; }
+.rp-by { margin: 6px 0 0; color: var(--rp-muted); font-size: 18px; line-height: 24px; }
+/* The title row's actions: one white pill holding grey discs, like the recipe page and the Grandma screen's controls. */
+.rp-actions { display: flex; flex: none; align-items: center; gap: 2px; margin: -6px -10px 0 0; padding: 6px 10px; border: 1px solid rgba(31, 28, 25, .07); border-radius: 30px; background: rgba(255, 255, 255, .82); box-shadow: 0 4px 14px rgba(31, 28, 25, .07); }
+.rp-actions > button { display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 24px; background: #f2f1ef; color: var(--rp-ink); cursor: pointer; transition: transform 140ms cubic-bezier(.2, .8, .2, 1), background-color 180ms ease; }
+.rp-actions > button:hover { background: #e8e6e2; }
+.rp-actions > button:active { transform: scale(.96); }
+.rp-actions > button svg { width: 22px; height: 22px; }
+.rp-summary { margin: 14px 0 0; font-size: 26px; line-height: 34px; letter-spacing: -.012em; text-wrap: pretty; }
+.rp-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.rp-tags:empty { display: none; }
+.rp-tag { display: inline-flex; height: 36px; box-sizing: border-box; align-items: center; gap: 7px; padding: 0 14px 0 12px; border-radius: 999px; background: #f2f1ef; font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.rp-section { margin-top: 30px; }
+.rp-section__title { margin: 0 0 6px; color: var(--rp-muted); font-size: 16px; font-weight: 400; line-height: 20px; text-transform: none; letter-spacing: 0; }
+.rp-ingredients, .rp-steps, .rp-tools, .rp-ask { margin: 0; padding: 0; list-style: none; }
+.rp-ingredients { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+.rp-ingredients li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; column-gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rp-line); font-size: 22px; line-height: 28px; }
+.rp-ingredients__amount { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.rp-ingredients__said { grid-column: 1 / -1; color: var(--rp-muted); font-size: 15px; line-height: 20px; }
+.rp-steps li { display: flex; align-items: baseline; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--rp-line); font-size: 22px; line-height: 30px; }
+.rp-steps__n { flex: none; width: 18px; color: var(--rp-muted); font-size: 16px; font-variant-numeric: tabular-nums; }
+.rp-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.rp-tools li { display: inline-flex; height: 36px; align-items: center; padding: 0 14px; border-radius: 999px; background: #f2f1ef; font-size: 18px; }
+.rp-ask li { padding: 8px 0; color: var(--rp-muted); font-size: 20px; line-height: 26px; }

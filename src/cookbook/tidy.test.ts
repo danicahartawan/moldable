@@ -17,13 +17,15 @@ describe('the rule-based tidy', () => {
 
   it('asks about what is missing, and folds her answers back in', () => {
     const draft = fallbackTidy('Fry the shallots and garlic. Add the chicken and cook it through.')
-    expect(draft.questions).toEqual(['How much shallots?', 'How much garlic?', 'How long does it take, start to finish?', 'How many people does it feed?'])
+    expect(draft.questions).toEqual(['What do you call this dish?', 'How much shallots?', 'How much garlic?', 'How long does it take, start to finish?'])
     const answered = fallbackTidy('Fry the shallots and garlic. Add the chicken and cook it through.', '', [
-      { question: 'How much shallots?', answer: '6 shallots' },
+      { question: 'What do you call this dish?', answer: 'We call it ayam goreng.' },
+      { question: 'How much shallots?', answer: 'six of the shallots' },
       { question: 'How long does it take, start to finish?', answer: 'about half an hour' },
       { question: 'How many people does it feed?', answer: 'four' },
     ])
-    expect(answered.ingredients.find((i) => i.name === 'Shallots')?.amount).toBe('6 shallots')
+    expect(answered.name).toBe('Ayam goreng')
+    expect(answered.ingredients.find((i) => i.name === 'Shallots')?.amount).toBe('six')
     expect(answered.minutes).toBe(30)
     expect(answered.serves).toBe(4)
     expect(answered.questions).not.toContain('How much shallots?')
