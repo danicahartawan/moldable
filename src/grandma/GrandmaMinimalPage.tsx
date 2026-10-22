@@ -305,6 +305,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
   noteTextRef.current = noteText
   const [photos, setPhotos] = useState<StoryPhoto[]>([])
   const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const [cameraSlot, setCameraSlot] = useState<HTMLSpanElement | null>(null)
   // Recipe change opens the fog overlay; Tidy only shows it's chosen for now.
   const [doneView, setDoneView] = useState<'changes' | 'tidy' | null>(null)
   const [isRippling, setIsRippling] = useState(false)
@@ -456,6 +457,8 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
       </section>
       {isRecording ? (
         <div className="gm-controls" role="group" aria-label="Recording">
+          {/* The camera sits first in the pill (CameraButton puts its button here). */}
+          <span ref={setCameraSlot} className="gm-controls__camera" />
           <button className="grandma-waveform__pause" type="button" aria-label={isPaused ? 'Resume recording' : 'Pause recording'} aria-pressed={isPaused} onClick={recorder.togglePause}>
             <LineIcon name={isPaused ? 'play' : 'pause'} />
           </button>
@@ -484,7 +487,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
             ]} />
         </div>
       ) : null}
-      {isRecording ? <CameraButton onCapture={addPhoto} onOpenChange={setIsCameraOpen} /> : null}
+      {isRecording ? <CameraButton onCapture={addPhoto} onOpenChange={setIsCameraOpen} slot={cameraSlot} /> : null}
       {isRecording ? <div className="gm-recording-beam" aria-hidden="true"><OrangeBeam level={recordingLevel} active={!isPaused} /></div> : null}
       {isRecording ? <ListeningClay isPaused={isPaused} /> : null}
       {isRecipeListening ? <RecipeChangeOverlay levelRef={recorder.levelRef} noteText={noteText} onClose={applyRecipeChange} onHeard={markRecipeChangeDone} /> : null}

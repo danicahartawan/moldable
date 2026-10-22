@@ -215,12 +215,9 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   to { background-size: 100% 100%; }
 }
 
-/* Camera: a gray round button under the pause/stop pill, in the same style. */
+/* Camera: the first button in the pause / stop pill, in the same grey. Its slot collapses while the viewfinder is open. */
+.gm-controls__camera { display: contents; }
 .gm-camera {
-  position: absolute;
-  top: calc(6% + 84px);
-  right: 5%;
-  z-index: 4;
   display: flex;
   width: 48px;
   height: 48px;
@@ -232,12 +229,11 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   background: #f2f1ef;
   color: #1f1c19;
   cursor: pointer;
-  animation: widget-rise 520ms cubic-bezier(.2, .8, .2, 1) both;
+  transition: background-color 180ms ease, transform 140ms cubic-bezier(.2, .8, .2, 1);
 }
-.gm-camera { margin-right: 10px; }
 .gm-camera:hover { background: #e8e6e2; }
 .gm-camera:active { transform: scale(.95); }
-.gm-note { right: calc(5% + 72px); transition: right 460ms cubic-bezier(.2, .9, .25, 1); }
+.gm-note { right: 5%; transition: right 460ms cubic-bezier(.2, .9, .25, 1); }
 /* While the viewfinder is open, the note narrows so the text flows down the left of it. */
 .gm-note.is-beside-camera { right: calc(5% + 44% + 18px); }
 
@@ -255,7 +251,8 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   border-radius: 24px;
   background: #000;
   box-shadow: 0 18px 40px rgba(0, 0, 0, .22);
-  transform-origin: calc(100% - 24px) 24px;
+  /* Grows out of the camera button, now first in the pill above it. */
+  transform-origin: calc(100% - 134px) -53px;
   animation: gm-viewfinder-open 460ms cubic-bezier(.2, .9, .25, 1.05) both;
 }
 @keyframes gm-viewfinder-open {

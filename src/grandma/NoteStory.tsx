@@ -3,6 +3,7 @@
 import { X } from '@phosphor-icons/react'
 import { LineIcon } from './LineIcon'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { renderTranscriptText, TranscriptToolChip } from './RollingTranscript'
 
 export type StoryPhoto = { id: number; at: number; src: string }
@@ -122,7 +123,8 @@ export function NoteStory({ text, visibleLength, interimText, photos, changes = 
 
 // A camera on the side of the screen. Tapping it grows a viewfinder card out of the button;
 // with no camera (or if it's refused) the card frames a demo photo instead.
-export function CameraButton({ onCapture, onOpenChange }: { onCapture: (src: string) => void; onOpenChange?: (isOpen: boolean) => void }) {
+// `slot`: where the closed camera button sits (the pause / stop pill); the viewfinder still opens over the screen.
+export function CameraButton({ onCapture, onOpenChange, slot }: { onCapture: (src: string) => void; onOpenChange?: (isOpen: boolean) => void; slot?: HTMLElement | null }) {
   const [view, setView] = useState<'closed' | 'live' | 'demo'>('closed')
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isFlashing, setIsFlashing] = useState(false)
@@ -173,11 +175,14 @@ export function CameraButton({ onCapture, onOpenChange }: { onCapture: (src: str
 
   return (
     <>
-      {view === 'closed' ? (
-        <button type="button" className="gm-camera" aria-label="Take a photo" onClick={open}>
-          <LineIcon name="camera" />
-        </button>
-      ) : (
+      {view === 'closed' ? (() => {
+        const button = (
+          <button type="button" className="gm-camera" aria-label="Take a photo" onClick={open}>
+            <LineIcon name="camera" />
+          </button>
+        )
+        return slot ? createPortal(button, slot) : button
+      })() : (
         <div className="gm-viewfinder" role="dialog" aria-label="Camera">
           {view === 'live' ? (
             <video ref={video} className="gm-viewfinder__view" autoPlay playsInline muted />
