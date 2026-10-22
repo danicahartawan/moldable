@@ -55,10 +55,16 @@
 .kitchen__dock-row { display: flex; align-items: center; gap: 8px; }
 .kitchen__bar, .kitchen__pill { display: flex; align-items: center; gap: 10px; padding: 7px 13px; border-radius: var(--radius-pill); background: var(--glass); box-shadow: 0 10px 30px rgba(20, 12, 6, 0.2), 0 0 0 1px rgba(31, 28, 25, 0.1); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2); }
 .kitchen__bar > span { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .28; }
-.kitchen__bar button, .kitchen__pill button { display: inline-flex; height: 27px; align-items: center; gap: 6px; padding: 0 4px; border: 0; background: transparent; color: var(--ink); opacity: .5; font: 300 13px/1 var(--font-sans); cursor: pointer; transition: opacity 200ms ease; }
+.kitchen__bar button, .kitchen__pill button { display: inline-flex; height: 27px; align-items: center; gap: 6px; padding: 0 4px; border: 0; background: transparent; color: var(--ink); opacity: .5; font: 400 13px/1 var(--font-sans); cursor: pointer; transition: opacity 200ms ease; }
 .kitchen__bar button:hover, .kitchen__pill button:hover { opacity: .78; }
 .kitchen__bar button[aria-pressed='true'], .kitchen__pill button[aria-pressed='true'] { opacity: 1; }
 .kitchen__bar button:focus-visible, .kitchen__pill button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* Grandma / Grandkids as a liquid switch (GooSegmented): a white thumb flows under the chosen side, in the bar's glass.
+   Regular-weight labels; the one not chosen is dimmed. */
+.kitchen__seg { gap: 0; padding: 4px; --goo-seg-thumb: #fff; }
+.kitchen__seg .goo-seg__blob { top: 4px; bottom: 4px; }
+.kitchen__seg button { height: 31px; padding: 0 14px; border-radius: var(--radius-pill); opacity: .55; }
+.kitchen__seg button[aria-pressed='true'] { opacity: 1; }
 
 .kitchen__loading { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: #fff; transition: opacity 700ms ease; }
 .kitchen__loading p { margin: 0; color: #e9dccb; font-family: var(--font-display); font-size: 22px; }

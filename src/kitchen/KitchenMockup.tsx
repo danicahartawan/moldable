@@ -6,8 +6,10 @@ import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { FridgeScreen } from './FridgeScreen'
 import { AmbienceToggle } from '@/ambience/AmbienceToggle'
+import { GooSegmented } from '@/goo/GooSegmented'
 
 export type Perspective = 'grandma' | 'grandkids'
+const PERSPECTIVES = [{ value: 'grandma', label: 'Grandma' }, { value: 'grandkids', label: 'Grandkids' }] as const
 
 type KitchenControls = { showGrandkids: () => void; showRecipe: () => void; prepareRipple: () => void; perspective: Perspective }
 
@@ -198,11 +200,9 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
 
       <div className="kitchen__dock">
         <div className="kitchen__dock-row">
-          <div className="kitchen__bar" role="toolbar" aria-label="Choose a point of view">
-            <button type="button" aria-pressed={perspective === 'grandma'} onClick={() => setPerspective('grandma')}>Grandma</button>
-            <span aria-hidden="true" />
-            <button type="button" aria-pressed={perspective === 'grandkids'} onClick={() => setPerspective('grandkids')}>Grandkids</button>
-          </div>
+          {/* The same liquid switch as Tidy / Oma's words: the thumb flows to the side you choose (tap or slide). */}
+          <GooSegmented className="kitchen__bar kitchen__seg" aria-label="Choose a point of view" value={perspective} onChange={setPerspective}
+            options={PERSPECTIVES} />
           {/* Optional rain and soft jazz in the background, as if you're in the kitchen. */}
           <div className="kitchen__pill"><AmbienceToggle /></div>
         </div>
