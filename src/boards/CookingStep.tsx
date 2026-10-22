@@ -133,6 +133,7 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
   const i = Math.min(Math.max(hostStep ?? own, 0), steps.length - 1)
   const step = steps[i]
   const [quoteOpen, setQuoteOpen] = useState(false)
+  const [narrating, setNarrating] = useState(false)
   const voiceBegan = useRef(0)
   const voiceLevel = useCallback(() => {
     if (!voiceBegan.current) voiceBegan.current = performance.now()
@@ -143,9 +144,14 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
   // changes or the steps are left. The screen that is sliding out never speaks.
   const spoken = step ? `${step.text.replace(/\*\*/g, '')}` : ''
   useEffect(() => {
-    if (!enter || !spoken) return
-    void speakReply(spoken)
-    return () => stopSpeaking()
+    if (!enter || !spoken) {
+      setNarrating(false)
+      return
+    }
+    let current = true
+    setNarrating(true)
+    void speakReply(spoken).finally(() => { if (current) setNarrating(false) })
+    return () => { current = false; stopSpeaking() }
   }, [enter, spoken])
   // The ingredients pop-up: open, or pouring back into its pill before it's removed.
   const [pop, setPop] = useState<'closed' | 'open' | 'closing'>('closed')
@@ -377,9 +383,9 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
           </div>
         )}
 
-        {voiceStatus !== 'idle' ? (
+        {narrating || voiceStatus !== 'idle' ? (
           <div className="cs-voice" data-testid="step-voice-overlay" aria-hidden="true">
-            <OrangeBeam level={voiceLevel} active={voiceStatus !== 'speaking'} className="cs-voice__beam-host" />
+            <OrangeBeam level={voiceLevel} active={narrating || voiceStatus !== 'speaking'} className="cs-voice__beam-host" />
             <span className="cs-voice__blob"><MorphBot size={96} paused state={voiceStatus === 'thinking' ? 'working' : 'default'} /></span>
           </div>
         ) : null}

@@ -17,6 +17,18 @@ const screenEl = () => document.querySelector('.cs') as HTMLElement
 const wheel = (deltaY: number) => act(() => { screenEl().dispatchEvent(new WheelEvent('wheel', { deltaY, bubbles: true, cancelable: true })) })
 
 describe('CookingStepBoard', () => {
+  it('shows the wordless voice treatment automatically while ElevenLabs reads the step', async () => {
+    let finishSpeaking!: () => void
+    vi.mocked(speakReply).mockImplementationOnce(() => new Promise<void>((resolve) => { finishSpeaking = resolve }))
+
+    render(<CookingStepBoard />)
+    expect(screen.getByTestId('step-voice-overlay')).toBeInTheDocument()
+    expect(screen.queryByText(/Listening|Thinking|Speaking/i)).not.toBeInTheDocument()
+
+    await act(async () => { finishSpeaking() })
+    expect(screen.queryByTestId('step-voice-overlay')).not.toBeInTheDocument()
+  })
+
   it('reads each step aloud as it comes up, stops it when the step changes, and stays quiet while sliding out', () => {
     const { unmount } = render(<CookingStepBoard />)
     expect(speakReply).toHaveBeenCalledTimes(1)
