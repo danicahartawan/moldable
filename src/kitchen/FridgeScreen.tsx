@@ -303,7 +303,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     started.current = true
     let shown = false
     const ready = window.setTimeout(() => { shown = true; setReady(true) }, 60)
-    timers.current.zoom = window.setTimeout(() => { aimRef.current(0); setView('door') }, 1500)
+    timers.current.zoom = window.setTimeout(() => { aimRef.current(0); setView('door') }, 1100)
     return () => {
       // Torn down before it showed (e.g. React's dev double-run): let the next run start it again.
       if (shown) return
@@ -321,11 +321,12 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     const n = Math.max(0, Math.min(last, to))
     if (n === i) return
     window.clearTimeout(timers.current.zoom)
-    lock.current = Date.now() + 2700
-    const wait = view === 'door' ? 800 : 0
+    // Each camera move takes .85s (.fz-cam): out, then the slide, then in.
+    lock.current = Date.now() + 2000
+    const wait = view === 'door' ? 600 : 0
     setView('over')
     later('slide', wait, () => { aimAt(n); setI(n) })
-    if (n < last) later('zoom', wait + 1700, () => setView('door'))
+    if (n < last) later('zoom', wait + 1250, () => setView('door'))
   }
   const step = (d: number) => { if (Date.now() >= lock.current) go(i + d) }
 
@@ -339,8 +340,8 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setI(n)
     aimAt(n)
     setView('over')
-    lock.current = Date.now() + 1800
-    later('zoom', 1100, () => { setView('door'); setFresh(-1) })
+    lock.current = Date.now() + 1350
+    later('zoom', 850, () => { setView('door'); setFresh(-1) })
   }
 
   // One world unit in screen px: the screen's real on-screen scale times the camera's.
