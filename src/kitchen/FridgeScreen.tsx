@@ -805,7 +805,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
         <button type="button" className={`fz-tap fz-delete${deleting === books[i].id ? ' is-asking' : ''}`}
           aria-label={deleting === books[i].id ? `Tap again to delete ${books[i].label} and its recipes` : `Delete ${books[i].label}`}
           onClick={() => removeFridge(i)}>
-          <Icon d="M6 6l8 8M14 6l-8 8" size={16} width={1.8} />
+          <Icon d="M6 6l8 8M14 6l-8 8" size={20} width={1.6} />
           <span className="fz-delete__ask" aria-hidden="true">Delete</span>
         </button>
       )}
