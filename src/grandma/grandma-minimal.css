@@ -233,6 +233,25 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 }
 .gm-camera:hover { background: #e8e6e2; }
 .gm-camera:active { transform: scale(.95); }
+/* The camera melts into the pause disc as the viewfinder opens, and buds back out of it as it closes. The discs share a
+   goo filter, so where they overlap they neck and merge like liquid; the icons stay crisp. The pill, anchored on the right,
+   narrows as the camera's slot folds away (its margin pulls it onto pause). */
+.gm-controls__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.gm-controls__goo { display: flex; align-items: center; gap: 2px; }
+/* Pause stays on top, so the camera slips under it as it melts (a transformed disc would otherwise paint over it). */
+.gm-controls__goo > .grandma-waveform__pause { position: relative; z-index: 1; }
+/* At rest the discs stay apart; the filter only joins them while the camera is melting or budding. */
+.gm-controls__goo:has(.gm-camera.is-melting, .gm-camera.is-budding) { filter: url(#gm-controls-goo); }
+.gm-camera.is-melting { animation: gm-camera-melt 480ms cubic-bezier(.55, 0, .35, 1) both; pointer-events: none; }
+.gm-camera.is-budding { animation: gm-camera-melt 520ms cubic-bezier(.55, 0, .35, 1) reverse both; }
+.gm-camera.is-melting svg { animation: gm-camera-icon 480ms ease both; }
+.gm-camera.is-budding svg { animation: gm-camera-icon 520ms ease reverse both; }
+@keyframes gm-camera-melt {
+  0% { margin-right: 0; transform: none; }
+  45% { transform: scale(.94, .86); }
+  100% { margin-right: -50px; transform: scale(.42); }
+}
+@keyframes gm-camera-icon { 0% { opacity: 1; transform: none; } 40%, 100% { opacity: 0; transform: scale(.6); } }
 .gm-note { right: 5%; transition: right 460ms cubic-bezier(.2, .9, .25, 1); }
 /* While the viewfinder is open, the note narrows so the text flows down the left of it. */
 .gm-note.is-beside-camera { right: calc(5% + 44% + 18px); }

@@ -493,11 +493,21 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart, active = true }: { onT
       </section>
       {isRecording ? (
         <div className="gm-controls" role="group" aria-label="Recording">
+          {/* Camera and pause share a goo filter (only while the camera morphs), so it melts into pause and buds back out. */}
+          <svg className="gm-controls__defs" width="0" height="0" aria-hidden="true" focusable="false">
+            <filter id="gm-controls-goo" x="-20%" y="-40%" width="140%" height="180%" colorInterpolationFilters="sRGB">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b" />
+              <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="g" />
+              <feComposite in="SourceGraphic" in2="g" operator="atop" />
+            </filter>
+          </svg>
+          <span className="gm-controls__goo">
           {/* The camera sits first in the pill (CameraButton puts its button here). */}
           <span ref={setCameraSlot} className="gm-controls__camera" />
           <button className="grandma-waveform__pause" type="button" aria-label={isPaused ? 'Resume recording' : 'Pause recording'} aria-pressed={isPaused} onClick={recorder.togglePause}>
             <LineIcon name={isPaused ? 'play' : 'pause'} />
           </button>
+          </span>
           <button className="grandma-waveform__stop" type="button" aria-label="Stop recording" onClick={recorder.toggle}>
             <LineIcon name="stop" />
           </button>

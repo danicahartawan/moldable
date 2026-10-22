@@ -129,6 +129,9 @@ export function CameraButton({ onCapture, onOpenChange, slot }: { onCapture: (sr
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isFlashing, setIsFlashing] = useState(false)
   const video = useRef<HTMLVideoElement>(null)
+  // The button melts into the pause disc as the viewfinder opens, and buds back out when it closes (see the CSS).
+  const [morph, setMorph] = useState<'rest' | 'melting' | 'budding'>('rest')
+  const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
   useEffect(() => {
     onOpenChange?.(view !== 'closed')
@@ -142,9 +145,11 @@ export function CameraButton({ onCapture, onOpenChange, slot }: { onCapture: (sr
   const close = () => {
     setStream(null)
     setView('closed')
+    if (!reduced()) setMorph('budding')
   }
 
   const open = async () => {
+    if (!reduced()) setMorph('melting')
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('No camera')
       setStream(await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }))
@@ -175,14 +180,18 @@ export function CameraButton({ onCapture, onOpenChange, slot }: { onCapture: (sr
 
   return (
     <>
-      {view === 'closed' ? (() => {
+      {view === 'closed' || morph === 'melting' ? (() => {
+        const melting = morph === 'melting'
         const button = (
-          <button type="button" className="gm-camera" aria-label="Take a photo" onClick={open}>
+          <button type="button" className={`gm-camera${morph === 'rest' ? '' : ` is-${morph}`}`} aria-label="Take a photo"
+            aria-hidden={melting || undefined} tabIndex={melting ? -1 : undefined} onClick={open}
+            onAnimationEnd={(event) => { if (event.target === event.currentTarget) setMorph('rest') }}>
             <LineIcon name="camera" />
           </button>
         )
         return slot ? createPortal(button, slot) : button
-      })() : (
+      })() : null}
+      {view === 'closed' ? null : (
         <div className="gm-viewfinder" role="dialog" aria-label="Camera">
           {view === 'live' ? (
             <video ref={video} className="gm-viewfinder__view" autoPlay playsInline muted />
