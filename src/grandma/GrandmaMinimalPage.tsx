@@ -87,15 +87,6 @@ function wordEndAt(text: string, at: number) {
   return next === -1 ? text.length : at + next
 }
 
-// Tidy: the note dissolves into a mosaic of pixel blocks, each popping in at its own moment.
-const MOSAIC_SIZE = 12
-const MOSAIC_COLORS = ['#fff3ec', '#ffe3d8', '#ffd2b0', '#ffb27a', '#ff8a4c', '#ff5a1f']
-const MOSAIC = Array.from({ length: MOSAIC_SIZE * MOSAIC_SIZE }, (_, i) => {
-  // A fixed scatter, so the mosaic looks the same every time.
-  const noise = (seed: number) => { const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x) }
-  return { color: MOSAIC_COLORS[Math.floor(noise(i + 1) * MOSAIC_COLORS.length)], delay: Math.round(noise(i + 101) * 380) }
-})
-
 const SEARCH_SCROLL_MS = 1_600
 const RIPPLE_MS = 900
 // The change she asks for in the demo.
@@ -413,7 +404,7 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
   return (
     <HomeViewFrame label="Grandma HomeView" className={`grandma-homeview grandma-minimal${isRippling ? ' is-rippling' : ''}`}>
       <div className="gm-sheet">
-      <div className="gm-mosaic" aria-hidden="true">{MOSAIC.map((cell, i) => <span key={i} style={{ background: cell.color, animationDelay: `${cell.delay}ms` }} />)}</div>
+      <div className="gm-ripple" aria-hidden="true"><span /><span /><span /></div>
       <section className={`gm-note${isCameraOpen ? ' is-beside-camera' : ''}${isRecording ? ' is-recording' : ''}`} aria-label="Note">
         <div className="gm-note__head">
           {demoName ? (

@@ -48,7 +48,8 @@ const ICON = {
   refresh: 'M16.5 10a6.5 6.5 0 1 1-2-4.7 M16.5 3v3.5H13',
 }
 const PLAIN = { bg: '#f2f1ef', ink: '#1f1c19' }
-const TINT = { time: { bg: '#fbefb4', ink: '#8a6a0c' }, serves: { bg: '#dcefd2', ink: '#44703a' }, spice: { bg: '#fde3d8', ink: '#c24a24' } }
+// The time and servings chips stay grey when a change touches them; only the spice chip takes a tint.
+const TINT = { time: PLAIN, serves: PLAIN, spice: { bg: '#fde3d8', ink: '#c24a24' } }
 
 // Verb tags, shared with 09 Cooking step.
 const SPOON = 'M10 2.5c1.7 0 2.8 1.6 2.8 3.4S11.7 9.5 10 9.5 7.2 7.7 7.2 5.9 8.3 2.5 10 2.5z M10 9.5v8'
@@ -251,6 +252,8 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
   const [hop, setHop] = useState<number | null>(null)
   const [landed, setLanded] = useState(0)
   const [hopSpot, setHopSpot] = useState<Vec | null>(null)
+  // The Recipe change button, where the voice bot comes out of.
+  const [launchSpot, setLaunchSpot] = useState<Vec | null>(null)
   const voiceLevel = useRef<() => number>(() => 0)
   const screenRef = useRef<HTMLDivElement>(null)
   const stage = useRef(0)
@@ -268,6 +271,19 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
     const card = box?.offsetParent as HTMLElement | null
     if (!box || !card) return
     setIslandSpot({ x: card.offsetLeft + box.offsetLeft + box.offsetWidth / 2, y: card.offsetTop + box.offsetTop + box.offsetHeight / 2 })
+  }, [phase, clay])
+
+  useLayoutEffect(() => {
+    // Measured while idle, so the spot is known the moment the bot appears.
+    if (!clay || phase !== 'idle') return
+    const root = screenRef.current
+    const button = root?.querySelector<HTMLElement>('.hm-recipe-change')
+    if (!root || !button) {
+      setLaunchSpot(null)
+      return
+    }
+    const at = offsetIn(button, root)
+    setLaunchSpot({ x: at.x + button.offsetWidth / 2, y: at.y + button.offsetHeight / 2 })
   }, [phase, clay])
 
   // The clay sits on top of the thing it's hopping onto, in screen px.
@@ -677,7 +693,7 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
 
         <div className="hv-beam" data-state={glow} aria-hidden="true"><OrangeBeam level={() => voiceLevel.current()} active={glow === 'listening' || glow === 'hearing' || glow === 'thinking'} /></div>
         <VoiceNotification state={islandState} heard={heard} result={result} teal={blobTeal} level={() => voiceLevel.current()} ownClay={!clay} />
-        {clay && <VoiceBot place={clayPlace} teal={blobTeal} />}
+        {clay && <VoiceBot place={clayPlace} teal={blobTeal} from={launchSpot} />}
       </div>
       {embedded ? overlay : <p className="hv-caption">Grandkid home view, 640 × 640 for the 5.73 in display.</p>}
     </div>
