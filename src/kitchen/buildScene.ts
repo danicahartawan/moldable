@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { deviceCameraDistance } from './framing'
 
 // The display on a wooden kitchen table, a soft window behind. Ported from
 // moldable-kitchen-mockup/index.html. Units are centimetres.
@@ -273,10 +274,7 @@ export function buildScene(canvas: HTMLCanvasElement, screen: HTMLElement, getPe
 
   // Camera, depth of field, parallax
   const target = new THREE.Vector3(0, 9.4, 0)
-  const camDist = () => {
-    const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))
-    return Math.max(FACE / (0.47 * 2 * tan), FACE / (0.7 * 2 * tan * camera.aspect))
-  }
+  const camDist = () => deviceCameraDistance(FACE, camera.fov, camera.aspect)
   const composer = new EffectComposer(renderer)
   composer.addPass(new RenderPass(scene, camera))
   const bokeh = new BokehPass(scene, camera, { focus: 50, aperture: 0.0005, maxblur: 0.012 })
