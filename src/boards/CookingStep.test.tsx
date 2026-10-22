@@ -1,10 +1,15 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CookingStepBoard } from './CookingStep'
+import { speakReply, stopSpeaking } from '@/grandma/speakReply'
+
+vi.mock('@/grandma/speakReply', () => ({ speakReply: vi.fn(async () => {}), stopSpeaking: vi.fn() }))
 
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
+  vi.mocked(speakReply).mockClear()
+  vi.mocked(stopSpeaking).mockClear()
 })
 
 const current = () => document.querySelector('.cs-step[data-state="current"]') as HTMLElement
@@ -12,6 +17,25 @@ const screenEl = () => document.querySelector('.cs') as HTMLElement
 const wheel = (deltaY: number) => act(() => { screenEl().dispatchEvent(new WheelEvent('wheel', { deltaY, bubbles: true, cancelable: true })) })
 
 describe('CookingStepBoard', () => {
+  it('reads each step aloud as it comes up, stops it when the step changes, and stays quiet while sliding out', () => {
+    const { unmount } = render(<CookingStepBoard />)
+    expect(speakReply).toHaveBeenCalledTimes(1)
+    const first = vi.mocked(speakReply).mock.calls[0][0]
+    expect(first).not.toContain('**')
+    expect(current()).toHaveTextContent(first.slice(0, 12))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Step 2' }))
+    expect(stopSpeaking).toHaveBeenCalled()
+    expect(speakReply).toHaveBeenCalledTimes(2)
+    expect(vi.mocked(speakReply).mock.calls[1][0]).not.toBe(first)
+
+    unmount()
+    expect(stopSpeaking).toHaveBeenCalledTimes(2)
+    vi.mocked(speakReply).mockClear()
+    render(<CookingStepBoard enter={false} />)
+    expect(speakReply).not.toHaveBeenCalled()
+  })
+
   it('shows one step as a sentence with its verb tag, the next one blurred below', () => {
     render(<CookingStepBoard />)
     expect(current()).toHaveTextContent('Step 1')

@@ -60,7 +60,7 @@
 .kitchen__bar button[aria-pressed='true'], .kitchen__pill button[aria-pressed='true'] { opacity: 1; }
 .kitchen__bar button:focus-visible, .kitchen__pill button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-.kitchen__loading { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: var(--room); transition: opacity 700ms ease; }
+.kitchen__loading { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: #fff; transition: opacity 700ms ease; }
 .kitchen__loading p { margin: 0; color: #e9dccb; font-family: var(--font-display); font-size: 22px; }
 .kitchen__loading.is-gone { opacity: 0; pointer-events: none; }
 

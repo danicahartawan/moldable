@@ -2,6 +2,8 @@
 
 import './cooking-step.css'
 import Link from 'next/link'
+import { Fan } from '@phosphor-icons/react'
+import { speakReply, stopSpeaking } from '@/grandma/speakReply'
 import { pourClose, pourOpen, rectIn, type Rect } from './liquid'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
@@ -90,9 +92,14 @@ function VerbTag({ verb }: { verb: string }) {
   const tag = TAGS[verb] ?? TAGS.Add
   return (
     <span className="cs-tag" data-verb={verb} style={{ background: tag.bg, color: tag.ink }}>
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <VerbIcon verb={verb} icon={tag.icon} />
-      </svg>
+      {verb === 'Blend' ? (
+        // The same fan icon as the Blend chip on the Grandma screen.
+        <Fan className="vi-blend" weight="bold" aria-hidden="true" />
+      ) : (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <VerbIcon verb={verb} icon={tag.icon} />
+        </svg>
+      )}
       <span>{verb}</span>
     </span>
   )
@@ -120,6 +127,15 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
   const i = Math.min(Math.max(hostStep ?? own, 0), steps.length - 1)
   const step = steps[i]
   const [quoteOpen, setQuoteOpen] = useState(false)
+
+  // Walking through the steps: each one is read aloud in the Grandkids ElevenLabs voice as it comes up, and stops when it
+  // changes or the steps are left. The screen that is sliding out never speaks.
+  const spoken = step ? `${step.text.replace(/\*\*/g, '')}` : ''
+  useEffect(() => {
+    if (!enter || !spoken) return
+    void speakReply(spoken)
+    return () => stopSpeaking()
+  }, [enter, spoken])
   // The ingredients pop-up: open, or pouring back into its pill before it's removed.
   const [pop, setPop] = useState<'closed' | 'open' | 'closing'>('closed')
   const ingOpen = pop === 'open'

@@ -12,6 +12,7 @@ import { VersionList, initialVersions, newVersion, type RecipeSnapshot, type Ver
 import { canPour, pourClose, pourOpen, rectIn, type Rect } from './liquid'
 import { GooSegmented } from '@/goo/GooSegmented'
 import Link from 'next/link'
+import { Fan } from '@phosphor-icons/react'
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import Image from 'next/image'
 
@@ -599,7 +600,9 @@ export const HomeViewBoard = forwardRef<HomeViewHandle, HomeViewProps>(function 
                       <span className="hm-steps__n">{i + 1}</span>
                       <span className="hm-steps__text">
                         <span className="hm-verb" style={{ background: tag.bg, color: tag.ink }}>
-                          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={tag.icon} /></svg>
+                          {verb[0] === 'Blend'
+                            ? <Fan weight="bold" aria-hidden="true" />
+                            : <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={tag.icon} /></svg>}
                           {verb[0]}
                         </span>
                         {rest.map(([t, bold, changed], j) => (

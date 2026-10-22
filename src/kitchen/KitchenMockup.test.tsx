@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { KitchenMockup } from './KitchenMockup'
 
 vi.mock('./buildScene', () => ({ buildScene: () => () => {} }))
+vi.mock('@/grandma/speakReply', () => ({ speakReply: vi.fn(async () => {}), stopSpeaking: vi.fn() }))
 
 afterEach(cleanup)
 
