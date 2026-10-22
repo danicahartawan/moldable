@@ -2,13 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import { ArrowsClockwise, Check } from '@phosphor-icons/react'
-import { BotAvatar } from 'bot-avatars'
+import { MorphBot } from './MorphBot'
 import { HomeViewFrame } from '../home/HomeViewFrame'
 import { useVoiceRecorder } from '../useVoiceRecorder'
 import { VoiceBeam } from 'voice-glow'
 import { LineIcon } from './LineIcon'
 import { simulatedLevel } from './RecordingWaveform'
-import { VoiceNotification } from '../voice/VoiceNotification'
 import { transcribeAudio } from './transcribe'
 import { demoStorySegments } from './GrandmaPage'
 import { guidingQuestions } from './GuidingQuestionRail'
@@ -69,7 +68,7 @@ const QUESTION_TYPING_MS_PER_CHAR = 40
 export function ListeningClay({ isPaused, className = '', size = 96 }: { levelRef?: RefObject<number | null>; isPaused: boolean; className?: string; size?: number; showEyes?: boolean }) {
   return (
     <span className={`gm-clay${isPaused ? ' is-paused' : ''}${className ? ` ${className}` : ''}`} role="status" aria-label="Listening">
-      <BotAvatar type="circle" color="#ff5a1f" ink="#fff" brightness={1.4} saturation={1.8} shading="smooth" size={size} state={isPaused ? 'sleeping' : 'default'} />
+      <MorphBot size={size} paused={isPaused} state={isPaused ? 'sleeping' : 'default'} />
     </span>
   )
 }
@@ -78,7 +77,7 @@ export function ListeningClay({ isPaused, className = '', size = 96 }: { levelRe
 // five seconds of her talking it answers, typed out, then the fog lifts onto the marked changes.
 const RECIPE_CHANGE_LISTEN_MS = 5_000
 const RECIPE_CHANGE_FADE_MS = 1_300
-const RECIPE_CHANGE_REPLY = 'Ok, got it!'
+const RECIPE_CHANGE_REPLY = 'Okay!'
 // A photo's chip never splits a word: it waits for the word being typed to finish (and its punctuation).
 function wordEndAt(text: string, at: number) {
   const next = text.slice(at).search(/\s/)
@@ -131,31 +130,55 @@ function OrangeBeam({ level, active, className }: { level: () => number; active:
   )
 }
 
+const RECIPE_CHANGE_HEARD_AT_MS = 3_000
+const RECIPE_CHANGE_REQUEST = 'Replace pork with beef'
+const BLOB_SIZE = 96
+
 export function RecipeChangeOverlay({ levelRef, onClose, onHeard }: { levelRef: RefObject<number | null>; onClose: () => void; onHeard?: () => void }) {
   const [hasHeard, setHasHeard] = useState(false)
+  const [heard, setHeard] = useState('')
+  const root = useRef<HTMLDivElement>(null)
+  const [rowTop, setRowTop] = useState<number | null>(null)
 
   useEffect(() => {
-    const heard = window.setTimeout(() => {
+    const speaking = window.setTimeout(() => setHeard(RECIPE_CHANGE_REQUEST), RECIPE_CHANGE_HEARD_AT_MS)
+    const done = window.setTimeout(() => {
       setHasHeard(true)
       onHeard?.()
     }, RECIPE_CHANGE_LISTEN_MS)
-    return () => window.clearTimeout(heard)
+    return () => {
+      window.clearTimeout(speaking)
+      window.clearTimeout(done)
+    }
   }, [onHeard])
 
-  // After "Ok, got it!" the beam fades out, then the fog lifts onto the marked changes.
+  // After "Okay!" the beam fades out, then the fog lifts onto the marked changes.
   useEffect(() => {
     if (!hasHeard) return
     const lift = window.setTimeout(onClose, RECIPE_CHANGE_FADE_MS)
     return () => window.clearTimeout(lift)
   }, [hasHeard, onClose])
 
-  const state = hasHeard ? 'done' : 'listening'
+  // The bot sits where it did while recording, at the bottom middle, so the row of words lines up with it.
+  useEffect(() => {
+    if (root.current) setRowTop(root.current.offsetHeight * 0.96 - BLOB_SIZE / 2)
+  }, [])
+
   const level = useBeamLevel(levelRef)
+  const leftWords = hasHeard ? RECIPE_CHANGE_REPLY : heard ? '' : 'Listening…'
 
   return (
-    <div className="gm-recipe-change" role="dialog" aria-label="Recipe change">
+    <div ref={root} className="gm-recipe-change" role="dialog" aria-label="Recipe change" aria-live="polite">
       <OrangeBeam level={level} active={!hasHeard} />
-      <VoiceNotification state={state} heard="" result={RECIPE_CHANGE_REPLY} doneStatus="" level={level} />
+      {rowTop !== null ? (
+        <>
+          <span className="gm-recipe-change__blob" style={{ top: rowTop, width: BLOB_SIZE, height: BLOB_SIZE } as React.CSSProperties} aria-hidden="true">
+            <MorphBot size={BLOB_SIZE} paused />
+          </span>
+          <span className={`gm-recipe-change__left${heard || hasHeard ? '' : ' is-first'}`} key={leftWords} style={{ top: rowTop + BLOB_SIZE / 2 }}>{leftWords}</span>
+          {heard ? <span className="gm-recipe-change__right" style={{ top: rowTop + BLOB_SIZE / 2 }}>{`“${heard}”`}</span> : null}
+        </>
+      ) : null}
     </div>
   )
 }

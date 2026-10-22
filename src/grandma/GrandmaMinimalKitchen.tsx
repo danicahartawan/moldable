@@ -33,7 +33,11 @@ function GrandmaWelcome({ onContinue }: { onContinue: () => void }) {
         ))}
       </span>
       <div className="gm-welcome__prompt">
-        <h1 className="gm-welcome__title">Share more stories</h1>
+        <h1 className="gm-welcome__title" aria-label="Share more stories">
+          {['Share', 'more', 'stories'].map((word, i) => (
+            <span className="gm-welcome__word" style={{ animationDelay: `${300 + i * 380}ms` }} aria-hidden="true" key={word}>{word}</span>
+          ))}
+        </h1>
         <span className="gm-welcome__unlock-zone">
           <button className="gm-welcome__button" type="button" aria-label="New Recipe" onClick={onContinue}>
             <span aria-hidden="true">+</span> New Recipe

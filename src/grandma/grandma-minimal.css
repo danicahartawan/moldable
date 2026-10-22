@@ -460,10 +460,19 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 /* Recipe change reuses the Grandkids voice glow and notification over the Grandma screen. */
 .gm-recipe-change { --sg-radius: 56px; position: absolute; inset: 0; z-index: 12; pointer-events: none; }
 .gm-recipe-change > [data-voice-beam], .gm-recipe-change__beam-host { position: absolute; inset: 0; }
-.gm-recording-beam { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.gm-recording-beam > [data-voice-beam] { position: absolute; inset: 0; }
-.gm-recipe-change .vn { --vn-radius: 26px; top: auto; bottom: 16px; min-height: 78px; padding-block: 10px; transform: translateY(24px) scale(.96); }
-.gm-recipe-change .vn:not([data-state='idle']) { transform: none; }
+.gm-recipe-change__blob { position: absolute; left: 50%; z-index: 41; display: block; margin-left: -48px; pointer-events: none; transform-origin: 50% 50%; animation: gm-recipe-blob-travel 700ms cubic-bezier(.2, 1.2, .3, 1) both; }
+@keyframes gm-recipe-blob-travel {
+  0% { opacity: 0; transform: scale(.05); }
+  22% { opacity: 1; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+/* The words: "Listening…" and "Okay!" to the left of the bot, what she asked for to its right. */
+.gm-recipe-change__left, .gm-recipe-change__right { position: absolute; z-index: 41; transform: translateY(-50%); color: #000; font-size: 22px; line-height: 28px; letter-spacing: -.01em; animation: gm-recipe-words-in 420ms ease both; }
+.gm-recipe-change__left { right: calc(50% + 48px + 14px); max-width: 38%; text-align: right; }
+.gm-recipe-change__left.is-first { animation-delay: 500ms; }
+.gm-recipe-change__right { left: calc(50% + 48px + 14px); right: 5%; text-align: left; }
+@keyframes gm-recipe-words-in { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
+@media (prefers-reduced-motion: reduce) { .gm-recipe-change__blob, .gm-recipe-change__left, .gm-recipe-change__right { animation: none; } .gm-recipe-change__blob { transform: translateX(var(--dx)); } }
 @media (prefers-reduced-motion: reduce) {
   .gm-recipe-change-button[aria-pressed='true']::before { animation: none; }
 }

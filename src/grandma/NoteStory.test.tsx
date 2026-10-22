@@ -52,7 +52,7 @@ describe('NoteStory without colour', () => {
 })
 
 describe('Recipe change voice feedback', () => {
-  it('uses the shared listening treatment then only says Ok, got it before applying', async () => {
+  it('says Listening, then shows what she asked for, then only says Okay before applying', async () => {
     vi.useFakeTimers()
     vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1))
     vi.stubGlobal('cancelAnimationFrame', vi.fn())
@@ -61,14 +61,17 @@ describe('Recipe change voice feedback', () => {
     const onHeard = vi.fn()
     render(<RecipeChangeOverlay levelRef={{ current: null }} onClose={onClose} onHeard={onHeard} />)
 
+    const dialog = () => document.querySelector('.gm-recipe-change') as Element
     expect(document.querySelector('[data-voice-type="mobile"]')).toBeInTheDocument()
-    expect(document.querySelector('.vn')).toHaveTextContent('Listening…')
-    expect(document.querySelector('.vn')).toHaveTextContent('Say what you’d like to change')
+    expect(dialog()).toHaveTextContent('Listening…')
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(5_000) })
+    await act(async () => { await vi.advanceTimersByTimeAsync(3_000) })
+    expect(dialog()).not.toHaveTextContent('Listening…')
+    expect(dialog()).toHaveTextContent('Replace pork with beef')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_000) })
     expect(onHeard).toHaveBeenCalledOnce()
-    expect(document.querySelector('.vn')).toHaveTextContent('Ok, got it!')
-    expect(document.querySelector('.vn')).not.toHaveTextContent('Done')
+    expect(dialog()).toHaveTextContent('Okay!')
 
     await act(async () => { await vi.advanceTimersByTimeAsync(1_300) })
     expect(onClose).toHaveBeenCalledOnce()
