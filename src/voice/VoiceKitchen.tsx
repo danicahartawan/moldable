@@ -49,7 +49,7 @@ export function VoiceKitchen() {
   return (
     <div className="gm-kitchen vk">
       <RecipeSync />
-      <KitchenMockup fridge startOnRecipe voiceBridge={bridge} />
+      <KitchenMockup fridge startOnRecipe voiceBridge={bridge} voiceStatus={assistant.status} />
       <div className="vk__bar" role="status">
         {wake.armed ? (
           <span className="vk__hint" data-status={assistant.status}>

@@ -4,6 +4,9 @@ import './cooking-step.css'
 import Link from 'next/link'
 import { Fan } from '@phosphor-icons/react'
 import { speakReply, stopSpeaking } from '@/grandma/speakReply'
+import { MorphBot } from '@/grandma/MorphBot'
+import { OrangeBeam } from '@/voice/OrangeBeam'
+import { simulatedLevel } from '@/grandma/RecordingWaveform'
 import { pourClose, pourOpen, rectIn, type Rect } from './liquid'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
@@ -20,6 +23,7 @@ type Step = {
   quote?: string
 }
 type Recipe = { cook: string; steps: Step[] }
+export type StepVoiceStatus = 'idle' | 'listening' | 'thinking' | 'speaking'
 
 const SPOON = 'M10 2.5c1.7 0 2.8 1.6 2.8 3.4S11.7 9.5 10 9.5 7.2 7.7 7.2 5.9 8.3 2.5 10 2.5z M10 9.5v8'
 
@@ -119,14 +123,21 @@ type CookingStepProps = {
   enter?: boolean
   /** Done, on the last step: back to the fridge. Without it, Done links to the fridge board. */
   onDone?: () => void
+  /** The shared assistant state; steps show only its beam and clay, never transcript or reply copy. */
+  voiceStatus?: StepVoiceStatus
 }
 
-export function CookingStepBoard({ embedded = false, step: hostStep, onStepChange, recipe = LELAWAR_BALI, align = 'center', enter = true, onDone }: CookingStepProps = {}) {
+export function CookingStepBoard({ embedded = false, step: hostStep, onStepChange, recipe = LELAWAR_BALI, align = 'center', enter = true, onDone, voiceStatus = 'idle' }: CookingStepProps = {}) {
   const { steps } = recipe
   const [own, setOwn] = useState(0)
   const i = Math.min(Math.max(hostStep ?? own, 0), steps.length - 1)
   const step = steps[i]
   const [quoteOpen, setQuoteOpen] = useState(false)
+  const voiceBegan = useRef(0)
+  const voiceLevel = useCallback(() => {
+    if (!voiceBegan.current) voiceBegan.current = performance.now()
+    return simulatedLevel((performance.now() - voiceBegan.current) / 1000)
+  }, [])
 
   // Walking through the steps: each one is read aloud in the Grandkids ElevenLabs voice as it comes up, and stops when it
   // changes or the steps are left. The screen that is sliding out never speaks.
@@ -327,7 +338,7 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
         {/* The foot: Ingredients, and Done on the last step. Each sits in a slot that opens and folds smoothly,
             so when one comes or goes the other glides over instead of jumping. */}
         <div className={`cs-foot${hasIng ? ' has-ing' : ''}`} inert={ingOpen}>
-          <span className={`cs-slot${hasIng ? ' is-shown' : ''}`} aria-hidden={!hasIng} inert={!hasIng}>
+          <span className={`cs-slot cs-slot--ingredients${hasIng ? ' is-shown' : ''}`} aria-hidden={!hasIng} inert={!hasIng}>
             <span className="cs-slot__inner">
               <button ref={pill} type="button" className={`cs-ing-btn${pop === 'closed' ? '' : ' is-poured'}`} aria-haspopup="dialog" aria-expanded={ingOpen}
                 onClick={() => { if (pop !== 'closed' || !hasIng) return; setQuoteOpen(false); setPop('open') }}>
@@ -365,6 +376,13 @@ export function CookingStepBoard({ embedded = false, step: hostStep, onStepChang
             </section>
           </div>
         )}
+
+        {voiceStatus !== 'idle' ? (
+          <div className="cs-voice" data-testid="step-voice-overlay" aria-hidden="true">
+            <OrangeBeam level={voiceLevel} active={voiceStatus !== 'speaking'} className="cs-voice__beam-host" />
+            <span className="cs-voice__blob"><MorphBot size={96} paused state={voiceStatus === 'thinking' ? 'working' : 'default'} /></span>
+          </div>
+        ) : null}
       </div>
       {!embedded && <p className="hv-caption">Cooking step on the 5.73 in display. Scroll, swipe or use the arrow keys to move between steps; tap the orb for Oma’s words.</p>}
     </div>

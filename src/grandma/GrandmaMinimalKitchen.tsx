@@ -95,6 +95,7 @@ export function GrandmaMinimalKitchen() {
       <KitchenMockup
         fridge
         voiceBridge={bridge}
+        voiceStatus={assistant.status}
         onPerspective={onPerspective}
         onMakeRecipe={onMakeRecipe}
         fridgeFocus={fridgeFocus}

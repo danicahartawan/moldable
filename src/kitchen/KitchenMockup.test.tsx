@@ -53,6 +53,16 @@ describe('KitchenMockup perspectives', () => {
     expect(within(board).queryByRole('button', { name: /Oma Lien’s words/ })).not.toBeInTheDocument()
   })
 
+  it('shows the wordless recipe-change voice treatment on a cooking step', () => {
+    render(<KitchenMockup voiceStatus="listening" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open step 1' }))
+
+    const board = document.querySelector('.kitchen__grandkids-view--in') as HTMLElement
+    expect(within(board).getByTestId('step-voice-overlay')).toBeInTheDocument()
+    expect(within(board).queryByText(/Listening|Thinking|Speaking/i)).not.toBeInTheDocument()
+  })
+
   it('shows what the step uses only after Ingredients is pressed', () => {
     render(<KitchenMockup />)
     fireEvent.click(screen.getByRole('button', { name: 'Grandkids' }))

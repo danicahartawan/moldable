@@ -93,7 +93,7 @@
 .cs-bar:not([aria-current]):hover span { background: #8a8580; }
 
 /* The foot: Ingredients, and Done on the last step, side by side at the bottom centre. */
-.cs-foot { position: absolute; z-index: 3; right: 0; bottom: 22px; left: 0; display: flex; justify-content: center; pointer-events: none; }
+.cs-foot { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
 /* A slot opens from nothing to its pill's width (and folds back), so the pill beside it glides over; the pill fades and sharpens in as it opens. */
 .cs-slot { display: grid; grid-template-columns: 0fr; transition: grid-template-columns 560ms cubic-bezier(.22, 1, .36, 1); }
 .cs-slot.is-shown { grid-template-columns: 1fr; }
@@ -103,7 +103,8 @@
 /* Press: `scale`, not `transform`, so it never fights the slot's glide in. */
 .cs-ing-btn:active, .cs-done:active, .cs-pop__done:active { scale: .96; }
 /* With Ingredients beside it, Done keeps an 8px gap. */
-.cs-foot.has-ing .cs-slot--done .cs-done { margin-left: 8px; }
+.cs-slot--ingredients { position: absolute; top: 28px; left: 32px; }
+.cs-slot--done { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); }
 .cs-foot > * { pointer-events: auto; }
 .cs-ing-btn { display: inline-flex; white-space: nowrap; height: 44px; align-items: center; gap: 8px; padding: 0 18px; border: 0; border-radius: 999px; background: #f2f1ef; color: #57524c; font-size: 16px; line-height: 20px; cursor: pointer; }
 .cs .cs-ing-btn { font-size: 16px; }
@@ -111,6 +112,12 @@
 /* Done, on the last step only: the same dark pill as every other Done (see .hm-done). */
 .cs-done { display: inline-flex; height: 44px; box-sizing: border-box; align-items: center; padding: 0 24px; border: 0; border-radius: 999px; background: #1f1c19; color: #fff; font-size: 16px; font-weight: 500; line-height: 20px; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .cs .cs-done { font-size: 16px; }
+
+/* On every cooking step, voice reuses Recipe Change's orange beam and clay without showing heard or reply text. */
+.cs-voice { --sg-radius: 56px; position: absolute; inset: 0; z-index: 12; overflow: hidden; pointer-events: none; }
+.cs-voice > [data-voice-beam], .cs-voice__beam-host { position: absolute; inset: 0; }
+.cs-voice__blob { position: absolute; top: calc(96% - 48px); left: 50%; z-index: 41; display: block; width: 96px; height: 96px; margin-left: -48px; animation: cs-voice-blob-in 700ms cubic-bezier(.2, 1.2, .3, 1) both; }
+@keyframes cs-voice-blob-in { from { opacity: 0; transform: scale(.05); } to { opacity: 1; transform: scale(1); } }
 
 /* Ingredients pop-up: the whole screen frosts, and a card blooms in the middle. */
 @keyframes cs-frost { from { opacity: 0; } to { opacity: 1; } }
@@ -146,5 +153,6 @@
   .cs-pop.is-closing .cs-pop__item, .cs-pop.is-closing .cs-pop__backdrop, .cs-pop.is-closing .cs-pop__blob { animation: cs-frost-out 150ms ease both; }
   .cs.is-entering .cs-track, .cs.is-entering .cs-bars, .cs.is-entering .cs-foot { animation: cs-enter-soft 200ms ease both; }
   .cs-slot, .cs-slot__inner > *, .cs-slot.is-shown .cs-slot__inner > * { transition: opacity 200ms ease; transform: none; filter: none; }
+  .cs-voice__blob { animation: none; }
   .cs-tag svg * { animation: none !important; }
 }

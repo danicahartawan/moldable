@@ -1,7 +1,7 @@
 'use client'
 
 import { type MutableRefObject, type ReactNode, useEffect, useRef, useState } from 'react'
-import { CookingStepBoard } from '@/boards/CookingStep'
+import { CookingStepBoard, type StepVoiceStatus } from '@/boards/CookingStep'
 import { HomeViewBoard, type HomeViewHandle } from '@/boards/HomeView'
 import { GrandmaPage } from '@/grandma/GrandmaPage'
 import { FridgeScreen } from './FridgeScreen'
@@ -28,7 +28,7 @@ export type KitchenVoiceBridge = {
 // `grandmaScreen` can be a render function so the grandma display can hand off to the Grandkids view.
 // `onMakeRecipe`: Make your own was tapped on a fridge (the display then shows Grandma's screen to tell it).
 // `fridgeFocus`: bumped to bring a fridge forward and pop a card on it (a recipe just saved from Grandma's screen).
-export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false, voiceBridge, startOnRecipe = false, onPerspective, onMakeRecipe, fridgeFocus }: {
+export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false, voiceBridge, startOnRecipe = false, onPerspective, onMakeRecipe, fridgeFocus, voiceStatus = 'idle' }: {
   grandmaScreen?: ReactNode | ((controls: KitchenControls) => ReactNode)
   fridge?: boolean
   voiceBridge?: MutableRefObject<KitchenVoiceBridge | null>
@@ -36,6 +36,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
   onPerspective?: (perspective: Perspective) => void
   onMakeRecipe?: (book: { id: string; name: string }) => void
   fridgeFocus?: { book: string; recipe?: string; n: number }
+  voiceStatus?: StepVoiceStatus
 } = {}) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const screen = useRef<HTMLDivElement>(null)
@@ -206,6 +207,7 @@ export function KitchenMockup({ grandmaScreen = <GrandmaPage />, fridge = false,
             {instructionStep !== null && (
               <div className="kitchen__grandkids-view kitchen__grandkids-view--in" key="steps">
                 <CookingStepBoard embedded step={instructionStep - 1} onStepChange={(n) => setInstructionStep(n + 1)}
+                  voiceStatus={voiceStatus}
                   onDone={() => { goToStep(null); if (fridge) setFridgeClose((n) => n + 1) }} />
               </div>
             )}
