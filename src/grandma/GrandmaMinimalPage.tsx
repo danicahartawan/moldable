@@ -15,6 +15,8 @@ import { transcribeAudio } from './transcribe'
 import { demoStorySegments } from './GrandmaPage'
 import { guidingQuestions } from './GuidingQuestionRail'
 import { CameraButton, NoteStory, useTypedLength, type StoryChange, type StoryPhoto } from './NoteStory'
+import { GooSegmented } from '@/goo/GooSegmented'
+import { prefersReduced } from '@/goo/springs'
 import './grandma.css'
 import './grandma-minimal.css'
 
@@ -307,6 +309,12 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
   const [doneView, setDoneView] = useState<'changes' | 'tidy' | null>(null)
   const [isRippling, setIsRippling] = useState(false)
 
+  // Tidy: the switch's thumb flows over to it first, then the ripple starts once it has landed.
+  const chooseTidy = () => {
+    if (doneView === 'tidy') return
+    setDoneView('tidy')
+    window.setTimeout(tidy, prefersReduced() ? 0 : 380)
+  }
   // Tidy: a ripple clears the note, then the kitchen hands over to the Grandkids recipe.
   const tidy = () => {
     onTidyStart?.()
@@ -451,13 +459,22 @@ export function GrandmaMinimalPage({ onTidy, onTidyStart }: { onTidy?: () => voi
       ) : null}
       {isDone ? (
         <div className="gm-done-bar">
-          <div className="gm-controls gm-controls--done" role="group" aria-label="Story">
-            <button className={`gm-recipe-change-button${isRecipeChangeDone ? ' is-done' : ''}`} type="button" aria-pressed={doneView === 'changes'} onClick={openRecipeChange}>
-              <span className="gm-recipe-change-button__default"><ArrowsClockwise size={22} aria-hidden="true" /><span>Recipe change</span></span>
-              <Check className="gm-recipe-change-button__done" size={27} weight="bold" aria-label="Done" />
-            </button>
-            <button type="button" aria-pressed={doneView === 'tidy'} onClick={tidy}>Tidy</button>
-          </div>
+          {/* One liquid switch, like Tidy / Oma's words: the orange thumb flows to the chosen action (tap or slide). */}
+          <GooSegmented className="gm-controls gm-controls--done" aria-label="Story" value={doneView === 'tidy' ? 'tidy' : 'changes'}
+            onChange={(v) => (v === 'tidy' ? chooseTidy() : openRecipeChange())}
+            options={[
+              {
+                value: 'changes',
+                className: `gm-recipe-change-button${doneView === 'changes' ? ' is-listening' : ''}${isRecipeChangeDone ? ' is-done' : ''}`,
+                label: (
+                  <>
+                    <span className="gm-recipe-change-button__default"><ArrowsClockwise size={22} aria-hidden="true" /><span>Recipe change</span></span>
+                    <Check className="gm-recipe-change-button__done" size={27} weight="bold" aria-label="Done" />
+                  </>
+                ),
+              },
+              { value: 'tidy', label: 'Tidy' },
+            ]} />
         </div>
       ) : null}
       {isRecording ? <CameraButton onCapture={addPhoto} onOpenChange={setIsCameraOpen} /> : null}

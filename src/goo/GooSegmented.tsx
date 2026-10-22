@@ -1,7 +1,7 @@
 'use client'
 
 import './goo-segmented.css'
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { play } from '@/haptics/haptics'
 import { aim, prefersReduced, settled, snap, spring, stepSprings, type Params } from './springs'
 
@@ -14,7 +14,8 @@ const TAIL: Params = { k: 150, c: 20 }
 // While dragging, the leading drop stays right under the finger.
 const FOLLOW: Params = { k: 1400, c: 75 }
 
-export type GooSegmentedOption<T extends string> = { value: T; label: string }
+// `label` can hold an icon with the words; `className` styles that one option (e.g. its own pressed or busy states).
+export type GooSegmentedOption<T extends string> = { value: T; label: ReactNode; className?: string }
 
 export type GooSegmentedProps<T extends string> = {
   options: readonly GooSegmentedOption<T>[]
@@ -182,7 +183,7 @@ export function GooSegmented<T extends string>({ options, value, onChange, 'aria
         <div ref={lead} className="goo-seg__blob" />
       </div>
       {options.map((o, i) => (
-        <button key={o.value} ref={(el) => { buttons.current[i] = el }} type="button" className={`goo-seg__opt${buttonClassName ? ` ${buttonClassName}` : ''}`}
+        <button key={o.value} ref={(el) => { buttons.current[i] = el }} type="button" className={`goo-seg__opt${buttonClassName ? ` ${buttonClassName}` : ''}${o.className ? ` ${o.className}` : ''}`}
           aria-pressed={o.value === value} onClick={() => onChange(o.value)}>
           {o.label}
         </button>

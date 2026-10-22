@@ -385,7 +385,8 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 .gm-controls button { color: #1f1c19; }
 @media (prefers-reduced-motion: reduce) { .gm-controls { animation: none; } }
 
-/* After stopping: "Recipe change / Tidy" as plain words split by a slash; a small dot marks the one chosen. */
+/* After stopping: "Recipe change / Tidy" as one liquid switch (GooSegmented). The orange thumb sits under the chosen
+   action and flows to the other on a tap or a slide; the chosen label is white on it. */
 .gm-controls.gm-controls--done {
   gap: 2px;
   padding: 6px 10px;
@@ -393,7 +394,10 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   border: 1px solid rgba(0, 0, 0, .05);
   background: rgba(255, 255, 255, .78);
   box-shadow: 0 4px 14px rgba(0, 0, 0, .06);
+  --goo-seg-thumb: #ff5a1f;
 }
+/* The thumb is as tall as the buttons, inside the capsule's 6px padding. */
+.gm-controls--done .goo-seg__blob { top: 6px; bottom: 6px; }
 .gm-controls--done button {
   display: inline-flex;
   width: auto;
@@ -410,10 +414,6 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   font-weight: 300;
   cursor: pointer;
 }
-/* Only while hovered: a translucent orange wash with orange text. */
-.gm-controls--done button { transition: background-color 180ms ease, color 180ms ease; }
-.gm-controls--done button:hover,
-.gm-controls--done button:focus-visible { background: rgba(255, 90, 38, .14); color: #000; }
 
 /* Mymind-inspired action: a quiet gray pill dissolves into a soft colour cloud and clay mark. */
 .gm-controls--done .gm-recipe-change-button {
@@ -438,8 +438,8 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   filter: blur(14px) saturate(1.15);
   transform: scale(.25) rotate(0deg);
 }
-.gm-recipe-change-button[aria-pressed='true'] .gm-recipe-change-button__default { opacity: 0; filter: blur(5px); transform: scale(.92); }
-.gm-recipe-change-button[aria-pressed='true']::before { animation: gm-recipe-button-listen 1.8s ease-in-out infinite alternate; }
+.gm-recipe-change-button.is-listening .gm-recipe-change-button__default { opacity: 0; filter: blur(5px); transform: scale(.92); }
+.gm-recipe-change-button.is-listening::before { animation: gm-recipe-button-listen 1.8s ease-in-out infinite alternate; }
 .gm-recipe-change-button.is-done::before { animation: gm-recipe-button-bloom 900ms cubic-bezier(.2, .7, .2, 1) both; }
 .gm-recipe-change-button.is-done .gm-recipe-change-button__done { opacity: 1; filter: none; transform: translate(-50%, -50%) scale(1); }
 @keyframes gm-recipe-button-listen {
@@ -453,16 +453,12 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
   100% { opacity: 0; transform: scale(1.35) rotate(80deg); }
 }
 
-/* When recording stops the buttons melt from solid orange into an orange wash, like a marked change. */
-.gm-controls--done button { color: #000; animation: gm-done-button-melt 1.1s cubic-bezier(.2, .7, .2, 1) both; }
-.gm-controls--done .gm-recipe-change-button { animation: none; }
-.gm-controls--done .gm-recipe-change-button { background: #ff5a1f; color: #fff; }
-.gm-controls--done .gm-recipe-change-button:hover,
-.gm-controls--done .gm-recipe-change-button:focus-visible { background: #ff6f3a; color: #fff; }
-.gm-controls--done button:hover,
-.gm-controls--done button:focus-visible { background: #ffd2c0; color: #000; }
-@keyframes gm-done-button-melt { from { background: #ff5a1f; color: #fff; } }
-@media (prefers-reduced-motion: reduce) { .gm-controls--done button { animation: none; } }
+/* Labels: white on the orange thumb, ink beside it; the one not chosen takes a soft orange wash on hover. */
+.gm-controls--done button { color: #000; transition: color 220ms ease, background-color 180ms ease; }
+.gm-controls--done .gm-recipe-change-button { background: transparent; }
+.gm-controls--done button[aria-pressed='true'] { color: #fff; }
+.gm-controls--done button[aria-pressed='false']:hover,
+.gm-controls--done button[aria-pressed='false']:focus-visible { background: rgba(255, 90, 38, .14); color: #000; }
 
 /* Recipe change reuses the Grandkids voice glow and notification over the Grandma screen. */
 .gm-recipe-change { --sg-radius: 56px; position: absolute; inset: 0; z-index: 12; pointer-events: none; }
@@ -481,7 +477,7 @@ h1.gm-note__title, p.gm-note__title { margin: 0; min-height: 1.15em; color: #000
 @keyframes gm-recipe-words-in { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: none; } }
 @media (prefers-reduced-motion: reduce) { .gm-recipe-change__blob, .gm-recipe-change__left, .gm-recipe-change__right { animation: none; } .gm-recipe-change__blob { transform: translateX(var(--dx)); } }
 @media (prefers-reduced-motion: reduce) {
-  .gm-recipe-change-button[aria-pressed='true']::before { animation: none; }
+  .gm-recipe-change-button.is-listening::before { animation: none; }
 }
 
 /* A change she asked for: marked in orange, old word struck through, new word beside it. */
