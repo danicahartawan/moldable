@@ -2,7 +2,7 @@
 
 import './fridge.css'
 import { HomeViewBoard } from '@/boards/HomeView'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 
 /* 10 Fridge cookbooks. Each cookbook is a retro fridge; its recipes are postcard notes held on by magnets.
@@ -53,9 +53,6 @@ const ICON = {
   plus: 'M10 4v12M4 10h12',
   zoomOut: 'M8.5 3a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z M12.5 12.5L17 17 M6 8.5h5',
   zoomIn: 'M8.5 3a5.5 5.5 0 1 1 0 11a5.5 5.5 0 1 1 0-11z M12.5 12.5L17 17 M6 8.5h5 M8.5 6v5',
-  mic: 'M10 2.5a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-5 0V5A2.5 2.5 0 0 1 10 2.5z M5 9.5a5 5 0 0 0 10 0 M10 14.5V17.5',
-  scan: 'M3.5 7V3.5H7M13 3.5h3.5V7M16.5 13v3.5H13M7 16.5H3.5V13 M3.5 10h13',
-  pen: 'M4 16l.9-3.6L12.6 4.7a1.6 1.6 0 0 1 2.3 0l.4.4a1.6 1.6 0 0 1 0 2.3L7.6 15.1z M11.4 5.9l2.7 2.7',
 }
 const FRIDGE_RADIUS = '130px 130px 34px 34px / 104px 104px 34px 34px'
 
@@ -208,7 +205,7 @@ type Drag = { bi: number; k: number; sx: number; sy: number; ox: number; oy: num
 type FridgeProps = {
   /** Start cooking, from the recipe home view inside the fridge: leads to the cooking-step screen. */
   onStartCooking?: () => void
-  /** Record her telling it: leads to the record-grandma flow. Without it, it links to /grandma. */
+  /** Make your own: hands the display over to Grandma's screen. Without it, the page moves to /grandma. */
   onRecord?: () => void
   /** Open straight onto Lawar Bali (e.g. handed over from the grandma screen). */
   startOpen?: boolean
@@ -219,6 +216,7 @@ type FridgeProps = {
 }
 
 export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, active = true, closeRequest = 0 }: FridgeProps) {
+  const router = useRouter()
   const [books, setBooks] = useState<Book[]>(() => START.map((b) => ({ ...b, recipes: b.recipes.slice() })))
   const [i, setI] = useState(0)
   const [view, setView] = useState<View>(startOpen ? 'door' : 'over')
@@ -366,6 +364,14 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     setPhase(0)
     setDragging(null)
     later('p1', 30, () => setPhase(1))
+    // Make your own goes straight to Grandma's screen: the card grows to fill the display and, as it lands, the
+    // display hands over to her (in the kitchen) or the page moves to /grandma. Once the kitchen's slide (1.1s) has
+    // carried the fridge out of sight, the card is put back, so the fridge is ready when you come back.
+    if (itemsOf(books[i])[k].kind === 'new') {
+      later('record', 480, () => (onRecord ? onRecord() : router.push('/grandma')))
+      later('close', 480 + 1200, () => { setOpen(null); setPhase(0) })
+      return
+    }
     // The page starts fading in over the card's colour just before the card has finished growing.
     later('p2', 520, () => setPhase(2))
   }
@@ -477,7 +483,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
   // the page it opens on the way (Lawar Bali's orange becomes its home view's white), so the page fades in over itself.
   let fly: CSSProperties | null = null
   let flyFace: { k: number; h: number; kind: 'lawar' | 'make'; name: string; mins: number; owner: string; foot: string } | null = null
-  let page: { kind: 'main' | 'new' | 'paper'; name: string; from: string; book: string; paper: string; tags: { icon: string; label: string }[] } | null = null
+  let page: { kind: 'main' | 'paper'; name: string; from: string; book: string; paper: string; tags: { icon: string; label: string }[] } | null = null
   if (open) {
     const ob = books[open.b]
     const it = itemsOf(ob)[open.k]
@@ -501,7 +507,7 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
     if (main && it.kind === 'recipe') flyFace = { k: oc.k, h: LAWAR_NH, kind: 'lawar', name: it.r[0], mins: it.r[1], owner: ob.owner, foot: c.bottom }
     if (it.kind === 'new') flyFace = { k: oc.k, h: LAWAR_NH, kind: 'make', name: '', mins: 0, owner: ob.owner, foot: c.bottom }
     page = it.kind === 'new'
-      ? { kind: 'new', name: 'New recipe', from: '', book: ob.label, paper: c.paper, tags: [] }
+      ? null
       : { kind: open.b === 0 && open.k === 0 ? 'main' : 'paper', name: it.r[0], from: ob.from, book: ob.label, paper: c.paper,
         tags: [{ icon: ICON.clock, label: `${it.r[1]} min` }, { icon: ICON.level, label: it.r[2] }] }
   }
@@ -623,36 +629,6 @@ export function FridgeScreen({ onStartCooking, onRecord, startOpen = false, acti
         <div className={`fz-in fz-page${leaving}`} style={{ background: '#fff' }}>
           <HomeViewBoard embedded clay onStartCooking={onStartCooking} />
         </div>
-      )}
-
-      {shown && page?.kind === 'new' && (
-        <article className={`fz-in fz-page${leaving}`} aria-label="New recipe" style={{ background: page.paper }}>
-          <section className="fz-new">
-            <h1 className="fz-page__title">New recipe</h1>
-            <p className="fz-page__lede">For <b>{page.book}</b>. How do you want to save it?</p>
-            <div className="fz-options">
-              {(() => {
-                const inner = (
-                  <>
-                    <Icon d={ICON.mic} size={26} width={1.6} />
-                    <span className="fz-option__text"><span className="fz-option__title">Record her telling it</span><span className="fz-option__sub">Her words stay as she says them</span></span>
-                  </>
-                )
-                return onRecord
-                  ? <button type="button" className="fz-tap fz-option fz-option--dark" onClick={onRecord}>{inner}</button>
-                  : <Link href="/grandma" className="fz-tap fz-option fz-option--dark">{inner}</Link>
-              })()}
-              <button type="button" className="fz-tap fz-option">
-                <Icon d={ICON.scan} size={26} width={1.6} />
-                <span className="fz-option__text"><span className="fz-option__title">Scan a card</span><span className="fz-option__sub">Hold her recipe card flat</span></span>
-              </button>
-              <button type="button" className="fz-tap fz-option">
-                <Icon d={ICON.pen} size={26} width={1.6} />
-                <span className="fz-option__text"><span className="fz-option__title">Write it yourself</span><span className="fz-option__sub">Type it in, step by step</span></span>
-              </button>
-            </div>
-          </section>
-        </article>
       )}
 
       {shown && page?.kind === 'paper' && (

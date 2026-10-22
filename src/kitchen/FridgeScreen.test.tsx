@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FridgeScreen } from './FridgeScreen'
+import { router } from '@/testSetup'
 
 beforeEach(() => vi.useFakeTimers())
 afterEach(() => {
@@ -80,17 +81,30 @@ describe('FridgeScreen', () => {
     expect(cam()).toContain('scale(0.48)')
   })
 
-  it('Make your own opens the New recipe page', () => {
+  it('Make your own grows to fill the screen, then hands over to Grandma\'s screen and resets', () => {
     const record = vi.fn()
     render(<FridgeScreen onRecord={record} />)
     advance(1600)
     fireEvent.click(screen.getAllByRole('button', { name: /Make your own/ })[0])
-    advance(700)
-    expect(screen.getByRole('article', { name: 'New recipe' })).toHaveTextContent('For Oma Lien’s cookbook. How do you want to save it?')
-    fireEvent.click(screen.getByRole('button', { name: /Record her telling it/ }))
-    expect(record).toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: /Scan a card/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Write it yourself/ })).toBeInTheDocument()
+    advance(100)
+    expect(document.querySelector('.fz-fly')).toHaveClass('is-big')
+    expect(record).not.toHaveBeenCalled()
+    advance(400)
+    expect(record).toHaveBeenCalledTimes(1)
+    // No options page in between, and the fridge is closed again once it's out of sight.
+    expect(screen.queryByRole('article', { name: 'New recipe' })).not.toBeInTheDocument()
+    advance(1200)
+    expect(document.querySelector('.fz-fly')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Make your own/ })[0]).toBeEnabled()
+  })
+
+  it('without a kitchen around it, Make your own moves the page to /grandma', () => {
+    router.push.mockClear()
+    render(<FridgeScreen />)
+    advance(1600)
+    fireEvent.click(screen.getAllByRole('button', { name: /Make your own/ })[0])
+    advance(500)
+    expect(router.push).toHaveBeenCalledWith('/grandma')
   })
 
   it('the dashed fridge adds a NEW BOOK fridge with only Make your own', () => {
